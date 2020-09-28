@@ -1,0 +1,344 @@
+\documentclass{report}
+
+\usepackage{epigraph}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{xspace}
+\usepackage{listings}
+
+\newcommand{\lang}{Allyn\xspace}
+\newcommand{\mpc}{\ensuremath{\lambda_{\mathrm{MPC}}}\xspace}
+\newcommand{\obliv}{\ensuremath{\lambda_{\mathrm{Obliv}}}\xspace}
+
+\newcommand{\ins}[1]{\textcolor{red}{Ian: #1}}
+
+%%%% Listings
+
+\makeatletter
+\lst@InstallFamily k{primitives}{primitivestyle}\slshape{primitivestyle}{}ld
+\lst@InstallFamily k{basevalues}{basevaluestyle}\slshape{basevaluestyle}{}ld
+\lst@InstallFamily k{operations}{operationstyle}\slshape{operationstyle}{}ld
+\makeatother
+
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  frame=single,
+  breaklines=true
+}
+
+% ↓↓↓ HACK ↓↓↓
+% from here: https://tex.stackexchange.com/questions/110641/help-defining-pdf-syntax-with-listings-package
+% without this, closing paren in literate codes doesn't take effect as it
+% should. no clue how this works.
+\makeatletter
+\def\uglypatch #1\lst@ifbreaklines#2\fi#3\uglypatch{%
+  \long\def\lsthk@SelectCharTable{#1#3}%
+}
+\lst@ifbreaklines
+\expandafter\uglypatch\lsthk@SelectCharTable\uglypatch
+\fi
+\makeatother
+% ↑↑↑ HACK ↑↑↑
+
+\lstdefinelanguage{psl}{
+  mathescape,
+  frame=none,
+  alsoletter=-,
+  columns=fullflexible,
+  keepspaces,
+  literate={
+   *{(}{{{\color{gray}{(}}}}1
+    {)}{{{\color{gray}{)}}}}1
+    {[}{{{\color{gray}{[}}}}1
+    {]}{{{\color{gray}{]}}}}1
+    {\{}{{{\color{gray}{\{}}}}1
+    {\}}{{{\color{gray}{\}}}}}1
+    {.}{{{\color{gray}{.}}}}1
+    {:}{{{\color{gray}{:}}}}1
+    {,}{{{\color{gray}{,}}}}1
+    {;}{{{\color{gray}{;}}}}1
+    {=}{{{\color{gray}{=}}}}1
+    {|}{{{\color{gray}{|}}}}1
+    {@}{{{\color{gray}{@}}}}1
+    {\#}{{{\color{gray}{\#}}}}1
+    {!}{{{\color{gray}{!}}}}1
+    {\_}{{{\color{gray}{\_}}}}1
+    %
+    {+}{{{\color[RGB]{8,117,0}{+}}}}1
+    {*}{{{\color[RGB]{8,117,0}{*}}}}1
+    {/}{{{\color[RGB]{8,117,0}{/}}}}1
+    {\%}{{{\color[RGB]{8,117,0}{\%}}}}1
+    {<}{{{\color[RGB]{8,117,0}{<}}}}1
+    {>}{{{\color[RGB]{8,117,0}{>}}}}1
+    {\^}{{{\color[RGB]{8,117,0}{\^{}}}}}1
+    %
+    {=>}{{{\color{gray}{=>}}}}2
+    {->}{{{\color{gray}{->}}}}2
+    {<-}{{{\color{gray}{<-}}}}2
+    {<<}{{{\color{gray}{<<}}}}2
+    {>>}{{{\color{gray}{>>}}}}2
+    {:=}{{{\color{gray}{:=}}}}2
+    %
+    {==}{{{\color[RGB]{8,117,0}{==}}}}2
+    {<=}{{{\color[RGB]{8,117,0}{<=}}}}2
+    {>=}{{{\color[RGB]{8,117,0}{>=}}}}2
+    {><}{{{\color[RGB]{8,117,0}{><}}}}2
+    {||}{{{\color[RGB]{8,117,0}{||}}}}2
+    {&&}{{{\color[RGB]{8,117,0}{\&\&}}}}2
+    {()}{{{\color[RGB]{8,117,0}{()}}}}2
+    {[]}{{{\color[RGB]{8,117,0}{[]}}}}2
+    {::}{{{\color[RGB]{8,117,0}{::}}}}2
+    {++}{{{\color[RGB]{8,117,0}{++}}}}2
+    {\{\}}{{{\color[RGB]{8,117,0}{\{\}}}}}2
+    {\_|\_}{{{\color[RGB]{8,117,0}{\_|\_}}}}3
+    %
+    {0}{{{\color[RGB]{116,0,0}{0}}}}1
+    {1}{{{\color[RGB]{116,0,0}{1}}}}1
+    {2}{{{\color[RGB]{116,0,0}{2}}}}1
+    {3}{{{\color[RGB]{116,0,0}{3}}}}1
+    {4}{{{\color[RGB]{116,0,0}{4}}}}1
+    {5}{{{\color[RGB]{116,0,0}{5}}}}1
+    {6}{{{\color[RGB]{116,0,0}{6}}}}1
+    {7}{{{\color[RGB]{116,0,0}{7}}}}1
+    {8}{{{\color[RGB]{116,0,0}{8}}}}1
+    {9}{{{\color[RGB]{116,0,0}{9}}}}1
+    {0n}{{{\color[RGB]{116,0,0}{0n}}}}2
+    {1n}{{{\color[RGB]{116,0,0}{1n}}}}2
+    {2n}{{{\color[RGB]{116,0,0}{2n}}}}2
+    {3n}{{{\color[RGB]{116,0,0}{3n}}}}2
+    {4n}{{{\color[RGB]{116,0,0}{4n}}}}2
+    {5n}{{{\color[RGB]{116,0,0}{5n}}}}2
+    {6n}{{{\color[RGB]{116,0,0}{6n}}}}2
+    {7n}{{{\color[RGB]{116,0,0}{7n}}}}2
+    {8n}{{{\color[RGB]{116,0,0}{8n}}}}2
+    {9n}{{{\color[RGB]{116,0,0}{9n}}}}2
+    {-0}{{{\color[RGB]{116,0,0}{-0}}}}2
+    {-1}{{{\color[RGB]{116,0,0}{-1}}}}2
+    {-2}{{{\color[RGB]{116,0,0}{-2}}}}2
+    {-3}{{{\color[RGB]{116,0,0}{-3}}}}2
+    {-4}{{{\color[RGB]{116,0,0}{-4}}}}2
+    {-5}{{{\color[RGB]{116,0,0}{-5}}}}2
+    {-6}{{{\color[RGB]{116,0,0}{-6}}}}2
+    {-7}{{{\color[RGB]{116,0,0}{-7}}}}2
+    {-8}{{{\color[RGB]{116,0,0}{-8}}}}2
+    {-9}{{{\color[RGB]{116,0,0}{-9}}}}2
+    {-0n}{{{\color[RGB]{116,0,0}{-0n}}}}3
+    {-1n}{{{\color[RGB]{116,0,0}{-1n}}}}3
+    {-2n}{{{\color[RGB]{116,0,0}{-2n}}}}3
+    {-3n}{{{\color[RGB]{116,0,0}{-3n}}}}3
+    {-4n}{{{\color[RGB]{116,0,0}{-4n}}}}3
+    {-5n}{{{\color[RGB]{116,0,0}{-5n}}}}3
+    {-6n}{{{\color[RGB]{116,0,0}{-6n}}}}3
+    {-7n}{{{\color[RGB]{116,0,0}{-7n}}}}3
+    {-8n}{{{\color[RGB]{116,0,0}{-8n}}}}3
+    {-9n}{{{\color[RGB]{116,0,0}{-9n}}}}3
+    {0:}{{{\color[RGB]{184,184,184}{0:}}}}2
+    {1:}{{{\color[RGB]{184,184,184}{1:}}}}2
+    {2:}{{{\color[RGB]{184,184,184}{2:}}}}2
+    {3:}{{{\color[RGB]{184,184,184}{3:}}}}2
+    {4:}{{{\color[RGB]{184,184,184}{4:}}}}2
+    {5:}{{{\color[RGB]{184,184,184}{5:}}}}2
+    {6:}{{{\color[RGB]{184,184,184}{6:}}}}2
+    {7:}{{{\color[RGB]{184,184,184}{7:}}}}2
+    {8:}{{{\color[RGB]{184,184,184}{8:}}}}2
+    {9:}{{{\color[RGB]{184,184,184}{9:}}}}2
+    {10:}{{{\color[RGB]{184,184,184}{10:}}}}3
+    {11:}{{{\color[RGB]{184,184,184}{11:}}}}3
+    {12:}{{{\color[RGB]{184,184,184}{12:}}}}3
+    {13:}{{{\color[RGB]{184,184,184}{13:}}}}3
+    {14:}{{{\color[RGB]{184,184,184}{14:}}}}3
+    {15:}{{{\color[RGB]{184,184,184}{15:}}}}3
+    {16:}{{{\color[RGB]{184,184,184}{16:}}}}3
+    {17:}{{{\color[RGB]{184,184,184}{17:}}}}3
+    {18:}{{{\color[RGB]{184,184,184}{18:}}}}3
+    {19:}{{{\color[RGB]{184,184,184}{19:}}}}3
+    {0::}{{{\color[RGB]{116,0,0}{0}\color[RGB]{8,117,0}{::}}}}3
+    {1::}{{{\color[RGB]{116,0,0}{1}\color[RGB]{8,117,0}{::}}}}3
+    {2::}{{{\color[RGB]{116,0,0}{2}\color[RGB]{8,117,0}{::}}}}3
+    {3::}{{{\color[RGB]{116,0,0}{3}\color[RGB]{8,117,0}{::}}}}3
+    {4::}{{{\color[RGB]{116,0,0}{4}\color[RGB]{8,117,0}{::}}}}3
+    {5::}{{{\color[RGB]{116,0,0}{5}\color[RGB]{8,117,0}{::}}}}3
+    {6::}{{{\color[RGB]{116,0,0}{6}\color[RGB]{8,117,0}{::}}}}3
+    {7::}{{{\color[RGB]{116,0,0}{7}\color[RGB]{8,117,0}{::}}}}3
+    {8::}{{{\color[RGB]{116,0,0}{8}\color[RGB]{8,117,0}{::}}}}3
+    {9::}{{{\color[RGB]{116,0,0}{9}\color[RGB]{8,117,0}{::}}}}3
+    {10::}{{{\color[RGB]{116,0,0}{10}\color[RGB]{8,117,0}{::}}}}3
+    {11::}{{{\color[RGB]{116,0,0}{11}\color[RGB]{8,117,0}{::}}}}3
+    {12::}{{{\color[RGB]{116,0,0}{12}\color[RGB]{8,117,0}{::}}}}3
+    {13::}{{{\color[RGB]{116,0,0}{13}\color[RGB]{8,117,0}{::}}}}3
+    {14::}{{{\color[RGB]{116,0,0}{14}\color[RGB]{8,117,0}{::}}}}3
+    {15::}{{{\color[RGB]{116,0,0}{15}\color[RGB]{8,117,0}{::}}}}3
+    {16::}{{{\color[RGB]{116,0,0}{16}\color[RGB]{8,117,0}{::}}}}3
+    {17::}{{{\color[RGB]{116,0,0}{17}\color[RGB]{8,117,0}{::}}}}3
+    {18::}{{{\color[RGB]{116,0,0}{18}\color[RGB]{8,117,0}{::}}}}3
+    {19::}{{{\color[RGB]{116,0,0}{19}\color[RGB]{8,117,0}{::}}}}3
+  },
+  morekeywords={
+      primitive,principal,def,fun,abs,forall,let,in,
+      if,mux,then,else,case,reveal,share,send,trace,
+      set,this,solo,as,fold,on,par,ref,array,do,
+      read,write,from,to,proc,return,loop,when,
+      import,nizk-witness,nizk-commit,virtual,party,
+      send-share,recv-share,reveal-send,reveal-recv,
+      wire,sec,sign,unsign,is-signed
+  },
+  moreprimitives={
+    yao,gmw,bgw,bgv,spdz,auto,ssec,isec,bundle,type,
+    prin,prins,empty,unit,bool,string,nat,int,flt,list,
+    rand,rand-range,inp,rev,inf,all,nizk-test,nizk-verify
+  },
+  moreoperations={
+    not,to_flt,abs_val,ceil,sqrt,size,L,R,-
+  },
+  morebasevalues={
+    true,false
+  },
+  string=[b]",
+  comment=[l]{--},
+  morecomment=[n]{\{-}{-\}},
+%  basicstyle=\ttfamily\smaller\smaller,
+  commentstyle=\color[RGB]{184,184,184}\slshape,
+  stringstyle=\color[RGB]{116,0,0},
+  keywordstyle=\color[RGB]{117,117,0}\bfseries,
+  primitivestyle=\color[RGB]{0,4,117},
+  basevaluestyle=\color[RGB]{116,0,0},
+  operationstyle=\color[RGB]{8,117,0}
+}
+
+
+\lstset{language=psl}
+
+%%% Macros for MPC
+\definecolor{aliceColor}{HTML}{EA9999}
+\definecolor{bobColor}{HTML}{3C78D8}
+
+\newcommand{\alice}{Alice\xspace}
+\newcommand{\bob}{Bob\xspace}
+
+\definecolor{implColor}{HTML}{EA9999}
+\definecolor{theoryColor}{HTML}{A4C2F4}
+
+\begin{document}
+
+\title{A Programming Language for Obliviousness and Secure Computation}
+
+\author{Ian Sweet \\
+  \emph{University of Maryland, College Park} \\
+  \emph{ins@cs.umd.edu}}
+
+\date{}
+
+\maketitle
+
+\begin{abstract}
+  \emph{Secure Multiparty Computation (MPC)} and \emph{Oblivious RAM} (ORAM) have emerged as promising approaches to
+  high-confidentiality computation. Traditionally, MPC programs do not allow secrets to be used as indexes to dynamically
+  allocated memory. This precludes, for example, a secure binary search in which the element being accessed is considered secret.
+  This restriction is relaxed by using ORAM inside of the secure computation. Unfortunately, existing languages for MPC typically
+  support ORAM by ``baking it in'' to the language as a trusted primitive. We propose the design and implementation of a language
+  for MPC with \emph{application-level support} for ORAM with an associated \emph{proof of security}.
+\end{abstract}
+
+\chapter{Introduction}
+
+\epigraph{It seems like everywhere I go \\
+          The more I see, the less I know}{
+            Michael Franti \& Spearhead \\
+            \emph{Say Hey I Love You}}
+
+If our adversaries were more like Michael Franti then we wouldn’t need to concern ourselves with confidentiality.
+Unfortunately, that isn’t the world we live in. \emph{Secure Multiparty Computation (MPC)} and \emph{Oblivious RAM} (ORAM)
+have emerged as promising approaches to high-confidentiality computation. An MPC program allows mutually distrustful
+parties to compute over their secret inputs while guaranteeing that they learn nothing more than the result.
+Traditionally, these programs do not allow secrets to be used as indexes to dynamically allocated memory.
+This precludes, for example, a secure binary search in which the element being accessed is considered secret.
+This restriction is relaxed by using ORAM inside of the secure computation. ORAM is an abstract data type with a
+RAM-like interface which prevents information leaks through the (physical) memory access pattern side-channel.
+So, how do existing MPC languages integrate ORAM? Well, some side-step the issue by relying on applications
+to implement ORAM as a library. This has the benefit of empowering the programmer but the detriment of
+giving up security guarantees; a buggy ORAM could leak information about secrets accidentally.
+Other MPC languages ``bake in'' ORAM as a trusted primitive. This has the converse effect of guaranteeing
+security\footnote{Of course, this assumes that the trusted primitive is correct (usually) without a machine-checked proof}
+but removing the programmer’s ability to choose the ORAM implementation best suited to their application.
+What if we could empower programmers to \emph{implement ORAM as a library} and also automatically
+\emph{verify that they aren’t accidentally leaking their secrets}?
+
+\paragraph{Hypothesis} Motivated by the observation of the previous paragraph, this proposal presents a plan
+for the design and implementation of an MPC language, \lang, with \emph{application-level support} for ORAM and an
+\emph{automatic proof of security} for all programs written in the language. How will we verify that the hypothesis is correct?
+First, we will develop a formal model of \lang and prove that it enjoys security.
+Second, we will implement \lang and show that it admits modern ORAM schemes.
+
+\section{Proposed Work}
+
+Tasks in \colorbox{implColor}{red} require adding additional functionality to the existing Haskell implementation of \mpc.
+Tasks in \colorbox{theoryColor}{blue} require adapting the formal metatheory of \mpc.
+
+\begin{table}[]
+  \begin{tabular}{|p{.33\textwidth}|p{.33\textwidth}|p{.33\textwidth}|}
+    \hline
+    \textbf{Task} & \textbf{Description} & \textbf{Estimated Time of Completion} \\
+    \hline
+    \rowcolor{implColor}
+    Case Studies:
+    \begin{itemize}
+    \item Trivial ORAM
+    \item Tree ORAM(s)
+    \item Recursive ORAM
+    \end{itemize}    & Implement case studies in \lang;
+                       show that they are functionally correct and typecheck & 10/07/2020 (~2 weeks)  \\ \hline
+    \rowcolor{implColor}
+    Type Checker     & Implement the type checker for \lang                  & 11/07/2020 (~1 month)  \\ \hline
+    \rowcolor{implColor}
+    MPC Interpreter  & Implement an EMP MPC backend for \lang                & 01/07/2021 (~2 months) \\ \hline
+    \rowcolor{theoryColor}
+    Static Semantics & \lang is \mpc + \obliv                                & 03/07/2021 (~2 months) \\ \hline
+    \rowcolor{theoryColor}
+    PMTO\%           & Prove \lang satisfies PMTO\%                          & 05/07/2021 (~2 months) \\ \hline
+    \rowcolor{theoryColor}
+    Type Soundness   & Prove \lang satisfies Type Soundness                  & 05/14/2021 (~1 week)   \\ \hline
+    \rowcolor{theoryColor}
+    Simulation       & Prove \lang satisfies Simulation                      & 05/21/2021 (~1 week)   \\ \hline
+  \end{tabular}
+\end{table}
+
+\chapter{Background}
+\epigraph{Trust in me in all you do \\
+          Have the faith I have in you \\
+          Love will see us through \\
+          If only you trust in me}{
+            Etta James \\
+            \emph{Trust in Me}}
+
+For those committe members who aren't (yet) totally jazzed about MPC and ORAM, this one goes out to you.
+
+\section{Secure Multiparty Computation}
+
+The mission of Secure Multiparty Computation (MPC) is to allow many parties who don’t trust each
+other to compute over their private inputs while only learning the result of the public output.
+In this proposal, we will only concern ourselves with the honest-but-curious threat model which
+assumes that parties must obey the protocol but may attempt to passively learn information about the secrets of others.
+
+\subsection{Overview}
+
+MPC works by allowing a secret, in cleartext, to be split up into many ``shares'' which are considered ciphertext
+and therefore may be safely distributed to other parties and recombined later. More specifically, shares have the following properties:
+\begin{enumerate}
+\item Shares can be combined to reveal the original cleartext secret.
+\item A share does not reveal any information about the secret.
+\item Parties can cooperate to compute over shares. For example, being able to create shares of boolean values
+  and compute XOR and AND over those shares forms a complete basis for computation. Primitives such as addition,
+  comparison, etc. can be built from these boolean operations.
+\end{enumerate}
+
+The languages discussed in this proposal are agnostic to the underlying MPC protocol. We only require that the underlying MPC protocol
+have the properties listed above. For the purposes of exposition, however, we choose to use the GMW protocol [cite] as a
+representative for MPC protocols in general.
+
+In GMW, the secrets being shared are booleans. To represent integers with arithmetic, comparison, etc. we use a two's
+complement representation. For example, a digital circuit with only XOR and AND gates can be used to half adders,
+full-adders, and ripple-carry adders. A party \alice can generate her share of her (boolean) secret \lstinline{sA} by
+generating a random number:
+
+\end{document}
