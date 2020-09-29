@@ -1,0 +1,61 @@
+\documentclass{article}
+
+\usepackage[T5,T1]{fontenc}
+
+\usepackage{longtable}
+
+\input{darais-latex-imports}
+\input{darais-latex-macros}
+
+% \geometry{margin=1in}
+
+\title{Proposal}
+\author{Ian}
+
+\begin{document}
+\maketitle
+
+\textit{2}
+
+document
+
+hi
+
+M⁅
+Aːcl
+A⁅ B⸨ ⌊ A⸨ B⸨ s⸤A⸥ B⸩ ∧ C⸨ s⸤B⸥ C⸩ A⸩ ⌋⸤A⸥ B⸩ 
+   ⊕ 
+   C⸨ ⌊ A⸨ B⸨ s⸤A⸥ B⸩ ∧ C⸨ s⸤B⸥ C⸩ A⸩ ⌋⸤B⸥ C⸩
+   = B⸨ σ⸤A⸥ B⸩ ⊕ (B⸨ σ⸤A⸥ B⸩ ⊕ α⸤i,j⸥) & ⟪[Definition]⟫
+A⁃ where i = ⌊s⸤A⸥⌋⸤B⸥ and j = ⌊s⸤B⸥⌋⸤B⸥
+A⁃
+A⁃ = αi,j                             [XOR inverse]
+A⁃ = ⌊s⸤A⸥⌋⸤A⸥ ⊕ ⌊s⸤A⸥⌋⸤B⸥ ∧ ⌊s⸤B⸥⌋⸤A⸥ ⊕ ⌊s⸤B⸥⌋⸤B⸥      [Definiton]
+A⁃ = s⸤A⸥ ∧ s⸤B⸥                         [Share 
+A⁆
+M⁆
+
+M⁅
+\begin{array}{r@{␠}lcl}
+   «0:» & 𝑚𝑐3l{ ⦑par⦒[B⸨‹Alice›B⸩,C⸨‹Bob›C⸩] }
+\\ «1:» & ␠⦑let⦒␣x    ⧼=⧽ ⦑par⦒[B⸨‹Alice›B⸩]␣⦑read⦒␣⦑in⦒
+\\ «2:» & ␠⦑let⦒␣y    ⧼=⧽ ⦑par⦒[C⸨‹Bob›C⸩]␣⦑read⦒␣⦑in⦒
+\\ «3:» & ␠⦑let⦒␣«sx» ⧼=⧽ ⦑share⦒[B⸨‹Alice›B⸩ → B⸨‹Alice›B⸩,C⸨‹Bob›C⸩]␣x␣⦑in⦒
+\\ «4:» & ␠⦑let⦒␣«sy» ⧼=⧽ ⦑share⦒[C⸨‹Bob›C⸩ → B⸨‹Alice›B⸩,C⸨‹Bob›C⸩]␣y␣⦑in⦒
+\\ «5:» & ␠⦑let⦒␣r    ⧼=⧽ «sx» < «sy»␣⦑in⦒
+\\ «6:» & ␠⦑let⦒␣z    ⧼=⧽ ⦑reveal⦒[B⸨AliceB⸩,C⸨BobC⸩]␣r␣⦑in⦒
+\end{array}
+M⁆
+
+M⁅ hi M⁆
+
+M⁅
+Aːccc
+A⁅ thing
+A⁃ A & B & C
+A⁆
+a = b
+M⁆
+
+\end{document}
+\endinput
