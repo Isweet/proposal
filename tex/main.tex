@@ -88,35 +88,34 @@ Second, we will implement \lang and show that it admits modern ORAM schemes.
 \section{Proposed Work}
 
 Tasks in \colorbox{implColor}{red} require adding additional functionality to the existing Haskell implementation of \mpc.
-Tasks in \colorbox{theoryColor}{blue} require adapting the formal metatheory of \mpc.
+Tasks in \colorbox{theoryColor}{blue} require adapting the formal metatheory of \mpc. \\
 
-\begin{table}[]
-  \begin{tabular}{|p{.33\textwidth}|p{.33\textwidth}|p{.33\textwidth}|}
-    \hline
-    \textbf{Task} & \textbf{Description} & \textbf{Estimated Time of Completion} \\
-    \hline
-    \rowcolor{implColor}
-    Case Studies:
-    \begin{itemize}
-    \item Trivial ORAM
-    \item Tree ORAM(s)
-    \item Recursive ORAM
-    \end{itemize}    & Implement case studies in \lang;
-                       show that they are functionally correct and typecheck & 10/07/2020 (~2 weeks)  \\ \hline
-    \rowcolor{implColor}
-    Type Checker     & Implement the type checker for \lang                  & 11/07/2020 (~1 month)  \\ \hline
-    \rowcolor{implColor}
-    MPC Interpreter  & Implement an EMP MPC backend for \lang                & 01/07/2021 (~2 months) \\ \hline
-    \rowcolor{theoryColor}
-    Static Semantics & \lang is \mpc + \obliv                                & 03/07/2021 (~2 months) \\ \hline
-    \rowcolor{theoryColor}
-    PMTO\%           & Prove \lang satisfies PMTO\%                          & 05/07/2021 (~2 months) \\ \hline
-    \rowcolor{theoryColor}
-    Type Soundness   & Prove \lang satisfies Type Soundness                  & 05/14/2021 (~1 week)   \\ \hline
-    \rowcolor{theoryColor}
-    Simulation       & Prove \lang satisfies Simulation                      & 05/21/2021 (~1 week)   \\ \hline
-  \end{tabular}
-\end{table}
+\begin{tabular}{|p{.30\textwidth}|p{.30\textwidth}|p{.30\textwidth}|}
+  \hline
+  \textbf{Task} & \textbf{Description} & \textbf{Estimated Time of Completion} \\
+  \hline
+  \rowcolor{implColor}
+  Case Studies:
+  \begin{itemize}
+  \item Trivial ORAM
+  \item Tree ORAM(s)
+  \item Recursive ORAM
+  \end{itemize}    & Implement case studies in \lang;
+  show that they are functionally correct and typecheck & 10/07/2020 (~2 weeks)  \\ \hline
+  \rowcolor{implColor}
+  Type Checker     & Implement the type checker for \lang                  & 11/07/2020 (~1 month)  \\ \hline
+  \rowcolor{implColor}
+  MPC Interpreter  & Implement an EMP MPC backend for \lang                & 01/07/2021 (~2 months) \\ \hline
+  \rowcolor{theoryColor}
+  Static Semantics & \lang is \mpc + \obliv                                & 03/07/2021 (~2 months) \\ \hline
+  \rowcolor{theoryColor}
+  PMTO\%           & Prove \lang satisfies PMTO\%                          & 05/07/2021 (~2 months) \\ \hline
+  \rowcolor{theoryColor}
+  Type Soundness   & Prove \lang satisfies Type Soundness                  & 05/14/2021 (~1 week)   \\ \hline
+  \rowcolor{theoryColor}
+  Simulation       & Prove \lang satisfies Simulation                      & 05/21/2021 (~1 week)   \\ \hline
+\end{tabular}
+
 
 \chapter{Background}
 \epigraph{Trust in me in all you do \\
@@ -181,20 +180,13 @@ boolean value. This establishes property (2) of MPC above. Second, XOR has the f
   ⸨∀ b ∈ 𝔹␣.␣b ⊕ 0 = 0 ⊕ b = b⸩
 \end{fact}
 
-%M⁅
-%   Aːlll
-%   A⁅ (1) & ␠∀ b ∈ 𝔹␣.␣b ⊕ b = 0 & ␠⟪[Inverses]⟫
-%\\ A⁃ (2) & ␠∀ b ∈ 𝔹␣.␣b ⊕ 0 = 0 ⊕ b = b & ␠⟪[Identity]⟫
-%   A⁆
-%⁆M
-
 These two properties ensure that the original secret, \aliceSec, can be recovered by XOR'ing the shares together:
 
 M⁅
   Aːllll
-  A⁅ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ⧼=⧽ \aliceSh{\aliceSec} ⊕ \aliceSh{\aliceSec} ⊕ \aliceSec & ␠⟪[Definition of \bobSh{\aliceSec}]⟫ \\
-  A⁃                                         ⧼=⧽ 0 ⊕ \aliceSec & ␠⟪[Fact~\ref{xor-inverse}]⟫ \\
-  A⁃                                         ⧼=⧽ \aliceSec & ␠⟪[Fact~\ref{xor-identity}]⟫ \\
+  A⁅ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ⧼=⧽ \aliceSh{\aliceSec} ⊕ \aliceSh{\aliceSec} ⊕ \aliceSec & ␠⟪[Definition of \bobSh{\aliceSec}]⟫
+  A⁃                                         ⧼=⧽ 0 ⊕ \aliceSec & ␠⟪[Fact~\ref{xor-inverse}]⟫
+  A⁃                                         ⧼=⧽ \aliceSec & ␠⟪[Fact~\ref{xor-identity}]⟫
   A⁆
 M⁆
 
@@ -205,8 +197,8 @@ evaluate the XOR of their shares independently:
 
 M⁅
   Aːllll
-  A⁅ \aliceSh{A⸨ \aliceSec ⊕ \bobSec A⸩} ⧼←⧽ \aliceSh{\aliceSec} ⊕ \aliceSh{\bobSec} \\
-  A⁃ \bobSh{A⸨ \aliceSec   ⊕ \bobSec A⸩} ⧼←⧽ \bobSh{\aliceSec}   ⊕ \bobSh{\bobSec} \\
+  A⁅ \aliceSh{A⸨ \aliceSec ⊕ \bobSec A⸩} ⧼←⧽ \aliceSh{\aliceSec} ⊕ \aliceSh{\bobSec}
+  A⁃ \bobSh{A⸨ \aliceSec   ⊕ \bobSec A⸩} ⧼←⧽ \bobSh{\aliceSec}   ⊕ \bobSh{\bobSec}
   A⁆
 M⁆
 
@@ -215,15 +207,15 @@ Why does this work? Well, it's because XOR is associative:
 M⁅
   Aːllll
   A⁅ \aliceSh{\aliceSec ⊕ \bobSec} ⊕ \bobSh{\aliceSec ⊕ \bobSec} ⧼=⧽
-      (\aliceSh{\aliceSec} ⊕ \aliceSh{\bobSec}) ⊕ (\bobSh{\aliceSec} ⊕ \bobSh{\bobSec}) & ␠⟪[Definition of XOR of shares]⟫ \\
+      (\aliceSh{\aliceSec} ⊕ \aliceSh{\bobSec}) ⊕ (\bobSh{\aliceSec} ⊕ \bobSh{\bobSec}) & ␠⟪[Definition of XOR of shares]⟫
   A⁃ ⧼=⧽
-      (\aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec}) ⊕ (\aliceSh{\bobSec} ⊕ \bobSh{\bobSec}) & ␠⟪[Associativity of XOR]⟫ \\
+      (\aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec}) ⊕ (\aliceSh{\bobSec} ⊕ \bobSh{\bobSec}) & ␠⟪[Associativity of XOR]⟫
   A⁃ ⧼=⧽
-      \aliceSec ⊕ \bobSec & ␠⟪[Share Recovery]⟫ \\
+      \aliceSec ⊕ \bobSec & ␠⟪[Share Recovery]⟫
   A⁆
 M⁆
 
-Now for the tricky bit. How do we compute ⸨\aliceSec ∧ \bobSec⸩? To describe this gatewe need to assume that we have access to a
+Now for the tricky bit. How do we compute ⸨\aliceSec ∧ \bobSec⸩? To describe this gate we assume that we have access to a
 protocol called 1-4 Oblivious Transfer (OT). This protocol allows a sender, ⸨S⸩, to send 4 messages to a receiver, ⸨R⸩, in such a
 way that (a) ⸨R⸩ is only allowed to see 1 of the 4 messages and (b) ⸨S⸩ cannot tell which message ⸨R⸩ chose.
 
@@ -231,8 +223,8 @@ Assuming that we have access to such a protocol, we can compute \alice's share o
 
 M⁅
   Aːllll
-  A⁅ \alices{σ}                          ⧼←⧽ 𝒰(❴0,1❵) \\
-  A⁃ \aliceSh{A⸨ \aliceSec ∧ \bobSec A⸩} ⧼←⧽ \alices{σ} \\
+  A⁅ \alices{σ}                          ⧼←⧽ 𝒰(❴0,1❵)
+  A⁃ \aliceSh{A⸨ \aliceSec ∧ \bobSec A⸩} ⧼←⧽ \alices{σ}
   A⁆
 M⁆
 
@@ -260,10 +252,10 @@ to the first row in Table~\ref{tab:and-ot}).
 
 M⁅
   Aːllll
-  A⁅ \bobSh{\aliceSec ∧ \bobSec} ⧼←⧽ r␣‹where›␣& r = r⸤0,0⸥␣‹if›␣\bobSh{\aliceSec} = 0␣‹and›␣\bobSh{\bobSec} = 0 \\
-  A⁃ & & & r = r⸤0,1⸥␣‹if›␣\bobSh{\aliceSec} = 0␣‹and›␣\bobSh{\bobSec} = 1 \\
-  A⁃ & & & r = r⸤1,0⸥␣‹if›␣\bobSh{\aliceSec} = 1␣‹and›␣\bobSh{\bobSec} = 0 \\
-  A⁃ & & & r = r⸤1,1⸥␣‹if›␣\bobSh{\aliceSec} = 1␣‹and›␣\bobSh{\bobSec} = 1 \\
+  A⁅ \bobSh{\aliceSec ∧ \bobSec} ⧼←⧽ r␣‹where›␣& r = r⸤0,0⸥␣‹if›␣\bobSh{\aliceSec} = 0␣‹and›␣\bobSh{\bobSec} = 0
+  A⁃ & & & r = r⸤0,1⸥␣‹if›␣\bobSh{\aliceSec} = 0␣‹and›␣\bobSh{\bobSec} = 1
+  A⁃ & & & r = r⸤1,0⸥␣‹if›␣\bobSh{\aliceSec} = 1␣‹and›␣\bobSh{\bobSec} = 0
+  A⁃ & & & r = r⸤1,1⸥␣‹if›␣\bobSh{\aliceSec} = 1␣‹and›␣\bobSh{\bobSec} = 1
   A⁆
 M⁆
 
@@ -271,11 +263,11 @@ Finally, let's check that this is correct and secure. First, correctness:
 
 M⁅
   Aːllll
-  A⁅ \aliceSh{\aliceSec ∧ \bobSec} ⊕ \bobSh{\aliceSec ∧ \bobSec} ⧼=⧽ \alices{σ} ⊕ (\alices{σ} ⊕ α⸤i,j⸥) & ␠⟪[Definition of ⸨∧⸩]⟫ \\
-  A⁃ & & ‹where›␣i = \bobSh{\aliceSec}␣‹and›␣j = \bobSh{\bobSec} \\
-  A⁃ ⧼=⧽ α⸤i,j⸥ & ␠⟪[Fact~\ref{xor-inverse}]⟫ \\
-  A⁃ ⧼=⧽ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ∧ \aliceSh{\bobSec} ⊕ \bobSh{\bobSec} & ␠⟪[Definition (by OT on Table~\ref{tab:and-ot})]⟫ \\
-  A⁃ ⧼=⧽ \aliceSec ∧ \bobSec & ␠⟪[Share Recovery]⟫ \\
+  A⁅ \aliceSh{\aliceSec ∧ \bobSec} ⊕ \bobSh{\aliceSec ∧ \bobSec} ⧼=⧽ \alices{σ} ⊕ (\alices{σ} ⊕ α⸤i,j⸥) & ␠⟪[Definition of ⸨∧⸩]⟫
+  A⁃ & & ‹where›␣i = \bobSh{\aliceSec}␣‹and›␣j = \bobSh{\bobSec}
+  A⁃ ⧼=⧽ α⸤i,j⸥ & ␠⟪[Fact~\ref{xor-inverse}]⟫
+  A⁃ ⧼=⧽ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ∧ \aliceSh{\bobSec} ⊕ \bobSh{\bobSec} & ␠⟪[Definition (by OT on Table~\ref{tab:and-ot})]⟫
+  A⁃ ⧼=⧽ \aliceSec ∧ \bobSec & ␠⟪[Share Recovery]⟫
   A⁆
 M⁆
 
@@ -322,8 +314,8 @@ environments are as follows.
 
 M⁅
   Aːcc
-  A⁅ \alice & \bob \\
-  A⁃ ⟨x ↦ \alices{⋖net-worth⋗},␣y ↦ \opaque⟩␠ & ␠⟨x ↦ \opaque,␣y ↦ \bobs{⋖net-worth⋗}⟩ \\
+  A⁅ \alice & \bob
+  A⁃ ⟨x ↦ \alices{⋖net-worth⋗},␣y ↦ \opaque⟩␠ & ␠⟨x ↦ \opaque,␣y ↦ \bobs{⋖net-worth⋗}⟩
   A⁆
 M⁆
 
@@ -334,9 +326,9 @@ line 4 the local environments are as follows.
 
 M⁅
   Aːllll
-  A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob} \\
+  A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob}
     A⁃ ⟨…,&␣sx ↦ \aliceSh{\alices{⋖net-worth⋗}}, & ␠⟨…,&␣sx ↦ \bobSh{\alices{⋖net-worth⋗}}
-    A⁃    &␣sy ↦ \aliceSh{\bobs{⋖net-worth⋗}}⟩   &     &␣sy ↦ \bobSh{\bobs{⋖net-worth⋗}}⟩ \\
+    A⁃    &␣sy ↦ \aliceSh{\bobs{⋖net-worth⋗}}⟩   &     &␣sy ↦ \bobSh{\bobs{⋖net-worth⋗}}⟩
   A⁆
 M⁆
 
@@ -346,8 +338,8 @@ circuit in terms of XOR and AND gates.
 
 M⁅
   Aːcc
-  A⁅ \alice & \bob \\
-  A⁃ ⟨…,␣r ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}⟩ & ␠⟨…,␣r ↦ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}⟩ \\
+  A⁅ \alice & \bob
+  A⁃ ⟨…,␣r ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}⟩ & ␠⟨…,␣r ↦ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}⟩
   A⁆
 M⁆
 
@@ -359,10 +351,10 @@ of the ⸨⦑reveal⦒⸩.
 
 M⁅
   Aːllll
-  A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob} \\
-    A⁃ ⟨…,␣z &{} ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} & ␠⟨…,␣z &{} ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} \\
-    A⁃       &{}␣⊕ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} & &{}␣⊕ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} \\
-    A⁃       &{}␣= \alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}⟩ & &{}␣= \alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}⟩␠ \\
+  A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob}
+    A⁃ ⟨…,␣z &{} ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} & ␠⟨…,␣z &{} ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}
+    A⁃       &{}␣⊕ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} & &{}␣⊕ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}
+    A⁃       &{}␣= \alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}⟩ & &{}␣= \alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}⟩
   A⁆
 M⁆
 
@@ -382,16 +374,36 @@ did not need to explicate any of that.
 
 \chapter{A Language for Concise MPC}
 
+\ins{Take from Symphony paper}
+
 \chapter{A Language for Probabilistically Oblivious Computation}
+
+\ins{Take from lam-obliv paper}
 
 \chapter{Proposal: \lang{}, a secure MPC language with user-defined ORAM}
 
 \chapter{Open Problems}
 
+We briefly discuss some important open problems which affect the design of languages for
+MPC and obliviousness. These are not addressed by \lang and I feel that they are promising
+areas for future research.
+
 \section{Resource Awareness}
+
+MPC programs are expensive. Something something orders of magnitude slower~\cite{}. This due principally to the communication
+required. For example in GMW, an AND gate requires a round of communication and the 1-4 OT requires an encryption scheme.
+Programmers who are not experts in MPC will require information about the cost of the programs they are writing. This could be
+handled elegantly by the language. There is ample research in type-based resource analysis~\cite{}, for example. \ins{TODO: this is rough}
 
 \section{Oblivious Data Structures}
 
+Our prior work has shown that Oblivious Data Structures (ODS's), proposed by Wang et al., do not satisfy PMTO.\ins{replace with ref. to theorem} Even though ODS's are safe due to negligibl overflow probability, we are unable to verify that fact in \lang. We would like to find some
+way to support ODS's within the language while retaining the security guarantees provided by the tyep system.
+
 \section{Other Security Policies}
+
+PMTO\% is perhaps the most obvious security policone could prove about MPC programs which admit ORAM. However, it is not the only property
+one could prove. There is a rich literature of different declassification policies, as well as weaker variants of (P)MTO like Differential
+MTO~\cite{} and manual computational proofs of securit with explicit complexity-theoretic reductions~\cite{easycrypt}.
 
 \end{document}
