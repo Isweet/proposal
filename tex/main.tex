@@ -27,6 +27,8 @@
 
 \newcommand{\aliceSh}[1]{\alices{⌊#1⌋}}
 \newcommand{\bobSh}[1]{\bobs{⌊#1⌋}}
+
+\newcommand{\opaque}{A⸨★A⸩\xspace}
 %%%
 
 \definecolor{implColor}{HTML}{EA9999}
@@ -256,6 +258,140 @@ If \alice now sends ⸨(r⸤0,0⸥,␣r⸤0,1⸥,␣r⸤1,0⸥,␣r⸤1,1⸥)⸩
 of his shares. For example, if \bob's shares are ⸨\bobSh{\aliceSec} = \bobSh{\bobSec} = 0⸩ then he would select ⸨r⸤0,0⸥⸩ (corresponding
 to the first row in Table~\ref{tab:and-ot}).
 
+M⁅
+  Aːllll
+  A⁅ \bobSh{\aliceSec ∧ \bobSec} ⧼←⧽ r␣‹where›␣& r = r⸤0,0⸥␣‹if›␣\bobSh{\aliceSec} = 0␣‹and›␣\bobSh{\bobSec} = 0 \\
+  A⁃ & & & r = r⸤0,1⸥␣‹if›␣\bobSh{\aliceSec} = 0␣‹and›␣\bobSh{\bobSec} = 1 \\
+  A⁃ & & & r = r⸤1,0⸥␣‹if›␣\bobSh{\aliceSec} = 1␣‹and›␣\bobSh{\bobSec} = 0 \\
+  A⁃ & & & r = r⸤1,1⸥␣‹if›␣\bobSh{\aliceSec} = 1␣‹and›␣\bobSh{\bobSec} = 1 \\
+  A⁆
+M⁆
 
+Finally, let's check that this is correct and secure. First, correctness:
+
+M⁅
+  Aːllll
+  A⁅ \aliceSh{\aliceSec ∧ \bobSec} ⊕ \bobSh{\aliceSec ∧ \bobSec} ⧼=⧽ \alices{σ} ⊕ (\alices{σ} ⊕ α⸤i,j⸥) & ␠⟪[Definition of ⸨∧⸩]⟫ \\
+  A⁃ & & ‹where›␣i = \bobSh{\aliceSec}␣‹and›␣j = \bobSh{\bobSec} \\
+  A⁃ ⧼=⧽ α⸤i,j⸥ & ␠⟪[Fact~\ref{xor-inverse}]⟫ \\
+  A⁃ ⧼=⧽ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ∧ \aliceSh{\bobSec} ⊕ \bobSh{\bobSec} & ␠⟪[Definition (by OT on Table~\ref{tab:and-ot})]⟫ \\
+  A⁃ ⧼=⧽ \aliceSec ∧ \bobSec & ␠⟪[Share Recovery]⟫ \\
+  A⁆
+M⁆
+
+Now, why is this secure? The security relies crucially on the properties of 1-4 OT. If \alice could tell which message \bob chose she would
+immediately learn the values of \bob's shares and be able to recover \bob's secret. However, 1-4 OT guarantees that \alice cannot tell
+which message \bob chose. Likewise, if \bob were able to see more than one of the messages sent by \alice then ⸨α ⊕ \alices{σ}⸩ would not
+sufficiently protect ⸨α⸩\footnote{More formally, the XOR with a random value forms a one-time pad (OTP) encryption scheme, which is only secure
+  if the key is never reused.}. However, 1-4 OT guarantees that \bob can only see the message that he chooses.
+
+In the next section, we'll look at how this protocol can be scaled up to a full-blown programming language for secure computation.
+
+\subsection{A Taste of \mpc}
+
+We now have a foundational understanding of how MPC works, but how can we write MPC programs? Symphony is a new
+language proposed by Darais et al.~\cite{} which is an expressive, high-level language model for MPC. From here on, we instead refer to this
+language instead as \mpc to more clearly constrast it with \obliv which is presented in Chapter~\ref{ch:oram}. As a means of gentle
+introduction, let's consider the Millionaire's Problem in which two wealthy parties, \alice and \bob, would like to know who has a higher
+net worth.
+
+\begin{figure}[h]
+M⁅
+\begin{array}{r@{␠}lcl}
+   «0:» & 𝑚𝑐3l{ ⦑par⦒[\alice,\bob] }
+\\ «1:» & ␠⦑let⦒␣x    ⧼=⧽ ⦑par⦒[\alice]␣⦑read⦒␣⦑in⦒
+\\ «2:» & ␠⦑let⦒␣y    ⧼=⧽ ⦑par⦒[\bob]␣⦑read⦒␣⦑in⦒
+\\ «3:» & ␠⦑let⦒␣«sx» ⧼=⧽ ⦑share⦒[\alice → \alice,\bob]␣x␣⦑in⦒
+\\ «4:» & ␠⦑let⦒␣«sy» ⧼=⧽ ⦑share⦒[\bob → \alice,\bob]␣y␣⦑in⦒
+\\ «5:» & ␠⦑let⦒␣r    ⧼=⧽ «sx» < «sy»␣⦑in⦒
+\\ «6:» & ␠⦑let⦒␣z    ⧼=⧽ ⦑reveal⦒[\alice,\bob]␣r␣⦑in⦒
+\\ «7:» & ␠…
+\end{array}
+M⁆
+\caption{\mpc{} code for the Millionaire's Problem}
+\label{fig:millionaires}
+\end{figure}
+
+The code in Figure~\ref{fig:millionaires} is written in the \mpc language. On line 0, the ⸨⦑par⦒[\alice,\bob]⸩ block
+means that \alice and \bob will execute everything in the block's lexical scope. Any other parties will ignore the
+contents of the block and generate an \emph{opaque value} denoted \opaque. On line 1, \alice will ⸨⦑read⦒⸩ her own net worth,
+⸨\alices{⋖net-worth⋗}⸩, from her local machine and bind it to ⸨x⸩. \bob, however, will evaluate the expression ⸨⦑par⦒[\alice]␣⦑read⦒⸩ to
+\opaque because he is not included in the ⸨⦑par⦒[\alice]⸩ block. On line 2, the same thing happens except \bob reads his net worth,
+⸨\bobs{⋖net-worth⋗}⸩, and binds it to ⸨y⸩ while \alice binds \opaque to ⸨y⸩ in her local environment. So, after line 2 the local
+environments are as follows.
+
+M⁅
+  Aːcc
+  A⁅ \alice & \bob \\
+  A⁃ ⟨x ↦ \alices{⋖net-worth⋗},␣y ↦ \opaque⟩␠ & ␠⟨x ↦ \opaque,␣y ↦ \bobs{⋖net-worth⋗}⟩ \\
+  A⁆
+M⁆
+
+On line 3, \alice splits her ⸨\alices{⋖net-worth⋗}⸩ into two shares. She keeps her share and sends \bob's share to him. We use the same
+notation for shares which appears in Section~\ref{sec:mpc} to emphasize the connection between our GMW explanation and the execution model
+of \mpc. On line 4, \bob splits his ⸨\bobs{⋖net-worth⋗}⸩ into two shares. He keeps his share and send's \alice's share to her. So, after
+line 4 the local environments are as follows.
+
+M⁅
+  Aːllll
+  A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob} \\
+    A⁃ ⟨…,&␣sx ↦ \aliceSh{\alices{⋖net-worth⋗}}, & ␠⟨…,&␣sx ↦ \bobSh{\alices{⋖net-worth⋗}}
+    A⁃    &␣sy ↦ \aliceSh{\bobs{⋖net-worth⋗}}⟩   &     &␣sy ↦ \bobSh{\bobs{⋖net-worth⋗}}⟩ \\
+  A⁆
+M⁆
+
+On line 5, \alice and \bob compute over their shares to produce a share indicating who is wealthier. Here we assume that the language knows
+how to compute or encode ⸨<⸩ over shares. For example, if the underlying MPC protocol were GMW then we would encode ⸨<⸩ as a digital magnitude
+circuit in terms of XOR and AND gates.
+
+M⁅
+  Aːcc
+  A⁅ \alice & \bob \\
+  A⁃ ⟨…,␣r ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}⟩ & ␠⟨…,␣r ↦ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}⟩ \\
+  A⁆
+M⁆
+
+Finally, on line 6, the shares of ⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}⸩ among \alice and \bob are combined and the
+cleartext result is revealed to both parties. Note that we could have revealed the result only to \alice, for example,
+in which case \bob would send his share to \alice but not vice versa. Then, \alice could recover the cleartext result but \bob could not.
+In this case, however, they both send their shares to each other. The XOR operator, ⸨⊕⸩, is used to combine shares implicitly as part
+of the ⸨⦑reveal⦒⸩.
+
+M⁅
+  Aːllll
+  A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob} \\
+    A⁃ ⟨…,␣z &{} ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} & ␠⟨…,␣z &{} ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} \\
+    A⁃       &{}␣⊕ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} & &{}␣⊕ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} \\
+    A⁃       &{}␣= \alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}⟩ & &{}␣= \alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}⟩␠ \\
+  A⁆
+M⁆
+
+There are some interesting things to notice about this program (and \mpc) more generally. First, the programmer controls which parties
+evaluate which expressions by using ⸨⦑par⦒⸩ blocks. Second, cleartext ⸨⦑read⦒⸩ operations (lines 1,2) are mixed with ciphertext operations
+(lines 3,4,5,6). Last, notice that the original program has a centralized interpretation. In a deployment, this program would run
+independently on \alice and \bob who would communicate to jointly compute. Our explanation of the execution of Figure~\ref{fig:millionaires}
+did not need to explicate any of that.
+
+\ins{Considering also showing GCD here.}
+
+\section{Oblivious RAM}
+
+\subsection{Overview}
+
+\subsection{A Taste of \obliv}
+
+\chapter{A Language for Concise MPC}
+
+\chapter{A Language for Probabilistically Oblivious Computation}
+
+\chapter{Proposal: \lang{}, a secure MPC language with user-defined ORAM}
+
+\chapter{Open Problems}
+
+\section{Resource Awareness}
+
+\section{Oblivious Data Structures}
+
+\section{Other Security Policies}
 
 \end{document}
