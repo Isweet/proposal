@@ -47,15 +47,20 @@
 \maketitle
 
 \begin{abstract}
-  \emph{Secure Multiparty Computation (MPC)} and \emph{Oblivious RAM} (ORAM) have emerged as promising approaches to
+  \emph{Secure Multiparty Computation} (MPC) and \emph{Oblivious RAM} (ORAM) have emerged as promising approaches to
   high-confidentiality computation. Traditionally, MPC programs do not allow secrets to be used as indexes to dynamically
   allocated memory. This precludes, for example, a secure binary search in which the element being accessed is considered secret.
   This restriction is relaxed by using ORAM inside of the secure computation. Unfortunately, existing languages for MPC typically
   support ORAM by ``baking it in'' to the language as a trusted primitive. We propose the design and implementation of a language
   for MPC with \emph{application-level support} for ORAM with an associated \emph{proof of security}.
+
+  \ins{TODO: generalize from ORAM to obliviousness in general}
 \end{abstract}
 
+\tableofcontents
+
 \chapter{Introduction}
+\label{ch:intro}
 
 \epigraph{It seems like everywhere I go \\
           The more I see, the less I know}{
@@ -63,32 +68,91 @@
             \emph{Say Hey I Love You}}
 
 If our adversaries were more like Michael Franti then we wouldn't need to concern ourselves with confidentiality.
-Unfortunately, that isn't the world we live in. \emph{Secure Multiparty Computation (MPC)} and \emph{Oblivious RAM} (ORAM)
-have emerged as promising approaches to high-confidentiality computation. An MPC program allows mutually distrustful
-parties to compute over their secret inputs while guaranteeing that they learn nothing more than the result.
-Traditionally, these programs do not allow secrets to be used as indexes to dynamically allocated memory.
-This precludes, for example, a secure binary search in which the element being accessed is considered secret.
-This restriction is relaxed by using ORAM inside of the secure computation. ORAM is an abstract data type with a
-RAM-like interface which prevents information leaks through the (physical) memory access pattern side-channel.
-So, how do existing MPC languages integrate ORAM? Well, some side-step the issue by relying on applications
-to implement ORAM as a library. This has the benefit of empowering the programmer but the detriment of
-giving up security guarantees; a buggy ORAM could leak information about secrets accidentally.
-Other MPC languages ``bake in'' ORAM as a trusted primitive. This has the converse effect of guaranteeing
-security\footnote{Of course, this assumes that the trusted primitive is correct (usually) without a machine-checked proof}
-but removing the programmer's ability to choose the ORAM implementation best suited to their application.
-What if we could empower programmers to \emph{implement ORAM as a library} and also automatically
-\emph{verify that they aren't accidentally leaking their secrets}?
+Unfortunately, that isn't the world we live in. This proposal is fundamentally concerned with the right of people
+to have their information kept private. Our programming languages have a duty to produce programs which honor that
+right. In other words, people have a right to privacy and programming languages have a duty of confidentiality. This
+proposal makes a modest step towards a future where our languages uphold their end of the bargain.
 
-\paragraph{Hypothesis} Motivated by the observation of the previous paragraph, this proposal presents a plan
-for the design and implementation of an MPC language, \lang, with \emph{application-level support} for ORAM and an
-\emph{automatic proof of security} for all programs written in the language. How will we verify that the hypothesis is correct?
-First, we will develop a formal model of \lang and prove that it enjoys security.
-Second, we will implement \lang and show that it admits modern ORAM schemes.
+\section{Secure Multiparty Computation and Obliviousness}
+\label{sec:intro-mpc}
+
+\emph{Secure Multiparty Computation} (MPC) is a subfield of cryptography
+that allows mutually untrusting parties to compute arbitrary functions over their private inputs whiel revealing nothing
+except the function output. That is, MPC allows parties to work together to run programs \emph{under encryption}.
+
+Approaches to MPC have improved significantly over the years. The first full implementation, FairPlay~\cite{}, could evaluate
+only a few hundred Boolean gates pers second. Modern implementations on custom setups evaluate \emph{billions} of Boolean gates per
+second~\cite{}, and cryptographers continue to reduce the cost of MPC. Despite increasing efficiency and compelling applications
+(secure auctions, secure databases, collaborative machine learning, and any other imaginable application with security concerns),
+MPC has not been widely adopted. One significant barrier to adoption is a lack of appropriate infrastructure. Today, it is difficult
+for non-experts to understand and work in the complex distributed model that MPC requires.
+
+In addition to lack of infrastructure, languages for MPC also fail to provide adequate support for RAM-model programming. The standard
+means by which RAM-model computation is supported in MPC languages is using \emph{Oblivious RAM} (ORAM). To date, most MPC languages
+simply do not provide any access to ORAM. In their 2019 SoK,~\citet{} observe that only a ``few frameworks have ORAM support, either
+natively (ObliVM and SCALE-MAMBA) or via a library (Obliv-C).'' The three languages mentioned, ObliVM~\cite{}, SCALE-MAMBA~\cite{}, and
+Obliv-C~\cite{}, are \textbf{probabilistic} MPC languages. According to~\citet{}, a language must have support for sampling from a uniform,
+random distribution to admit asymptotically optimal ORAM. Indeed, each of these languages provides a highly optimized implementation of
+Circuit ORAM~\cite{}, which is known to be asymptotically optimal (i.e. $O(\log{n})$). However, these languages could be improved by
+being \textbf{abstractly centralized} and \textbf{high assurance}. An \textbf{abstractly centralized} language hides, as much as possible,
+the distributed deployment of the MPC program from the programmer. Examples of existing languages which are abstractly centralized are
+SCVM~\cite{}, Wysteria~\cite{}, and the recent Symphony language~\cite{}. A \textbf{high assurance} language guarantees that programs written
+in the language are oblivious. We describe these properties in more detail, with examples, in Chapter~\ref{ch:background}.
+
+In summary, we would like the following properties from our MPC language.
+
+\begin{enumerate}
+\item \label{itm:probabilistic} \underline{Probabilistic} -- \textbf{A probabilistic language, which allows sampling from uniform, random distributions, is necessary
+  for implementing asymptotically optimal ORAM, oblivious algorithms, and data structures.}
+  When more efficient oblivious protocols are invented (which happens every year), cryptographers would like to be able to
+  implement these protocols in a MPC library.
+\item \label{itm:centralized} \underline{Abstractly Centralized} -- \textbf{An abstractly centralized language, which hides the distributed deployment from the
+  programmer, is necessary for lowering the barrier of entry for developers.}
+  Being able to program as though the program is being executed on a single machine, without worrying about the distributed deployment
+  of the program, significantly reduces the complexity of MPC programming.
+\item \label{itm:assurance} \underline{High Assurance} -- \textbf{A high assurance language, which guarantees that all programs are oblivious, is necessary
+  for certifying that programs do not leak information through side channels.} Without certification of obliviousness, a domain expert
+  would need to manually audit the declassifications in the program which are expected to reveal no information. Such declassifications
+  are common in, for example, tree-based ORAM constructions.
+\end{enumerate}
+
+\paragraph{Problem.} No existing MPC language is \textbf{(all together) probabilistic, abstractly centralized, and high assurance.}
 
 \section{Proposed Work}
 
-Tasks in \colorbox{implColor}{red} require adding additional functionality to the existing Haskell implementation of \mpc.
+\paragraph{Hypothesis.} It is possible to design and implement a language for MPC which is \textbf{probabilistic, abstractly centralized,
+  and high assurance (as defined above).}
+
+\paragraph{Contribution: \obliv is PMTO.} In prior work, we show that ObliVM's~\cite{} type system is unsafe, and show how to fix it in
+such a way that is satisfies \emph{Probabilistic Memory Trace Obliviousness} (PMTO). We prove this property for \obliv, a non-MPC language
+for oblivious programming.
+
+\paragraph{Contribution: \mpc is MTO\%.} In ongoing work, we show that Symphony's type system guarantees that MPC programs are
+\emph{Memory Trace Oblivious Modulo Declassifications} (MTO\%). To our knowledge, this is the first time such a theorem has been
+proved for an MPC language. The SCVM language has a proof of a related property based on crypto-style ``simulation.''
+
+\paragraph{Contribution: Identifying PMTO\%.} We identify and define the \emph{Probabilistic Memory Trace Oblivious Modulo Declassification}
+(PMTO\%) as an appropriate definition of security for probabilistic MPC languages. We also investigate and explicate the connection between
+this property and other common security properties involving declassifications (such as Gradual Release~\cite{}).
+
+\paragraph{Contribution: \lang, a probabilistic, abstractly centralized, and high assurance MPC language.} The contributions described
+above have already been accomplished, and they are necessary but not sufficient for confirmation of our
+hypothesis. To confirm our hypothesis, we propose the design and implementation of a new language for MPC, called \lang, which extends
+the Symphony language with primitives for drawing uniform, random samples and declassifying them. By extending Symphony with sampling
+from uniform, random distribuitions we will immediately satisfy property~\ref{itm:probabilistic} above. We will provide further evidence
+for the utility of this property by implementing various ORAM protocols (Trivial ORAM, Circuit ORAM, and Recursive (Circuit) ORAM). We will
+show that these implementations have the expected asymptotic behavior. Next, we will prove that the extensions to Symphony preserve the
+existing centralized semantics by proving that the Simulation theorem continues to hold. This will establish that \lang satisfies
+property~\ref{itm:centralized}. Finally, we will need to adapt the type system of Symphony to enforce PMTO\% and confirm that the case studies
+(ORAM protocols) type check in the adapted type system. This will establish that \lang satisfies property~\ref{itm:assurance}. Having
+accomplished this, we will have confirmed our hypothesis by constructing \lang which is probabilistic, abstractly centralized, and
+high assurance.
+
+We summarize the tasks involved in the last contribution above, and give a rough timeline for their completion. Tasks in
+\colorbox{implColor}{red} require adding additional functionality to the existing Haskell implementation of \mpc.
 Tasks in \colorbox{theoryColor}{blue} require adapting the formal metatheory of \mpc. \\
+
+\ins{TODO: when proposal document is done, revisit this and update timeline.}
 
 \begin{tabular}{|p{.30\textwidth}|p{.30\textwidth}|p{.30\textwidth}|}
   \hline
@@ -116,7 +180,6 @@ Tasks in \colorbox{theoryColor}{blue} require adapting the formal metatheory of 
   Simulation       & Prove \lang satisfies Simulation                      & 05/21/2021 ($\sim$1 week)   \\ \hline
   Thesis           & Write the thesis and defend it                        & 10/21/2021 ($\sim$5 months) \\ \hline
 \end{tabular}
-
 
 \chapter{Background}
 \epigraph{Trust in me in all you do \\
@@ -172,12 +235,12 @@ As long as he never sees \aliceSh{\aliceSec} he can't distinguish his share \bob
 boolean value. This establishes property (2) of MPC above. Second, XOR has the following properties:
 
 \begin{fact}[⸨⊕⸩-Inverse]
-\label{xor-inverse}
+\label{fact:xor-inverse}
   ⸨∀ b ∈ 𝔹␣.␣b ⊕ b = 0⸩
 \end{fact}
 
 \begin{fact}[⸨⊕⸩-Identity]
-\label{xor-identity}
+\label{fact:xor-identity}
   ⸨∀ b ∈ 𝔹␣.␣b ⊕ 0 = 0 ⊕ b = b⸩
 \end{fact}
 
@@ -185,9 +248,9 @@ These two properties ensure that the original secret, \aliceSec, can be recovere
 
 M⁅
   Aːllll
-  A⁅ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ⧼=⧽ \aliceSh{\aliceSec} ⊕ \aliceSh{\aliceSec} ⊕ \aliceSec & ␠⟪[Definition of \bobSh{\aliceSec}]⟫
-  A⁃                                         ⧼=⧽ 0 ⊕ \aliceSec & ␠⟪[Fact~\ref{xor-inverse}]⟫
-  A⁃                                         ⧼=⧽ \aliceSec & ␠⟪[Fact~\ref{xor-identity}]⟫
+  A⁅ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ⧼=⧽ \aliceSh{\aliceSec} ⊕ \aliceSh{\aliceSec} ⊕ \aliceSec & ␠⟅ by \bobSh{\aliceSec} ⟆
+  A⁃                                         ⧼=⧽ 0 ⊕ \aliceSec & ␠⟅ by \nameref{fact:xor-inverse} ⟆
+  A⁃                                         ⧼=⧽ \aliceSec & ␠⟅ by \nameref{fact:xor-identity} ⟆
   A⁆
 M⁆
 
@@ -294,9 +357,9 @@ M⁅
    «0:» & 𝑚𝑐3l{ ⦑par⦒[\alice,\bob] }
 \\ «1:» & ␠⦑let⦒␣x    ⧼=⧽ ⦑par⦒[\alice]␣⦑read⦒␣⦑in⦒
 \\ «2:» & ␠⦑let⦒␣y    ⧼=⧽ ⦑par⦒[\bob]␣⦑read⦒␣⦑in⦒
-\\ «3:» & ␠⦑let⦒␣«sx» ⧼=⧽ ⦑share⦒[\alice → \alice,\bob]␣x␣⦑in⦒
-\\ «4:» & ␠⦑let⦒␣«sy» ⧼=⧽ ⦑share⦒[\bob → \alice,\bob]␣y␣⦑in⦒
-\\ «5:» & ␠⦑let⦒␣r    ⧼=⧽ «sx» < «sy»␣⦑in⦒
+\\ «3:» & ␠⦑let⦒␣sx   ⧼=⧽ ⦑share⦒[\alice → \alice,\bob]␣x␣⦑in⦒
+\\ «4:» & ␠⦑let⦒␣sy   ⧼=⧽ ⦑share⦒[\bob → \alice,\bob]␣y␣⦑in⦒
+\\ «5:» & ␠⦑let⦒␣r    ⧼=⧽ sx < sy␣⦑in⦒
 \\ «6:» & ␠⦑let⦒␣z    ⧼=⧽ ⦑reveal⦒[\alice,\bob]␣r␣⦑in⦒
 \\ «7:» & ␠…
 \end{array}
@@ -383,7 +446,66 @@ did not need to explicate any of that.
 
 \chapter{Proposal: \lang, A Secure MPC Language With User-Defined ORAM}
 
+An outline.
 
+\begin{enumerate}
+\item What? Case Studies. Why? The ORAM implementations presented in \obliv are in client-server model. These implementations will
+  be written to abide by the MPC type system and will be in the more restrictive ORAM-SC model. Also, frankly, the existing literature
+  on the differences between these two models sucks. I hope to more clearly articulate the differences and similarities in my thesis
+  by showing the implementations side-by-side. How? Adapt the implementations from~\citet{lam-obliv} according to the descriptions of
+  ORAM-SC in the literature~\cite{}.
+\item What? Type Checker. Why? To verify that the formal type sytem is feasible to implement and interesting. By ``interesting'' we mean
+  that it can successfully typecheck the ORAM case studies. Also, as an additional contribution, the \mpc implementation presented
+  in~\citet{symphony} does not include a type checker. So, we will also show that the interesting case studies from that paper type check.
+  Finally, this will allow us to rapidly test different designs for the formal type system. How? Write a bunch of Haskell. As a first cut
+  we will graft the affinity and probability region features from \obliv onto the type system of \mpc.
+\item What? MPC Interpreter. Why? The formal semantics of \mpc and \lang are parameterized by the underlying MPC protocols. This may
+  may create some doubt in readers that the semantics is truly modelling the implementation of an MPC language. Again, the implementation
+  will serve to show that the formal semantics are feasible and interesting. How? We have already added the foundation of this functionality
+  by using the Haskell FFI to call out to the (two-party, semi-honest) EMP library. For example, we have the Millionaire's Problem working.
+\item What? Static Semantics. Why? We enforce the security properties of programs in \lang by showing that security is implied by
+  well-typing. We want PMTO\% and simulation, so we have to design a type system which satisfies the former without wrecking the latter.
+  How? Having implemented the type checker, we can base the static semantics on that.
+\item What? Prove Type Safety, PMTO\%, and Simulation. These are all desirable properties. The first says that the types are coherent with
+  the runtime behavior of the program. The second says that programs are secure, they only leak information which is explicitly declassified
+  according to a reveal expression. The third says that the single-threaded, or centralized, interpretation of programs is consistent with
+  the distributed (``real'') interpretation. How? We expect that the proof of type safety will be a standard syntactic proof using progress
+  and preservation. The proof of PMTO\% will build on the techniques (mixed semantics, simulation) for PMTO in \obliv and the proof of MTO\%
+  in \mpc. One possible challenge is the proof of simulation between the single-threaded and distributed semantics. Since we are adding a
+  probabilistic choice operation to the single-threaded semantics it will no longer be deterministic. This could complicate the proof of
+  simulation.
+\end{enumerate}
+
+As I mentioned briefly in Chapter~\ref{ch:intro}, the primary goal of this thesis is to develop secure MPC language, \lang, which
+support user-defined ORAM implementations. By virtue of all well-typed \lang programs being secure, any well-typed user-defined ORAM
+is also guaranteed to be secure. The basis of \lang will be the MPC language, \mpc, presented in Chapters~\ref{ch:taste-mpc},\ref{ch:mpc}.
+As we saw in Chapters~\ref{ch:taste-obliv},\ref{ch:obliv}, efficient ORAM implementations rely crucially on the ability to sample from
+uniform distributions\footnote{Formally, the logarithmic lower-bound on oblivious simulation only applies in the PRAM model of computation.}.
+So, if we want \lang to support efficient, user-defined ORAM constructions we must add to \mpc a feature which permits uniform, random sampling.
+While this may seem like a fairly innocuous change, it is veritable Pandora's box with respect to the metatheory of our language. The \mpc
+language defines security as~\nameref{thm:mod-mod} which says that memory address traces do not depend on secrets, modulo differences induced
+by declassification. After adding uniform, random sampling this property no longer holds. In one case, the property can be violated by programs
+which are intuitively safe.
+
+M⁅
+\begin{array}{r@{␠}lcl}
+   «0:» & 𝑚𝑐3l{ ⦑par⦒[\alice,\bob] }
+\\ «1:» & ␠⦑let⦒␣s    ⧼=⧽ ⦑par⦒[\alice]␣⦑read⦒␣⦑in⦒
+\\ «2:» & ␠⦑let⦒␣a    ⧼=⧽ ⦑array⦒(2)[λ␣\_ → 0]␣⦑in⦒
+\\ «3:» & ␠⦑let⦒␣r    ⧼=⧽ ⦑unif⦒(❴0,1❵)␣⦑in⦒
+\\ «4:» & ␠a[r]
+\end{array}
+M⁆
+
+On line 1, \alice binds a secret value to ⸨s⸩. On line 2, both \alice and \bob declare an array, ⸨a⸩, of two cells both containing the value
+⸨0⸩. Finally, on lines 3 and 4, we generate a uniform, random sample from the set ⸨❴0,1❵⸩, bind it to ⸨r⸩ and access the array ⸨a⸩ at index
+⸨r⸩. We assume that both \alice and \bob generate the same value when they randomly sample\footnote{This can be achieved by having \alice and \bob generate their own samples, which are then shared and XOR'd with each other.}. This program is cleary secure, since all the code after
+line 1 is independent of ⸨s⸩. However, this code does not satisfy~\ref{thm:mto-mod}. This property implicitly assumes that the semantics is
+deterministic! In other words, it assumes that any change in the memory address trace must have been induced by dependence on a secret. This
+is precisely the issue that \obliv language attempts to overcome by adopting a probabilistic version of MTO,~\ref{thm:pmto}.
+
+\begin{theorem}[PMTO\%]\label{thm:pmto-mod}
+\end{theorem}
 
 \chapter{Open Problems}
 
