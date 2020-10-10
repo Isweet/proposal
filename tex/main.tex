@@ -67,17 +67,17 @@
             Michael Franti \& Spearhead \\
             \emph{Say Hey I Love You}}
 
-If our adversaries were more like Michael Franti then we wouldn't need to concern ourselves with confidentiality.
-Unfortunately, that isn't the world we live in. This proposal is fundamentally concerned with the right of people
-to have their information kept private. Our programming languages have a duty to produce programs which honor that
-right. In other words, people have a right to privacy and programming languages have a duty of confidentiality. This
-proposal makes a modest step towards a future where our languages uphold their end of the bargain.
+If our adversaries were more like Michael Franti then we wouldn't need to concern ourselves with privacy.
+Unfortunately, that isn't the world we live in. People have a right to privacy and programming languages have
+a duty to honor that right. In other words, programming languages have a duty of confidentiality. In this proposal,
+we investigate one approach to confidential languages based on Secure Multiparty Computation. What do such languages
+look like? How might they be improved?
 
 \section{Secure Multiparty Computation and Obliviousness}
 \label{sec:intro-mpc}
 
 \emph{Secure Multiparty Computation} (MPC) is a subfield of cryptography
-that allows mutually untrusting parties to compute arbitrary functions over their private inputs whiel revealing nothing
+that allows mutually untrusting parties to compute arbitrary functions over their private inputs while revealing nothing
 except the function output. That is, MPC allows parties to work together to run programs \emph{under encryption}.
 
 Approaches to MPC have improved significantly over the years. The first full implementation, FairPlay~\cite{}, could evaluate
@@ -189,16 +189,293 @@ Tasks in \colorbox{theoryColor}{blue} require adapting the formal metatheory of 
             Etta James \\
             \emph{Trust in Me}}
 
-For those committe members who aren't (yet) totally jazzed about MPC and ORAM, this one goes out to you.
+For those committe members who aren't (yet) totally jazzed about MPC and obliviousness, this one goes out to you. Readers unfamiliar
+with MPC may want to read Appendix~\ref{ch:gmw} which explains the GMW protocol. Readers unfamiliar with ORAM (Trivial ORAM, Circuit ORAM,
+Recursive (Circuit) ORAM) may want to read Appendix~\ref{ch:oram} which explains ORAM protocols.
 
-\section{Secure Multiparty Computation}
+\section{A Taste of \mpc}
 
-The mission of Secure Multiparty Computation (MPC) is to allow many parties who don't trust each
-other to compute over their private inputs while only learning the result of the public output.
-In this proposal, we will only concern ourselves with the honest-but-curious threat model which
-assumes that parties must obey the protocol but may attempt to passively learn information about the secrets of others.
+\ins{show symphony millionaires and explain in detail}
 
-\subsection{Overview}
+Symphony is a MPC language proposed by Darais et al.~\cite{} which is \textbf{abstractly centralized} and has a sophisticated type system.
+From here on, we instead refer to this language instead as \mpc to more clearly constrast it with \obliv which is presented in
+Chapter~\ref{ch:oram}. As a means of gentle introduction, let's consider the Millionaire's Problem in which two wealthy parties,
+\alice and \bob, would like to know who has a higher net worth.
+
+\begin{figure}[h]
+M⁅
+\begin{array}{r@{␠}lcl}
+   «0:» & 𝑚𝑐3l{ ⦑par⦒[\alice,\bob] }
+\\ «1:» & ␠⦑let⦒␣x    ⧼=⧽ ⦑par⦒[\alice]␣⦑read⦒␣⦑in⦒
+\\ «2:» & ␠⦑let⦒␣y    ⧼=⧽ ⦑par⦒[\bob]␣⦑read⦒␣⦑in⦒
+\\ «3:» & ␠⦑let⦒␣sx   ⧼=⧽ ⦑share⦒[\alice → \alice,\bob]␣x␣⦑in⦒
+\\ «4:» & ␠⦑let⦒␣sy   ⧼=⧽ ⦑share⦒[\bob → \alice,\bob]␣y␣⦑in⦒
+\\ «5:» & ␠⦑let⦒␣r    ⧼=⧽ sx < sy␣⦑in⦒
+\\ «6:» & ␠⦑let⦒␣z    ⧼=⧽ ⦑reveal⦒[\alice,\bob]␣r␣⦑in⦒
+\\ «7:» & ␠…
+\end{array}
+M⁆
+\caption{\mpc{} code for the Millionaire's Problem}
+\label{fig:millionaires}
+\end{figure}
+
+The code in Figure~\ref{fig:millionaires} is written in the \mpc language. On line 0, the ⸨⦑par⦒[\alice,\bob]⸩ block
+means that \alice and \bob will execute everything in the block's lexical scope. Any other parties will ignore the
+contents of the block and generate an \emph{opaque value} denoted \opaque. On line 1, \alice will ⸨⦑read⦒⸩ her own net worth,
+⸨\alices{⋖net-worth⋗}⸩, from her local machine and bind it to ⸨x⸩. \bob, however, will evaluate the expression ⸨⦑par⦒[\alice]␣⦑read⦒⸩ to
+\opaque because he is not included in the ⸨⦑par⦒[\alice]⸩ block. On line 2, the same thing happens except \bob reads his net worth,
+⸨\bobs{⋖net-worth⋗}⸩, and binds it to ⸨y⸩ while \alice binds \opaque to ⸨y⸩ in her local environment. So, after line 2 the local
+environments are as follows.
+
+M⁅
+  Aːcc
+  A⁅ \alice & \bob
+  A⁃ ⟨x ↦ \alices{⋖net-worth⋗},␣y ↦ \opaque⟩␠ & ␠⟨x ↦ \opaque,␣y ↦ \bobs{⋖net-worth⋗}⟩
+  A⁆
+M⁆
+
+On line 3, \alice splits her ⸨\alices{⋖net-worth⋗}⸩ into two shares. She keeps her share and sends \bob's share to him. We use the same
+notation for shares which appears in Section~\ref{sec:mpc} to emphasize the connection between our GMW explanation and the execution model
+of \mpc. On line 4, \bob splits his ⸨\bobs{⋖net-worth⋗}⸩ into two shares. He keeps his share and send's \alice's share to her. So, after
+line 4 the local environments are as follows.
+
+M⁅
+  Aːllll
+  A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob}
+    A⁃ ⟨…,&␣sx ↦ \aliceSh{\alices{⋖net-worth⋗}}, & ␠⟨…,&␣sx ↦ \bobSh{\alices{⋖net-worth⋗}}
+    A⁃    &␣sy ↦ \aliceSh{\bobs{⋖net-worth⋗}}⟩   &     &␣sy ↦ \bobSh{\bobs{⋖net-worth⋗}}⟩
+  A⁆
+M⁆
+
+On line 5, \alice and \bob compute over their shares to produce a share indicating who is wealthier. Here we assume that the language knows
+how to compute or encode ⸨<⸩ over shares. For example, if the underlying MPC protocol were GMW then we would encode ⸨<⸩ as a digital magnitude
+circuit in terms of XOR and AND gates.
+
+M⁅
+  Aːcc
+  A⁅ \alice & \bob
+  A⁃ ⟨…,␣r ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}⟩ & ␠⟨…,␣r ↦ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}⟩
+  A⁆
+M⁆
+
+Finally, on line 6, the shares of ⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}⸩ among \alice and \bob are combined and the
+cleartext result is revealed to both parties. Note that we could have revealed the result only to \alice, for example,
+in which case \bob would send his share to \alice but not vice versa. Then, \alice could recover the cleartext result but \bob could not.
+In this case, however, they both send their shares to each other. The XOR operator, ⸨⊕⸩, is used to combine shares implicitly as part
+of the ⸨⦑reveal⦒⸩.
+
+M⁅
+  Aːllll
+  A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob}
+    A⁃ ⟨…,␣z &{} ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} & ␠⟨…,␣z &{} ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}
+    A⁃       &{}␣⊕ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} & &{}␣⊕ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}
+    A⁃       &{}␣= \alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}⟩ & &{}␣= \alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}⟩
+  A⁆
+M⁆
+
+There are some interesting things to notice about this program (and \mpc) more generally. First, the programmer controls which parties
+evaluate which expressions by using ⸨⦑par⦒⸩ blocks. Second, cleartext ⸨⦑read⦒⸩ operations (lines 1,2) are mixed with ciphertext operations
+(lines 3,4,5,6). Last, notice that the language is \textbf{abstractly centralized}. In a deployment, this program would run
+independently on \alice and \bob who would communicate to jointly compute. Our explanation of the execution of Figure~\ref{fig:millionaires}
+did not need to explicate any of that.
+
+\section{Desirable Properties of MPC}
+
+In Chapter~\ref{sec:intro-mpc} we claimed that a MPC language ought to be \textbf{probabilistic}, \textbf{abstractly centralized},
+and \textbf{high assurance}. But, what exactly do these properties mean and why might we want them?
+
+\subsection{Abstractly Centralized MPC Languages}
+
+\ins{abstractly centralized -- show oblivc millionairs, contrast w/ symphony, mention that simulation + type safety implies no hanging}
+
+A language which isn't abstractly centralized requires the programmer to explicitly manage the distributed computation by performing
+commands conditioned on which party is executing. For example, the following is an Obliv-C implementation of the Millionaire's Problem.
+
+\begin{lstlisting}[language=c,basicstyle=\footnotesize,numbers=left,stepnumber=1]
+  // File: million.h
+  typedef struct {
+    int myinput;
+    bool result;
+  }
+
+  void millionaire (void *args);
+
+  // File: million.oc
+  #include <million.h>
+  #include <obliv.oh>
+
+  void millionaire (void *args) {
+    ProtocolIO *io = args;
+    obliv int a, b;
+    obliv bool res = false;
+    a = feedOblivInt (io->myinput, 1);
+    b = feedOblivInt (io->myinput, 2);
+    obliv if (a < b) res = true;
+    revealOblivBool(&io->result, res, 0);
+  }
+
+  // File: million.c
+  #include <million.h>
+
+  int main (int argc, char *argv[]) {
+    ProtocolDesc pd;
+    ProtocolIO io;
+    int p = (argv[1] == '1' ? 1 : 2);
+    sscanf(argv[2], "%d", &io.myinput);
+    // ... set up TCP connections
+
+    setCurrentParty (&pd, p);
+    execYaoProtocol (&pd, millionaire, &io);
+    printf ("Result: %d\n", result);
+    // ... cleanup
+  }
+\end{lstlisting}
+
+Here we can see that a lot of the details of the distributed, MPC deployment have leaked into the application code. The
+\lstinline[language=c]{main} function is responsible for all sorts of scaffolding such as establishing TCP connections (line 31),
+explicitly executing the protocol (line 34), and populating the \lstinline[language=c]{io} variable with party inputs (line 30). As
+a point of comparison, take a look back at Figure~\ref{fig:millionaires}. Notice that this codmakes no mention of TCP connections,
+explicit execution of any protocol, or eagerly reading and caching secret inputs. The code knows to execute a Yao protocol due to
+an appropriate type signature (not shown).
+
+In Chapter~\ref{ch:lam-mpc} we will formally define an \textbf{abstractly centralized} MPC language as one which satisfies to theorems:
+forward simulation and type safety. Forward simulation guarantees that if the centralized interpretation of a program doesn't get stuck,
+then neither does its distributed deployment. Type safety ensures that well-typed programs do not get stuck in the centralized interpretation.
+These two theorems work together to guarantee that well-typed programs cannot encounter, for example, nasty distributed errors in
+which one party is stuck waiting for a message from another party which is never sent.
+
+Although we will not make any formal claims regarding the usability of the language, hopefully it is clear that a language which hides the
+distributed nature of this MPC program is desirable.
+
+\subsection{Probabilistic MPC Languages}
+
+\ins{probabilistic -- show 2 ele oram example, touch on goldreich ostrovsky result of lower bound}
+
+In our parlance, a MCP language is \textbf{probabilistic} if it supports a primitive for drawing a uniform, random sample from a
+discrete, finite set. For example, drawing a uniform, random sample from ⸨𝔹⸩, the Booleans, corresponds to a fair coin toss. We
+could also draw from ⸨ℕ⸤32⸥⸩, Naturals modulo ⸨2^{32}⸩. Why is such a primitive important in a MPC language?
+
+\begin{figure}[h]
+M⁅
+\begin{array}{r@{␠}lcl}
+   «0:» & 𝑚𝑐3l{ ⦑par⦒[\alice,\bob] }
+\\ «1:» & ␠⦑let⦒␣s⸤A1⸥   ⧼=⧽ ⦑share⦒[\alice → \alice,\bob]␣⦑par⦒[\alice]␣⦑read⦒␣⦑in⦒
+\\ «2:» & ␠⦑let⦒␣s⸤A2⸥   ⧼=⧽ ⦑share⦒[\alice → \alice,\bob]␣⦑par⦒[\alice]␣⦑read⦒␣⦑in⦒
+\\ «3:» & ␠⦑let⦒␣s⸤B⸥    ⧼=⧽ ⦑share⦒[\bob → \alice,\bob]␣⦑par⦒[\bob]␣⦑read⦒␣⦑in⦒
+\\ «4:» & ␠⦑let⦒␣u       ⧼=⧽ 𝒰(❴0,1❵)␣⦑in⦒
+\\ «5:» & ␠⦑let⦒␣l,r     ⧼=⧽ ⦑mux⦒␣u␣⦑then⦒␣s⸤A1⸥,s⸤A2⸥␣⦑else⦒␣s⸤A2⸥,s⸤A1⸥␣⦑in⦒
+\\ «6:» & ␠⦑let⦒␣a       ⧼=⧽ [l;␣r]␣⦑in⦒
+\\ «7:» & ␠⦑let⦒␣idx     ⧼=⧽ ⦑reveal⦒[\alice,\bob]␣s⸤B⸥␣⊕␣u␣⦑in⦒
+\\ «8:» & ␠⦑let⦒␣r       ⧼=⧽ ⦑reveal⦒[\alice]␣a[idx]␣⦑in⦒
+\\ «9:» & ␠…
+\end{array}
+M⁆
+\caption{Conceptual 2 element ORAM lookup in \mpc{}}
+\label{fig:mpc-2-oram}
+\end{figure}
+
+\subsection{High Assurance MPC Languages}
+
+\ins{high assurance -- refer back to 2 ele oram example, show that security specification is unexpressible in symphony}
+
+\chapter{\mpc, A Language for Concise MPC}
+
+\ins{Take from Symphony paper}
+
+\chapter{\obliv, A Language for Probabilistically Oblivious Computation}
+
+\ins{Take from lam-obliv paper}
+
+\chapter{Proposal: \lang, A Secure MPC Language With User-Defined ORAM}
+
+An outline.
+
+\begin{enumerate}
+\item What? Case Studies. Why? The ORAM implementations presented in \obliv are in client-server model. These implementations will
+  be written to abide by the MPC type system and will be in the more restrictive ORAM-SC model. Also, frankly, the existing literature
+  on the differences between these two models sucks. I hope to more clearly articulate the differences and similarities in my thesis
+  by showing the implementations side-by-side. How? Adapt the implementations from~\citet{lam-obliv} according to the descriptions of
+  ORAM-SC in the literature~\cite{}.
+\item What? Type Checker. Why? To verify that the formal type sytem is feasible to implement and interesting. By ``interesting'' we mean
+  that it can successfully typecheck the ORAM case studies. Also, as an additional contribution, the \mpc implementation presented
+  in~\citet{symphony} does not include a type checker. So, we will also show that the interesting case studies from that paper type check.
+  Finally, this will allow us to rapidly test different designs for the formal type system. How? Write a bunch of Haskell. As a first cut
+  we will graft the affinity and probability region features from \obliv onto the type system of \mpc.
+\item What? MPC Interpreter. Why? The formal semantics of \mpc and \lang are parameterized by the underlying MPC protocols. This may
+  may create some doubt in readers that the semantics is truly modelling the implementation of an MPC language. Again, the implementation
+  will serve to show that the formal semantics are feasible and interesting. How? We have already added the foundation of this functionality
+  by using the Haskell FFI to call out to the (two-party, semi-honest) EMP library. For example, we have the Millionaire's Problem working.
+\item What? Static Semantics. Why? We enforce the security properties of programs in \lang by showing that security is implied by
+  well-typing. We want PMTO\% and simulation, so we have to design a type system which satisfies the former without wrecking the latter.
+  How? Having implemented the type checker, we can base the static semantics on that.
+\item What? Prove Type Safety, PMTO\%, and Simulation. These are all desirable properties. The first says that the types are coherent with
+  the runtime behavior of the program. The second says that programs are secure, they only leak information which is explicitly declassified
+  according to a reveal expression. The third says that the single-threaded, or centralized, interpretation of programs is consistent with
+  the distributed (``real'') interpretation. How? We expect that the proof of type safety will be a standard syntactic proof using progress
+  and preservation. The proof of PMTO\% will build on the techniques (mixed semantics, simulation) for PMTO in \obliv and the proof of MTO\%
+  in \mpc. One possible challenge is the proof of simulation between the single-threaded and distributed semantics. Since we are adding a
+  probabilistic choice operation to the single-threaded semantics it will no longer be deterministic. This could complicate the proof of
+  simulation.
+\end{enumerate}
+
+As I mentioned briefly in Chapter~\ref{ch:intro}, the primary goal of this thesis is to develop secure MPC language, \lang, which
+support user-defined ORAM implementations. By virtue of all well-typed \lang programs being secure, any well-typed user-defined ORAM
+is also guaranteed to be secure. The basis of \lang will be the MPC language, \mpc, presented in Chapters~\ref{ch:taste-mpc},\ref{ch:mpc}.
+As we saw in Chapters~\ref{ch:taste-obliv},\ref{ch:obliv}, efficient ORAM implementations rely crucially on the ability to sample from
+uniform distributions\footnote{Formally, the logarithmic lower-bound on oblivious simulation only applies in the PRAM model of computation.}.
+So, if we want \lang to support efficient, user-defined ORAM constructions we must add to \mpc a feature which permits uniform, random sampling.
+While this may seem like a fairly innocuous change, it is veritable Pandora's box with respect to the metatheory of our language. The \mpc
+language defines security as~\nameref{thm:mod-mod} which says that memory address traces do not depend on secrets, modulo differences induced
+by declassification. After adding uniform, random sampling this property no longer holds. In one case, the property can be violated by programs
+which are intuitively safe.
+
+M⁅
+\begin{array}{r@{␠}lcl}
+   «0:» & 𝑚𝑐3l{ ⦑par⦒[\alice,\bob] }
+\\ «1:» & ␠⦑let⦒␣s    ⧼=⧽ ⦑par⦒[\alice]␣⦑read⦒␣⦑in⦒
+\\ «2:» & ␠⦑let⦒␣a    ⧼=⧽ ⦑array⦒(2)[λ␣\_ → 0]␣⦑in⦒
+\\ «3:» & ␠⦑let⦒␣r    ⧼=⧽ ⦑unif⦒(❴0,1❵)␣⦑in⦒
+\\ «4:» & ␠a[r]
+\end{array}
+M⁆
+
+On line 1, \alice binds a secret value to ⸨s⸩. On line 2, both \alice and \bob declare an array, ⸨a⸩, of two cells both containing the value
+⸨0⸩. Finally, on lines 3 and 4, we generate a uniform, random sample from the set ⸨❴0,1❵⸩, bind it to ⸨r⸩ and access the array ⸨a⸩ at index
+⸨r⸩. We assume that both \alice and \bob generate the same value when they randomly sample\footnote{This can be achieved by having \alice and \bob generate their own samples, which are then shared and XOR'd with each other.}. This program is cleary secure, since all the code after
+line 1 is independent of ⸨s⸩. However, this code does not satisfy~\ref{thm:mto-mod}. This property implicitly assumes that the semantics is
+deterministic! In other words, it assumes that any change in the memory address trace must have been induced by dependence on a secret. This
+is precisely the issue that \obliv language attempts to overcome by adopting a probabilistic version of MTO,~\ref{thm:pmto}.
+
+\begin{theorem}[PMTO\%]\label{thm:pmto-mod}
+\end{theorem}
+
+\chapter{Open Problems}
+
+We briefly discuss some important open problems which affect the design of languages for
+MPC and obliviousness. These are not addressed by \lang and I feel that they are promising
+areas for future research.
+
+\section{Resource Awareness}
+
+MPC programs are expensive. Something something orders of magnitude slower~\cite{}. This due principally to the communication
+required. For example in GMW, an AND gate requires a round of communication and the 1-4 OT requires an encryption scheme.
+Programmers who are not experts in MPC will require information about the cost of the programs they are writing. This could be
+handled elegantly by the language. There is ample research in type-based resource analysis~\cite{}, for example. \ins{TODO: this is rough}
+
+\section{Oblivious Data Structures}
+
+Our prior work has shown that Oblivious Data Structures (ODS's), proposed by Wang et al., do not satisfy PMTO.\ins{replace with ref. to theorem} Even though ODS's are safe due to negligibl overflow probability, we are unable to verify that fact in \lang. We would like to find some
+way to support ODS's within the language while retaining the security guarantees provided by the tyep system.
+
+\section{Other Security Policies}
+
+PMTO\% is perhaps the most obvious security policone could prove about MPC programs which admit ORAM. However, it is not the only property
+one could prove. There is a rich literature of different declassification policies, as well as weaker variants of (P)MTO like Differential
+MTO~\cite{} and manual computational proofs of securit with explicit complexity-theoretic reductions~\cite{easycrypt}.
+
+\appendix
+
+\chapter{The GMW Protocol}
 
 MPC works by allowing a secret, in cleartext, to be split up into many ``shares'' which are considered ciphertext
 and therefore may be safely distributed to other parties and recombined later. More specifically, shares have the following properties:
@@ -342,193 +619,5 @@ sufficiently protect ⸨α⸩\footnote{More formally, the XOR with a random valu
   if the key is never reused.}. However, 1-4 OT guarantees that \bob can only see the message that he chooses.
 
 In the next section, we'll look at how this protocol can be scaled up to a full-blown programming language for secure computation.
-
-\subsection{A Taste of \mpc}
-
-We now have a foundational understanding of how MPC works, but how can we write MPC programs? Symphony is a new
-language proposed by Darais et al.~\cite{} which is an expressive, high-level language model for MPC. From here on, we instead refer to this
-language instead as \mpc to more clearly constrast it with \obliv which is presented in Chapter~\ref{ch:oram}. As a means of gentle
-introduction, let's consider the Millionaire's Problem in which two wealthy parties, \alice and \bob, would like to know who has a higher
-net worth.
-
-\begin{figure}[h]
-M⁅
-\begin{array}{r@{␠}lcl}
-   «0:» & 𝑚𝑐3l{ ⦑par⦒[\alice,\bob] }
-\\ «1:» & ␠⦑let⦒␣x    ⧼=⧽ ⦑par⦒[\alice]␣⦑read⦒␣⦑in⦒
-\\ «2:» & ␠⦑let⦒␣y    ⧼=⧽ ⦑par⦒[\bob]␣⦑read⦒␣⦑in⦒
-\\ «3:» & ␠⦑let⦒␣sx   ⧼=⧽ ⦑share⦒[\alice → \alice,\bob]␣x␣⦑in⦒
-\\ «4:» & ␠⦑let⦒␣sy   ⧼=⧽ ⦑share⦒[\bob → \alice,\bob]␣y␣⦑in⦒
-\\ «5:» & ␠⦑let⦒␣r    ⧼=⧽ sx < sy␣⦑in⦒
-\\ «6:» & ␠⦑let⦒␣z    ⧼=⧽ ⦑reveal⦒[\alice,\bob]␣r␣⦑in⦒
-\\ «7:» & ␠…
-\end{array}
-M⁆
-\caption{\mpc{} code for the Millionaire's Problem}
-\label{fig:millionaires}
-\end{figure}
-
-The code in Figure~\ref{fig:millionaires} is written in the \mpc language. On line 0, the ⸨⦑par⦒[\alice,\bob]⸩ block
-means that \alice and \bob will execute everything in the block's lexical scope. Any other parties will ignore the
-contents of the block and generate an \emph{opaque value} denoted \opaque. On line 1, \alice will ⸨⦑read⦒⸩ her own net worth,
-⸨\alices{⋖net-worth⋗}⸩, from her local machine and bind it to ⸨x⸩. \bob, however, will evaluate the expression ⸨⦑par⦒[\alice]␣⦑read⦒⸩ to
-\opaque because he is not included in the ⸨⦑par⦒[\alice]⸩ block. On line 2, the same thing happens except \bob reads his net worth,
-⸨\bobs{⋖net-worth⋗}⸩, and binds it to ⸨y⸩ while \alice binds \opaque to ⸨y⸩ in her local environment. So, after line 2 the local
-environments are as follows.
-
-M⁅
-  Aːcc
-  A⁅ \alice & \bob
-  A⁃ ⟨x ↦ \alices{⋖net-worth⋗},␣y ↦ \opaque⟩␠ & ␠⟨x ↦ \opaque,␣y ↦ \bobs{⋖net-worth⋗}⟩
-  A⁆
-M⁆
-
-On line 3, \alice splits her ⸨\alices{⋖net-worth⋗}⸩ into two shares. She keeps her share and sends \bob's share to him. We use the same
-notation for shares which appears in Section~\ref{sec:mpc} to emphasize the connection between our GMW explanation and the execution model
-of \mpc. On line 4, \bob splits his ⸨\bobs{⋖net-worth⋗}⸩ into two shares. He keeps his share and send's \alice's share to her. So, after
-line 4 the local environments are as follows.
-
-M⁅
-  Aːllll
-  A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob}
-    A⁃ ⟨…,&␣sx ↦ \aliceSh{\alices{⋖net-worth⋗}}, & ␠⟨…,&␣sx ↦ \bobSh{\alices{⋖net-worth⋗}}
-    A⁃    &␣sy ↦ \aliceSh{\bobs{⋖net-worth⋗}}⟩   &     &␣sy ↦ \bobSh{\bobs{⋖net-worth⋗}}⟩
-  A⁆
-M⁆
-
-On line 5, \alice and \bob compute over their shares to produce a share indicating who is wealthier. Here we assume that the language knows
-how to compute or encode ⸨<⸩ over shares. For example, if the underlying MPC protocol were GMW then we would encode ⸨<⸩ as a digital magnitude
-circuit in terms of XOR and AND gates.
-
-M⁅
-  Aːcc
-  A⁅ \alice & \bob
-  A⁃ ⟨…,␣r ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}⟩ & ␠⟨…,␣r ↦ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}⟩
-  A⁆
-M⁆
-
-Finally, on line 6, the shares of ⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}⸩ among \alice and \bob are combined and the
-cleartext result is revealed to both parties. Note that we could have revealed the result only to \alice, for example,
-in which case \bob would send his share to \alice but not vice versa. Then, \alice could recover the cleartext result but \bob could not.
-In this case, however, they both send their shares to each other. The XOR operator, ⸨⊕⸩, is used to combine shares implicitly as part
-of the ⸨⦑reveal⦒⸩.
-
-M⁅
-  Aːllll
-  A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob}
-    A⁃ ⟨…,␣z &{} ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} & ␠⟨…,␣z &{} ↦ \aliceSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}
-    A⁃       &{}␣⊕ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩} & &{}␣⊕ \bobSh{A⸨\alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}A⸩}
-    A⁃       &{}␣= \alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}⟩ & &{}␣= \alices{⋖net-worth⋗} < \bobs{⋖net-worth⋗}⟩
-  A⁆
-M⁆
-
-There are some interesting things to notice about this program (and \mpc) more generally. First, the programmer controls which parties
-evaluate which expressions by using ⸨⦑par⦒⸩ blocks. Second, cleartext ⸨⦑read⦒⸩ operations (lines 1,2) are mixed with ciphertext operations
-(lines 3,4,5,6). Last, notice that the original program has a centralized interpretation. In a deployment, this program would run
-independently on \alice and \bob who would communicate to jointly compute. Our explanation of the execution of Figure~\ref{fig:millionaires}
-did not need to explicate any of that.
-
-\ins{Considering also showing GCD here.}
-
-\section{Oblivious RAM}
-
-\subsection{Overview}
-
-\subsection{A Taste of \obliv}
-
-\chapter{A Language for Concise MPC}
-
-\ins{Take from Symphony paper}
-
-\chapter{A Language for Probabilistically Oblivious Computation}
-
-\ins{Take from lam-obliv paper}
-
-\chapter{Proposal: \lang, A Secure MPC Language With User-Defined ORAM}
-
-An outline.
-
-\begin{enumerate}
-\item What? Case Studies. Why? The ORAM implementations presented in \obliv are in client-server model. These implementations will
-  be written to abide by the MPC type system and will be in the more restrictive ORAM-SC model. Also, frankly, the existing literature
-  on the differences between these two models sucks. I hope to more clearly articulate the differences and similarities in my thesis
-  by showing the implementations side-by-side. How? Adapt the implementations from~\citet{lam-obliv} according to the descriptions of
-  ORAM-SC in the literature~\cite{}.
-\item What? Type Checker. Why? To verify that the formal type sytem is feasible to implement and interesting. By ``interesting'' we mean
-  that it can successfully typecheck the ORAM case studies. Also, as an additional contribution, the \mpc implementation presented
-  in~\citet{symphony} does not include a type checker. So, we will also show that the interesting case studies from that paper type check.
-  Finally, this will allow us to rapidly test different designs for the formal type system. How? Write a bunch of Haskell. As a first cut
-  we will graft the affinity and probability region features from \obliv onto the type system of \mpc.
-\item What? MPC Interpreter. Why? The formal semantics of \mpc and \lang are parameterized by the underlying MPC protocols. This may
-  may create some doubt in readers that the semantics is truly modelling the implementation of an MPC language. Again, the implementation
-  will serve to show that the formal semantics are feasible and interesting. How? We have already added the foundation of this functionality
-  by using the Haskell FFI to call out to the (two-party, semi-honest) EMP library. For example, we have the Millionaire's Problem working.
-\item What? Static Semantics. Why? We enforce the security properties of programs in \lang by showing that security is implied by
-  well-typing. We want PMTO\% and simulation, so we have to design a type system which satisfies the former without wrecking the latter.
-  How? Having implemented the type checker, we can base the static semantics on that.
-\item What? Prove Type Safety, PMTO\%, and Simulation. These are all desirable properties. The first says that the types are coherent with
-  the runtime behavior of the program. The second says that programs are secure, they only leak information which is explicitly declassified
-  according to a reveal expression. The third says that the single-threaded, or centralized, interpretation of programs is consistent with
-  the distributed (``real'') interpretation. How? We expect that the proof of type safety will be a standard syntactic proof using progress
-  and preservation. The proof of PMTO\% will build on the techniques (mixed semantics, simulation) for PMTO in \obliv and the proof of MTO\%
-  in \mpc. One possible challenge is the proof of simulation between the single-threaded and distributed semantics. Since we are adding a
-  probabilistic choice operation to the single-threaded semantics it will no longer be deterministic. This could complicate the proof of
-  simulation.
-\end{enumerate}
-
-As I mentioned briefly in Chapter~\ref{ch:intro}, the primary goal of this thesis is to develop secure MPC language, \lang, which
-support user-defined ORAM implementations. By virtue of all well-typed \lang programs being secure, any well-typed user-defined ORAM
-is also guaranteed to be secure. The basis of \lang will be the MPC language, \mpc, presented in Chapters~\ref{ch:taste-mpc},\ref{ch:mpc}.
-As we saw in Chapters~\ref{ch:taste-obliv},\ref{ch:obliv}, efficient ORAM implementations rely crucially on the ability to sample from
-uniform distributions\footnote{Formally, the logarithmic lower-bound on oblivious simulation only applies in the PRAM model of computation.}.
-So, if we want \lang to support efficient, user-defined ORAM constructions we must add to \mpc a feature which permits uniform, random sampling.
-While this may seem like a fairly innocuous change, it is veritable Pandora's box with respect to the metatheory of our language. The \mpc
-language defines security as~\nameref{thm:mod-mod} which says that memory address traces do not depend on secrets, modulo differences induced
-by declassification. After adding uniform, random sampling this property no longer holds. In one case, the property can be violated by programs
-which are intuitively safe.
-
-M⁅
-\begin{array}{r@{␠}lcl}
-   «0:» & 𝑚𝑐3l{ ⦑par⦒[\alice,\bob] }
-\\ «1:» & ␠⦑let⦒␣s    ⧼=⧽ ⦑par⦒[\alice]␣⦑read⦒␣⦑in⦒
-\\ «2:» & ␠⦑let⦒␣a    ⧼=⧽ ⦑array⦒(2)[λ␣\_ → 0]␣⦑in⦒
-\\ «3:» & ␠⦑let⦒␣r    ⧼=⧽ ⦑unif⦒(❴0,1❵)␣⦑in⦒
-\\ «4:» & ␠a[r]
-\end{array}
-M⁆
-
-On line 1, \alice binds a secret value to ⸨s⸩. On line 2, both \alice and \bob declare an array, ⸨a⸩, of two cells both containing the value
-⸨0⸩. Finally, on lines 3 and 4, we generate a uniform, random sample from the set ⸨❴0,1❵⸩, bind it to ⸨r⸩ and access the array ⸨a⸩ at index
-⸨r⸩. We assume that both \alice and \bob generate the same value when they randomly sample\footnote{This can be achieved by having \alice and \bob generate their own samples, which are then shared and XOR'd with each other.}. This program is cleary secure, since all the code after
-line 1 is independent of ⸨s⸩. However, this code does not satisfy~\ref{thm:mto-mod}. This property implicitly assumes that the semantics is
-deterministic! In other words, it assumes that any change in the memory address trace must have been induced by dependence on a secret. This
-is precisely the issue that \obliv language attempts to overcome by adopting a probabilistic version of MTO,~\ref{thm:pmto}.
-
-\begin{theorem}[PMTO\%]\label{thm:pmto-mod}
-\end{theorem}
-
-\chapter{Open Problems}
-
-We briefly discuss some important open problems which affect the design of languages for
-MPC and obliviousness. These are not addressed by \lang and I feel that they are promising
-areas for future research.
-
-\section{Resource Awareness}
-
-MPC programs are expensive. Something something orders of magnitude slower~\cite{}. This due principally to the communication
-required. For example in GMW, an AND gate requires a round of communication and the 1-4 OT requires an encryption scheme.
-Programmers who are not experts in MPC will require information about the cost of the programs they are writing. This could be
-handled elegantly by the language. There is ample research in type-based resource analysis~\cite{}, for example. \ins{TODO: this is rough}
-
-\section{Oblivious Data Structures}
-
-Our prior work has shown that Oblivious Data Structures (ODS's), proposed by Wang et al., do not satisfy PMTO.\ins{replace with ref. to theorem} Even though ODS's are safe due to negligibl overflow probability, we are unable to verify that fact in \lang. We would like to find some
-way to support ODS's within the language while retaining the security guarantees provided by the tyep system.
-
-\section{Other Security Policies}
-
-PMTO\% is perhaps the most obvious security policone could prove about MPC programs which admit ORAM. However, it is not the only property
-one could prove. There is a rich literature of different declassification policies, as well as weaker variants of (P)MTO like Differential
-MTO~\cite{} and manual computational proofs of securit with explicit complexity-theoretic reductions~\cite{easycrypt}.
 
 \end{document}
