@@ -190,15 +190,13 @@ Tasks in \colorbox{theoryColor}{blue} require adapting the formal metatheory of 
             \emph{Trust in Me}}
 
 For those committe members who aren't (yet) totally jazzed about MPC and obliviousness, this one goes out to you. Readers unfamiliar
-with MPC may want to read Appendix~\ref{ch:gmw} which explains the GMW protocol. Readers unfamiliar with ORAM (Trivial ORAM, Circuit ORAM,
-Recursive (Circuit) ORAM) may want to read Appendix~\ref{ch:oram} which explains ORAM protocols.
+with MPC may want to read Appendix~\ref{ch:gmw} which describes the GMW protocol. Readers unfamiliar with ORAM (Trivial ORAM, Circuit ORAM,
+Recursive (Circuit) ORAM) may want to read Appendix~\ref{ch:oram} which describes relevant ORAM protocols.
 
 \section{A Taste of \mpc}
 
-\ins{show symphony millionaires and explain in detail}
-
 Symphony is a MPC language proposed by Darais et al.~\cite{} which is \textbf{abstractly centralized} and has a sophisticated type system.
-From here on, we instead refer to this language instead as \mpc to more clearly constrast it with \obliv which is presented in
+From here on, we instead refer to this language as \mpc to more clearly constrast it with \obliv which is presented in
 Chapter~\ref{ch:oram}. As a means of gentle introduction, let's consider the Millionaire's Problem in which two wealthy parties,
 \alice and \bob, would like to know who has a higher net worth.
 
@@ -286,8 +284,6 @@ and \textbf{high assurance}. But, what exactly do these properties mean and why 
 
 \subsection{Abstractly Centralized MPC Languages}
 
-\ins{abstractly centralized -- show oblivc millionairs, contrast w/ symphony, mention that simulation + type safety implies no hanging}
-
 A language which isn't abstractly centralized requires the programmer to explicitly manage the distributed computation by performing
 commands conditioned on which party is executing. For example, the following is an Obliv-C implementation of the Millionaire's Problem.
 
@@ -331,10 +327,10 @@ commands conditioned on which party is executing. For example, the following is 
   }
 \end{lstlisting}
 
-Here we can see that a lot of the details of the distributed, MPC deployment have leaked into the application code. The
-\lstinline[language=c]{main} function is responsible for all sorts of scaffolding such as establishing TCP connections (line 31),
+We can see that a lot of the details of the distributed, MPC deployment have leaked into the application code. The
+\lstinline[language=c]{main} \ins{why isn't this teletype?} function is responsible for all sorts of scaffolding such as establishing TCP connections (line 31),
 explicitly executing the protocol (line 34), and populating the \lstinline[language=c]{io} variable with party inputs (line 30). As
-a point of comparison, take a look back at Figure~\ref{fig:millionaires}. Notice that this codmakes no mention of TCP connections,
+a point of comparison, take a look back at Figure~\ref{fig:millionaires}. Notice that this code makes no mention of TCP connections,
 explicit execution of any protocol, or eagerly reading and caching secret inputs. The code knows to execute a Yao protocol due to
 an appropriate type signature (not shown).
 
@@ -349,11 +345,28 @@ distributed nature of this MPC program is desirable.
 
 \subsection{Probabilistic MPC Languages}
 
-\ins{probabilistic -- show 2 ele oram example, touch on goldreich ostrovsky result of lower bound}
-
 In our parlance, a MCP language is \textbf{probabilistic} if it supports a primitive for drawing a uniform, random sample from a
 discrete, finite set. For example, drawing a uniform, random sample from ⸨𝔹⸩, the Booleans, corresponds to a fair coin toss. We
 could also draw from ⸨ℕ⸤32⸥⸩, Naturals modulo ⸨2^{32}⸩. Why is such a primitive important in a MPC language?
+
+As discussed in Chapter~\ref{sec:intro-mpc}, MPC languages rely on ORAM to support a RAM-model of computation. In their seminal paper,~\citet{}
+showed that Trivial ORAM, which has an overhead of $O(n)$, is optimal if the oblivious scheme is deterministic. However, provided the ability
+to perform uniform, random samples, it is possible to design more efficient ORAMs. For example, the other ORAM schemes discussed in
+Appendix~\ref{ch:oram}, Circuit ORAM and Recursive ORAM, rely on the ability to draw uniform, random samples. Additionally, there are
+optimized algorithms and data structures which do not rely on ORAM, but still use random samples to achieve greater efficiency.
+
+To see how the use of random sampling is used to improve efficiency, consider the code in Figure~\ref{fig:mpc-2-oram}. The purpose of
+this code is to allow \bob to choose one of two secrets belonging to \alice without \alice learning which one \bob chose. On lines 1-2,
+we read \alice's secrets, ⸨s⸤A1⸥⸩ and ⸨s⸤A2⸥⸩, and share them with \bob. On line 3, we read \bob's choice, ⸨s⸤B⸥⸩, and share it with \alice.
+On line 4, we flip a coin, ⸨u⸩, which is shared between \alice and \bob but \emph{visible to neither of them}
+\footnote{This can be encoded by each of \alice and \bob flipping their own coins independently, then each sharing their choice with the other
+  and XOR'ing them together. The result is a uniform, random sample visible to neither party.}. On lines 5-6, we populate the array, ⸨a⸩,
+in-order if the coin ⸨u⸩ is heads, and permuted if the coin is tails. Finally, on line 7 we reveal the XOR of \bob's choice with the flipped
+coin. Notice that if \bob's choice was ⸨0⸩ (tails) then he always gets ⸨s⸤A1⸥⸩ and likewise for ⸨1⸩ (heads) and ⸨s⸤A2⸥⸩.
+
+This code illustrates the importance of random sampling for efficient RAM access. If the MPC program had instead stored the array ⸨a⸩ in
+a Trivial ORAM then the lookup on line 8 would require 2 accesses (one for each element in the ORAM). This may not seem so bad, but consider
+how this would look if we wanted \bob to choose from an array of length ⸨n⸩. In that case, the lookup on line 8 would incur an $O(n)$ overhead.
 
 \begin{figure}[h]
 M⁅
@@ -376,7 +389,20 @@ M⁆
 
 \subsection{High Assurance MPC Languages}
 
-\ins{high assurance -- refer back to 2 ele oram example, show that security specification is unexpressible in symphony}
+Existing MPC languages which support uniform, random sampling cannot be considered \textbf{high assurance}. With the introduction of
+uniform, random samples it is possible to have declassifications which are information-theoretically secure. In other words, there are
+values which may be declassified but provide no information about secrets. For example, recall the code from
+Figure~\ref{fig:mpc-2-oram}. On line 7, we reveal ⸨s⸤B⸥␣⊕␣u⸩ to \alice but claim that \alice learns nothing about ⸨s⸤B⸥⸩. This is valid,
+but only because ⸨u⸩ is not known to \alice. However, this is a semantic property which is not checked by the declassification. If line 7
+were changed instead to ⸨⦑reveal⦒[\alice,\bob]␣s⸤B⸥⸩ then the program would still be functionally correct but ⸨s⸤B⸥⸩ would be leaked to
+\alice. This is what we mean by existing MPC languages failing to be \textbf{high assurance} -- they do not catch (even dynamically)
+violations of confidentiality like the one above.
+
+A high assurance language is beneficial to both MPC experts (e.g. cryptographers) and novices. Experts save time and gain confidence in their
+experimental protocols by relying on the language to enforce confidentiality. For example, the declassification which appears on line 7 in
+Figure~\ref{fig:mpc-2-oram} need not be audited. Instead, the language would ensure that this declassification is indeed conditionally uniform.
+Likewise, MPC novices will benefit by being able to safely experiment with their own cryptographic optimizations without fear of accidentally
+leaking information they didn't intend to. They need only mark declassifications that are expert to be zero-information as such.
 
 \chapter{\mpc, A Language for Concise MPC}
 
@@ -388,7 +414,23 @@ M⁆
 
 \chapter{Proposal: \lang, A Secure MPC Language With User-Defined ORAM}
 
-An outline.
+Building on \mpc and \obliv, I will design and implement a MPC language, \lang, which is \textbf{probabilistic},
+\textbf{abstractly centralized}, and \textbf{high assurance}.
+
+\section{Design}
+
+As mentioned in Chapter~\ref{}, \lang will build directly on \mpc. The syntax of \lang extends \mpc according to Figure~\ref{fig:lang-syntax}.
+
+\ins{TODO: syntax figure}
+
+The two important new pieces of syntax are the atomic expressions for uniform, random samples, ⸨𝒰␣τ⸩,
+and zero-information reveal, ⸨⦑safe⦒[p]␣x⸩.
+Uniform, random sampling ⸨𝒰␣τ⸩ chooses a uniform, random value of type ⸨τ⸩. The zero-information reveal ⸨⦑safe⦒[p]␣x⸩ performs a
+declassification (just like ⸨⦑reveal⦒⸩) but is checked statically to make sure that the value being revealed is conditionally
+uniform. We also add booleans to the language and permit sharing of both booleans and integers.
+
+We additionally introduce a value constructor, ⸨½␣bv⸩, which indicates that a base value is uniformly random. The locatedness metafunction,
+⸨⸩ \ins{todo: fix, use Darais font}, leaves ⸨½␣bv⸩ as is.
 
 \begin{enumerate}
 \item What? Case Studies. Why? The ORAM implementations presented in \obliv are in client-server model. These implementations will
@@ -455,23 +497,31 @@ We briefly discuss some important open problems which affect the design of langu
 MPC and obliviousness. These are not addressed by \lang and I feel that they are promising
 areas for future research.
 
-\section{Resource Awareness}
-
+\paragraph{Resource Awareness}
 MPC programs are expensive. Something something orders of magnitude slower~\cite{}. This due principally to the communication
 required. For example in GMW, an AND gate requires a round of communication and the 1-4 OT requires an encryption scheme.
 Programmers who are not experts in MPC will require information about the cost of the programs they are writing. This could be
 handled elegantly by the language. There is ample research in type-based resource analysis~\cite{}, for example. \ins{TODO: this is rough}
 
-\section{Oblivious Data Structures}
-
+\paragraph{Oblivious Data Structures}
 Our prior work has shown that Oblivious Data Structures (ODS's), proposed by Wang et al., do not satisfy PMTO.\ins{replace with ref. to theorem} Even though ODS's are safe due to negligibl overflow probability, we are unable to verify that fact in \lang. We would like to find some
 way to support ODS's within the language while retaining the security guarantees provided by the tyep system.
 
-\section{Other Security Policies}
-
+\paragraph{Other Security Policies}
 PMTO\% is perhaps the most obvious security policone could prove about MPC programs which admit ORAM. However, it is not the only property
 one could prove. There is a rich literature of different declassification policies, as well as weaker variants of (P)MTO like Differential
 MTO~\cite{} and manual computational proofs of securit with explicit complexity-theoretic reductions~\cite{easycrypt}.
+
+\paragraph{Usability of Abstractly Centralized Languages}
+We make claims in this proposal that abstractly centralized languages are a good choice for MPC. We justify this claim by arguing that
+programmers need not think about the distributed deployment of their program. Furthermore, the type safety theorem for the centralized
+semantics implies safety of the distributed semantics. However, a more empirical approach to the question of usability is warranted.
+A user study comparing two languages, one of which exposes more of the distributed computation, would lend more credibility to our claim
+that abstractly centralized languages are preferable.
+
+\paragraph{Support for PIR-based ORAM}
+The most efficient modern ORAM schemes in the MPC context use Private Information Retrieval (PIR) protocols. These protocols rely on
+features such as function secret sharing and cryptographic pseudo-random functions.
 
 \appendix
 
