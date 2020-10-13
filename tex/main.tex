@@ -31,6 +31,10 @@
 \newcommand{\opaque}{A⸨★A⸩\xspace}
 %%%
 
+%%% Macros from Symphony Paper
+\newcommand{\eset}{⸨∅⸩}
+%%%
+
 \definecolor{implColor}{HTML}{EA9999}
 \definecolor{theoryColor}{HTML}{A4C2F4}
 
@@ -48,7 +52,7 @@
 
 \begin{abstract}
   \emph{Secure Multiparty Computation} (MPC) and \emph{Oblivious RAM} (ORAM) have emerged as promising approaches to
-  high-confidentiality computation. Traditionally, MPC programs do not allow secrets to be used as indexes to dynamically
+  confidential computation. Traditionally, MPC programs do not allow secrets to be used as indexes to dynamically
   allocated memory. This precludes, for example, a secure binary search in which the element being accessed is considered secret.
   This restriction is relaxed by using ORAM inside of the secure computation. Unfortunately, existing languages for MPC typically
   support ORAM by ``baking it in'' to the language as a trusted primitive. We propose the design and implementation of a language
@@ -69,48 +73,49 @@
 
 If our adversaries were more like Michael Franti then we wouldn't need to concern ourselves with privacy.
 Unfortunately, that isn't the world we live in. People have a right to privacy and programming languages have
-a duty to honor that right. In other words, programming languages have a duty of confidentiality. In this proposal,
-we investigate one approach to confidential languages based on Secure Multiparty Computation. What do such languages
-look like? How might they be improved?
+a duty to honor that right. In other words, programming languages have a duty of confidentiality. What do such
+languages look like? How might they be improved?
 
 \section{Secure Multiparty Computation and Obliviousness}
-\label{sec:intro-mpc}
+\label{sec:intro}
 
 \emph{Secure Multiparty Computation} (MPC) is a subfield of cryptography
 that allows mutually untrusting parties to compute arbitrary functions over their private inputs while revealing nothing
 except the function output. That is, MPC allows parties to work together to run programs \emph{under encryption}.
 
-Approaches to MPC have improved significantly over the years. The first full implementation, FairPlay~\cite{}, could evaluate
+Approaches to MPC have improved significantly over the years. The first full implementation, FairPlay~\cite{todo}, could evaluate
 only a few hundred Boolean gates pers second. Modern implementations on custom setups evaluate \emph{billions} of Boolean gates per
-second~\cite{}, and cryptographers continue to reduce the cost of MPC. Despite increasing efficiency and compelling applications
+second~\cite{todo}, and cryptographers continue to reduce the cost of MPC. Despite increasing efficiency and compelling applications
 (secure auctions, secure databases, collaborative machine learning, and any other imaginable application with security concerns),
 MPC has not been widely adopted. One significant barrier to adoption is a lack of appropriate infrastructure. Today, it is difficult
 for non-experts to understand and work in the complex distributed model that MPC requires.
 
 In addition to lack of infrastructure, languages for MPC also fail to provide adequate support for RAM-model programming. The standard
 means by which RAM-model computation is supported in MPC languages is using \emph{Oblivious RAM} (ORAM). To date, most MPC languages
-simply do not provide any access to ORAM. In their 2019 SoK,~\citet{} observe that only a ``few frameworks have ORAM support, either
-natively (ObliVM and SCALE-MAMBA) or via a library (Obliv-C).'' The three languages mentioned, ObliVM~\cite{}, SCALE-MAMBA~\cite{}, and
-Obliv-C~\cite{}, are \textbf{probabilistic} MPC languages. According to~\citet{}, a language must have support for sampling from a uniform,
-random distribution to admit asymptotically optimal ORAM. Indeed, each of these languages provides a highly optimized implementation of
-Circuit ORAM~\cite{}, which is known to be asymptotically optimal (i.e. $O(\log{n})$). However, these languages could be improved by
+simply do not provide any access to ORAM. In their 2019 SoK,~\citet{todo} observe that only a ``few frameworks have ORAM support, either
+natively (ObliVM and SCALE-MAMBA) or via a library (Obliv-C).'' The three languages mentioned, ObliVM~\cite{todo}, SCALE-MAMBA~\cite{todo}, and
+Obliv-C~\cite{todo}, are \textbf{probabilistic} MPC languages. According to~\citet{todo}, a language must have support for sampling
+from a uniform, random distribution to admit asymptotically optimal ORAM.
+Indeed, each of these languages provides a highly optimized implementation of
+Circuit ORAM~\cite{todo}, which is known to be asymptotically optimal (i.e. $O(\log{n})$). However, these languages could be improved by
 being \textbf{abstractly centralized} and \textbf{high assurance}. An \textbf{abstractly centralized} language hides, as much as possible,
 the distributed deployment of the MPC program from the programmer. Examples of existing languages which are abstractly centralized are
-SCVM~\cite{}, Wysteria~\cite{}, and the recent Symphony language~\cite{}. A \textbf{high assurance} language guarantees that programs written
-in the language are oblivious. We describe these properties in more detail, with examples, in Chapter~\ref{ch:background}.
+SCVM~\cite{todo}, Wysteria~\cite{todo}, and the recent Symphony language~\cite{todo}. A \textbf{high assurance} language
+guarantees that programs written in the language are oblivious.
+We describe these properties in more detail, with examples, in Chapter~\ref{ch:background}.
 
 In summary, we would like the following properties from our MPC language.
 
 \begin{enumerate}
-\item \label{itm:probabilistic} \underline{Probabilistic} -- \textbf{A probabilistic language, which allows sampling from uniform, random distributions, is necessary
+\item \label{itm:probabilistic} \textbf{\underline{Probabilistic} -- A probabilistic language, which allows sampling from uniform, random distributions, is necessary
   for implementing asymptotically optimal ORAM, oblivious algorithms, and data structures.}
   When more efficient oblivious protocols are invented (which happens every year), cryptographers would like to be able to
   implement these protocols in a MPC library.
-\item \label{itm:centralized} \underline{Abstractly Centralized} -- \textbf{An abstractly centralized language, which hides the distributed deployment from the
+\item \label{itm:centralized} \textbf{\underline{Abstractly Centralized} -- An abstractly centralized language, which hides the distributed deployment from the
   programmer, is necessary for lowering the barrier of entry for developers.}
   Being able to program as though the program is being executed on a single machine, without worrying about the distributed deployment
   of the program, significantly reduces the complexity of MPC programming.
-\item \label{itm:assurance} \underline{High Assurance} -- \textbf{A high assurance language, which guarantees that all programs are oblivious, is necessary
+\item \label{itm:assurance} \textbf{\underline{High Assurance} -- A high assurance language, which guarantees that all programs are oblivious, is necessary
   for certifying that programs do not leak information through side channels.} Without certification of obliviousness, a domain expert
   would need to manually audit the declassifications in the program which are expected to reveal no information. Such declassifications
   are common in, for example, tree-based ORAM constructions.
@@ -119,11 +124,13 @@ In summary, we would like the following properties from our MPC language.
 \paragraph{Problem.} No existing MPC language is \textbf{(all together) probabilistic, abstractly centralized, and high assurance.}
 
 \section{Proposed Work}
+\label{sec:intro-proposal}
 
 \paragraph{Hypothesis.} It is possible to design and implement a language for MPC which is \textbf{probabilistic, abstractly centralized,
   and high assurance (as defined above).}
 
-\paragraph{Contribution: \obliv is PMTO.} In prior work, we show that ObliVM's~\cite{} type system is unsafe, and show how to fix it in
+\paragraph{Contribution: \obliv is PMTO.} In prior work, we show that ObliVM's~\cite{todo} type system is not oblivious,
+and show how to fix it in
 such a way that is satisfies \emph{Probabilistic Memory Trace Obliviousness} (PMTO). We prove this property for \obliv, a non-MPC language
 for oblivious programming.
 
@@ -133,24 +140,26 @@ proved for an MPC language. The SCVM language has a proof of a related property 
 
 \paragraph{Contribution: Identifying PMTO\%.} We identify and define the \emph{Probabilistic Memory Trace Oblivious Modulo Declassification}
 (PMTO\%) as an appropriate definition of security for probabilistic MPC languages. We also investigate and explicate the connection between
-this property and other common security properties involving declassifications (such as Gradual Release~\cite{}).
+this property and other common security properties involving declassifications (such as Gradual Release~\cite{todo}).
 
-\paragraph{Contribution: \lang, a probabilistic, abstractly centralized, and high assurance MPC language.} The contributions described
-above have already been accomplished, and they are necessary but not sufficient for confirmation of our
-hypothesis. To confirm our hypothesis, we propose the design and implementation of a new language for MPC, called \lang, which extends
-the Symphony language with primitives for drawing uniform, random samples and declassifying them. By extending Symphony with sampling
-from uniform, random distribuitions we will immediately satisfy property~\ref{itm:probabilistic} above. We will provide further evidence
-for the utility of this property by implementing various ORAM protocols (Trivial ORAM, Circuit ORAM, and Recursive (Circuit) ORAM). We will
-show that these implementations have the expected asymptotic behavior. Next, we will prove that the extensions to Symphony preserve the
-existing centralized semantics by proving that the Simulation theorem continues to hold. This will establish that \lang satisfies
-property~\ref{itm:centralized}. Finally, we will need to adapt the type system of Symphony to enforce PMTO\% and confirm that the case studies
-(ORAM protocols) type check in the adapted type system. This will establish that \lang satisfies property~\ref{itm:assurance}. Having
-accomplished this, we will have confirmed our hypothesis by constructing \lang which is probabilistic, abstractly centralized, and
-high assurance.
+The contributions described above have already been accomplished. They are necessary but not sufficient to confirm our hypothesis.
+To confirm our hypothesis, we propose the design and implementation of a new language for MPC, called \lang, which extends the
+Symphony language with primitives for drawing uniform, random samples and declassifying them.
+
+\paragraph{Contribution: \lang, a probabilistic, abstractly centralized, and high assurance MPC language.}
+\lang will extend Symphony with sampling from uniform, random distribuitions. This will immediately satisfy
+Property~\ref{itm:probabilistic} above. We will provide further evidence for the utility of this property by
+implementing various ORAM protocols (Trivial ORAM, Circuit ORAM, and Recursive (Circuit) ORAM). We will
+show that these implementations have the expected asymptotic behavior. Next, we will prove that \lang satisfies
+the type safety and simulation theorems by adapting the proofs of these properties for Symphony. This will establish
+that \lang satisfies Property~\ref{itm:centralized}.
+Finally, we will design the type system of \lang to enforce PMTO\% and confirm that the case studies (ORAM protocols) type check.
+This will establish that \lang satisfies Property~\ref{itm:assurance}. Having
+accomplished this, we will have confirmed our hypothesis.
 
 We summarize the tasks involved in the last contribution above, and give a rough timeline for their completion. Tasks in
-\colorbox{implColor}{red} require adding additional functionality to the existing Haskell implementation of \mpc.
-Tasks in \colorbox{theoryColor}{blue} require adapting the formal metatheory of \mpc. \\
+\colorbox{implColor}{red} require adding additional functionality to the existing Haskell implementation of Symphony.
+Tasks in \colorbox{theoryColor}{blue} require adapting the formal metatheory of Symphony. \\
 
 \ins{TODO: when proposal document is done, revisit this and update timeline.}
 
@@ -182,6 +191,8 @@ Tasks in \colorbox{theoryColor}{blue} require adapting the formal metatheory of 
 \end{tabular}
 
 \chapter{Background}
+\label{ch:background}
+
 \epigraph{Trust in me in all you do \\
           Have the faith I have in you \\
           Love will see us through \\
@@ -189,15 +200,17 @@ Tasks in \colorbox{theoryColor}{blue} require adapting the formal metatheory of 
             Etta James \\
             \emph{Trust in Me}}
 
-For those committe members who aren't (yet) totally jazzed about MPC and obliviousness, this one goes out to you. Readers unfamiliar
-with MPC may want to read Appendix~\ref{ch:gmw} which describes the GMW protocol. Readers unfamiliar with ORAM (Trivial ORAM, Circuit ORAM,
-Recursive (Circuit) ORAM) may want to read Appendix~\ref{ch:oram} which describes relevant ORAM protocols.
+Since \lang is a modest extension of the Symphony programming language, we begin by introducing the Symphony language using a simple example.
+Having done so, we will explain in more detail the MPC language properties that we advocate for in Section~\ref{sec:background-properties}.
+Readers unfamiliar with MPC are encouraged to read Appendix~\ref{ch:gmw}, which describes the GMW protocol.
+Readers unfamiliar with ORAM are encouraged to read Appendix~\ref{ch:oram}, which describes the ORAM protocols relevant to this proposal.
 
 \section{A Taste of \mpc}
+\label{sec:background-symphony}
 
-Symphony is a MPC language proposed by Darais et al.~\cite{} which is \textbf{abstractly centralized} and has a sophisticated type system.
+Symphony is a MPC language proposed by Darais et al.~\cite{todo} which has a sophisticated type system.
 From here on, we instead refer to this language as \mpc to more clearly constrast it with \obliv which is presented in
-Chapter~\ref{ch:oram}. As a means of gentle introduction, let's consider the Millionaire's Problem in which two wealthy parties,
+Chapter~\ref{ch:lam-obliv}. As a means of gentle introduction, let's consider the Millionaire's Problem in which two wealthy parties,
 \alice and \bob, would like to know who has a higher net worth.
 
 \begin{figure}[h]
@@ -214,10 +227,10 @@ M⁅
 \end{array}
 M⁆
 \caption{\mpc{} code for the Millionaire's Problem}
-\label{fig:millionaires}
+\label{fig:millionaires-symphony}
 \end{figure}
 
-The code in Figure~\ref{fig:millionaires} is written in the \mpc language. On line 0, the ⸨⦑par⦒[\alice,\bob]⸩ block
+The code in Figure~\ref{fig:millionaires-symphony} is written in the \mpc language. On line 0, the ⸨⦑par⦒[\alice,\bob]⸩ block
 means that \alice and \bob will execute everything in the block's lexical scope. Any other parties will ignore the
 contents of the block and generate an \emph{opaque value} denoted \opaque. On line 1, \alice will ⸨⦑read⦒⸩ her own net worth,
 ⸨\alices{⋖net-worth⋗}⸩, from her local machine and bind it to ⸨x⸩. \bob, however, will evaluate the expression ⸨⦑par⦒[\alice]␣⦑read⦒⸩ to
@@ -233,7 +246,7 @@ M⁅
 M⁆
 
 On line 3, \alice splits her ⸨\alices{⋖net-worth⋗}⸩ into two shares. She keeps her share and sends \bob's share to him. We use the same
-notation for shares which appears in Section~\ref{sec:mpc} to emphasize the connection between our GMW explanation and the execution model
+notation for shares which appears in Appendix~\ref{ch:gmw} to emphasize the connection between the explanation of GMW and the execution model
 of \mpc. On line 4, \bob splits his ⸨\bobs{⋖net-worth⋗}⸩ into two shares. He keeps his share and send's \alice's share to her. So, after
 line 4 the local environments are as follows.
 
@@ -274,19 +287,23 @@ M⁆
 There are some interesting things to notice about this program (and \mpc) more generally. First, the programmer controls which parties
 evaluate which expressions by using ⸨⦑par⦒⸩ blocks. Second, cleartext ⸨⦑read⦒⸩ operations (lines 1,2) are mixed with ciphertext operations
 (lines 3,4,5,6). Last, notice that the language is \textbf{abstractly centralized}. In a deployment, this program would run
-independently on \alice and \bob who would communicate to jointly compute. Our explanation of the execution of Figure~\ref{fig:millionaires}
-did not need to explicate any of that.
+independently on \alice and \bob who would communicate to jointly compute. Our explanation of the execution of
+Figure~\ref{fig:millionaires-symphony} did not explicate any of that.
 
 \section{Desirable Properties of MPC}
+\label{sec:background-properties}
 
-In Chapter~\ref{sec:intro-mpc} we claimed that a MPC language ought to be \textbf{probabilistic}, \textbf{abstractly centralized},
+In Section~\ref{sec:intro} we claimed that a MPC language ought to be \textbf{probabilistic}, \textbf{abstractly centralized},
 and \textbf{high assurance}. But, what exactly do these properties mean and why might we want them?
 
 \subsection{Abstractly Centralized MPC Languages}
+\label{subsec:background-properties-centralized}
 
-A language which isn't abstractly centralized requires the programmer to explicitly manage the distributed computation by performing
-commands conditioned on which party is executing. For example, the following is an Obliv-C implementation of the Millionaire's Problem.
+A language which is abstractly centralized does not require the programmer to explicitly manage the distributed computation. The programmer
+does not need to perform commands conditioned on which party is executing. Figure~\ref{fig:millionaires-oblivc} illustrates this by showing
+the Obliv-C implementation of the Millionaire's Problem.
 
+\begin{figure}[h]
 \begin{lstlisting}[language=c,basicstyle=\footnotesize,numbers=left,stepnumber=1]
   // File: million.h
   typedef struct {
@@ -326,47 +343,52 @@ commands conditioned on which party is executing. For example, the following is 
     // ... cleanup
   }
 \end{lstlisting}
+\caption{Obliv-C code for the Millionaire's Problem}
+\label{fig:millionaires-oblivc}
+\end{figure}
 
 We can see that a lot of the details of the distributed, MPC deployment have leaked into the application code. The
 \lstinline[language=c]{main} \ins{why isn't this teletype?} function is responsible for all sorts of scaffolding such as establishing TCP connections (line 31),
 explicitly executing the protocol (line 34), and populating the \lstinline[language=c]{io} variable with party inputs (line 30). As
-a point of comparison, take a look back at Figure~\ref{fig:millionaires}. Notice that this code makes no mention of TCP connections,
+a point of comparison, take a look back at Figure~\ref{fig:millionaires-symphony}. Notice that this code makes no mention of TCP connections,
 explicit execution of any protocol, or eagerly reading and caching secret inputs. The code knows to execute a Yao protocol due to
 an appropriate type signature (not shown).
 
-In Chapter~\ref{ch:lam-mpc} we will formally define an \textbf{abstractly centralized} MPC language as one which satisfies to theorems:
+In Chapter~\ref{ch:lam-mpc} we will formally define an \textbf{abstractly centralized} MPC language as one which satisfies two theorems:
 forward simulation and type safety. Forward simulation guarantees that if the centralized interpretation of a program doesn't get stuck,
 then neither does its distributed deployment. Type safety ensures that well-typed programs do not get stuck in the centralized interpretation.
-These two theorems work together to guarantee that well-typed programs cannot encounter, for example, nasty distributed errors in
-which one party is stuck waiting for a message from another party which is never sent.
+These two theorems work together to guarantee that well-typed programs cannot encounter, for example, distributed errors in
+which one party is stuck waiting for a message from another party which will never be sent.
 
-Although we will not make any formal claims regarding the usability of the language, hopefully it is clear that a language which hides the
+Although we will not make any formal claims regarding the usability of the language, we hope it is clear that a language which hides the
 distributed nature of this MPC program is desirable.
 
 \subsection{Probabilistic MPC Languages}
+\label{subsec:background-properties-probabilistic}
 
-In our parlance, a MCP language is \textbf{probabilistic} if it supports a primitive for drawing a uniform, random sample from a
-discrete, finite set. For example, drawing a uniform, random sample from ⸨𝔹⸩, the Booleans, corresponds to a fair coin toss. We
-could also draw from ⸨ℕ⸤32⸥⸩, Naturals modulo ⸨2^{32}⸩. Why is such a primitive important in a MPC language?
+In our terminology, a MCP language is \textbf{probabilistic} if it supports a primitive for drawing a uniform, random sample from a
+discrete, finite set. For example, drawing a uniform, random sample from ⸨𝔹⸩, the booleans, corresponds to a fair coin toss. We
+could also draw from ⸨ℕ⸤32⸥⸩, natural numbers modulo ⸨2^{32}⸩. Why is such a primitive important in a MPC language?
 
 As discussed in Chapter~\ref{sec:intro-mpc}, MPC languages rely on ORAM to support a RAM-model of computation. In their seminal paper,~\citet{}
 showed that Trivial ORAM, which has an overhead of $O(n)$, is optimal if the oblivious scheme is deterministic. However, provided the ability
 to perform uniform, random samples, it is possible to design more efficient ORAMs. For example, the other ORAM schemes discussed in
 Appendix~\ref{ch:oram}, Circuit ORAM and Recursive ORAM, rely on the ability to draw uniform, random samples. Additionally, there are
-optimized algorithms and data structures which do not rely on ORAM, but still use random samples to achieve greater efficiency.
+optimized algorithms and data structures which do not rely on ORAM, but still use random samples to achieve greater efficiency~\cite{}.
 
 To see how the use of random sampling is used to improve efficiency, consider the code in Figure~\ref{fig:mpc-2-oram}. The purpose of
 this code is to allow \bob to choose one of two secrets belonging to \alice without \alice learning which one \bob chose. On lines 1-2,
-we read \alice's secrets, ⸨s⸤A1⸥⸩ and ⸨s⸤A2⸥⸩, and share them with \bob. On line 3, we read \bob's choice, ⸨s⸤B⸥⸩, and share it with \alice.
-On line 4, we flip a coin, ⸨u⸩, which is shared between \alice and \bob but \emph{visible to neither of them}
+\alice's secrets, ⸨s⸤A1⸥⸩ and ⸨s⸤A2⸥⸩, are shared with \bob. On line 3, \bob's choice, ⸨s⸤B⸥⸩, is shared with \alice.
+On line 4, a coin is flipped, ⸨u⸩, which is shared between \alice and \bob but \emph{visible to neither of them}
 \footnote{This can be encoded by each of \alice and \bob flipping their own coins independently, then each sharing their choice with the other
-  and XOR'ing them together. The result is a uniform, random sample visible to neither party.}. On lines 5-6, we populate the array, ⸨a⸩,
-in-order if the coin ⸨u⸩ is heads, and permuted if the coin is tails. Finally, on line 7 we reveal the XOR of \bob's choice with the flipped
-coin. Notice that if \bob's choice was ⸨0⸩ (tails) then he always gets ⸨s⸤A1⸥⸩ and likewise for ⸨1⸩ (heads) and ⸨s⸤A2⸥⸩.
+  and XOR'ing them together. The result is a uniform, random sample visible to neither party.}. On lines 5-6, the array, ⸨a⸩, is populated
+in-order if the coin ⸨u⸩ is heads, and permuted if the coin is tails. Finally, on line 7 the XOR of \bob's choice with the flipped
+coin is revealed to both parties. Notice that if \bob's choice was ⸨0⸩ (tails) then he always gets ⸨s⸤A1⸥⸩ and
+likewise for ⸨1⸩ (heads) and ⸨s⸤A2⸥⸩.
 
 This code illustrates the importance of random sampling for efficient RAM access. If the MPC program had instead stored the array ⸨a⸩ in
 a Trivial ORAM then the lookup on line 8 would require 2 accesses (one for each element in the ORAM). This may not seem so bad, but consider
-how this would look if we wanted \bob to choose from an array of length ⸨n⸩. In that case, the lookup on line 8 would incur an $O(n)$ overhead.
+the overhead if \bob wanted to choose from an array of length ⸨n⸩. In that case, the lookup on line 8 would incur an $O(n)$ overhead!
 
 \begin{figure}[h]
 M⁅
@@ -388,31 +410,278 @@ M⁆
 \end{figure}
 
 \subsection{High Assurance MPC Languages}
+\label{subsec:background-properties-assurance}
 
 Existing MPC languages which support uniform, random sampling cannot be considered \textbf{high assurance}. With the introduction of
 uniform, random samples it is possible to have declassifications which are information-theoretically secure. In other words, there are
-values which may be declassified but provide no information about secrets. For example, recall the code from
+values which can be declassified but provide no information about secrets. For example, recall the code from
 Figure~\ref{fig:mpc-2-oram}. On line 7, we reveal ⸨s⸤B⸥␣⊕␣u⸩ to \alice but claim that \alice learns nothing about ⸨s⸤B⸥⸩. This is valid,
-but only because ⸨u⸩ is not known to \alice. However, this is a semantic property which is not checked by the declassification. If line 7
+but only because ⸨u⸩ is not known to \alice. This is a semantic property which is not checked by the declassification. If line 7
 were changed instead to ⸨⦑reveal⦒[\alice,\bob]␣s⸤B⸥⸩ then the program would still be functionally correct but ⸨s⸤B⸥⸩ would be leaked to
 \alice. This is what we mean by existing MPC languages failing to be \textbf{high assurance} -- they do not catch (even dynamically)
-violations of confidentiality like the one above.
+violations of confidentiality like the one above. In Chapters~\ref{ch:lam-obliv} and~\ref{ch:proposal} we will formalize this as the
+PMTO and PMTO\% properties respectively.
 
 A high assurance language is beneficial to both MPC experts (e.g. cryptographers) and novices. Experts save time and gain confidence in their
 experimental protocols by relying on the language to enforce confidentiality. For example, the declassification which appears on line 7 in
-Figure~\ref{fig:mpc-2-oram} need not be audited. Instead, the language would ensure that this declassification is indeed conditionally uniform.
-Likewise, MPC novices will benefit by being able to safely experiment with their own cryptographic optimizations without fear of accidentally
-leaking information they didn't intend to. They need only mark declassifications that are expert to be zero-information as such.
+Figure~\ref{fig:mpc-2-oram} need not be manually audited. Instead, the language would ensure that this declassification is indeed
+oblivious. Likewise, MPC novices will benefit by being able to safely experiment with their own cryptographic optimizations
+without fear of accidentally leaking information they didn't intend to. They need only mark declassifications that are expected to be
+zero-information appropriately.
 
 \chapter{\mpc, A Language for Concise MPC}
+\label{ch:lam-mpc}
 
-\ins{Take from Symphony paper}
+This chapter presents the formalization of \mpc. We begin in \cref{sec:lam-mpc-overview} by providing
+an overview of the language, and then in \cref{sec:lam-mpc-meta} briefly summarize the other aspects
+of the language including its centralized semantics, type system, distributed
+semantics, and metatheory (type safety, simulation, and obliviousness).
+
+\section{Overview}
+\label{sec:lam-mpc-overview}
+
+\subsection{Types}
+
+F⁅
+\begingroup
+\setlength\arraycolsep{0pt} % default is 6pt
+\smaller
+D⁅
+M⁅
+Aːrcrcl@{␠}l
+A⁅ i     ⧼∈⧽ ℤ            ⧼ ⧽                                & «integers»
+A⁃ A,B,C ⧼∈⧽ ‹party›      ⧼ ⧽                                & «parties»
+A⁃ m,p,q ⧼∈⧽ ‹party-set›  ⧼≜⧽ ℘(‹party›) ⩴ ❴A,…,A❵           & «sets of parties»
+A⁃ α     ⧼∈⧽ ‹tvar›       ⧼ ⧽                                & «type variables»
+A⁃ ψ     ⧼∈⧽ ‹prot›       ⧼⩴⧽ ⋅                              & «cleartext»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑enc⦒⋕m                        & «encrypted»
+A⁃ ω     ⧼∈⧽ ‹ref-mode›   ⧼⩴⧽ ⦑RW⦒⋕m                         & «read/write»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑RO⦒                           & «read only»
+A⁃ σ     ⧼∈⧽ ‹loc-type›   ⧼⩴⧽ ⦑int⦒⸢ψ⸣                       & «integer type»
+A⁃       ⧼ ⧽              ⧼¦⧽ τ + τ                          & «sums type»
+A⁃       ⧼ ⧽              ⧼¦⧽ τ ᵐ→ τ                         & «function type»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑ref⦒⸢ω⸣␣τ                     & «reference type»
+A⁃ τ     ⧼∈⧽ ‹type›       ⧼⩴⧽ σ@m                            & «located type»
+A⁃       ⧼ ⧽              ⧼¦⧽ α                              & «type variable reference»
+A⁃       ⧼ ⧽              ⧼¦⧽ τ × τ                          & «pair type»
+A⁃       ⧼ ⧽              ⧼¦⧽ μα⍪ τ                          & «recursive type»
+A⁃ x,y,z ⧼∈⧽ ‹var›        ⧼ ⧽                                & «variables»
+A⁃ ⊙     ⧼∈⧽ ‹binop›      ⧼ ⧽                                & «binary operations (e.g., plus, times)»
+A⁃ a     ⧼∈⧽ ‹atomic›     ⧼⩴⧽ x                              & «variable reference»
+A⁃       ⧼ ⧽              ⧼¦⧽ i                              & «integer literal»
+A⁃       ⧼ ⧽              ⧼¦⧽ x ⊙ x                          & «binary operation»
+A⁃       ⧼ ⧽              ⧼¦⧽ x ¿ x ◇ x                      & «atomic conditional»
+A⁃       ⧼ ⧽              ⧼¦⧽ ιᵢ␣x                           & «sum injection (⸨i ∈ ❴1,2❵⸩)»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⟨x,x⟩                          & «pair creation»
+A⁃       ⧼ ⧽              ⧼¦⧽ πᵢ␣x                           & «pair projection (⸨i ∈ ❴1,2❵⸩)»
+A⁃       ⧼ ⧽              ⧼¦⧽ λ⸤z⸥x⍪ e                       & «(recursive) function creation»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑ref⦒␣x                        & «reference creation»
+A⁃       ⧼ ⧽              ⧼¦⧽ ¡x                             & «dereference»
+A⁃       ⧼ ⧽              ⧼¦⧽ x ≔ x                          & «reference assignment»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑fold⦒␣x                       & «recursive type introduction»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑unfold⦒␣x                     & «recursive elimination»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑read⦒                         & «read int input»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑write⦒␣x                      & «write output»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑embed⦒[p]␣x                      & «encrypted a known constant»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑share⦒[p→p]␣x                 & «share encrypted value»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑reveal⦒[p]␣x                  & «reveal encrypted value»
+A⁃ e     ⧼∈⧽ ‹expr›       ⧼⩴⧽ a                              & «atomic expression»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑case⦒␣x␣❴x⍪e❵␣❴x⍪e❵           & «tagged union elimination»
+A⁃       ⧼ ⧽              ⧼¦⧽ x␣x                            & «function elimination»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑par⦒[p]␣e                     & «parallel execution»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑let⦒␣x=e␣⦑in⦒␣e               & «let binding»
+A⁆
+M⁆
+D⁆
+\endgroup
+\caption{\mpc Syntax}
+\label{fig:mpc-syntax}
+F⁆
+
+The syntax of \mpc is in \cref{fig:mpc-syntax}. \mpc types comprise a
+series of standard types---integers,
+sums, functions, mutable references, pairs, and
+recursive types---augmented with three additional elements.
+
+First: types are of two varieties, notated $\sigma$ and
+$\tau$. The former are \emph{located types}, which classify integers,
+sums, functions, and references. Values of $\sigma$ type are
+\emph{located} in the sense that they can be manipulated only at
+particular hosts. The metavariable
+$m$ represents a set of parties, and a located type is written
+$\sigma @ m$. Types $\tau$ include located types and also pair types
+and recursive types. Pairs and recursive values are \emph{not} located, in the
+sense that all parties can see their
+structure. All parties may \emph{access} the contents of these types,
+however, they may not be able to compute with the results,
+which may be available only at their designated locations.
+
+Second: integers are annotated with a
+\emph{protocol} $\psi$ that indicates whether they are either
+cleartext ($\cdot$) or are \emph{encrypted} and shared among parties
+$p$. For concreteness, we imagine the encryption protocol is
+Goldreich, Widgerson, and Micali (GMW)~\citeyear{STOC:GolMicWig87},
+and values of this type are \emph{secret shares}, but the formal
+language is indifferent to the cryptographic details. Note that we
+often just write ⸨⦑int⦒⸩ for cleartext integer types, to reduce
+clutter (i.e., eliding the $\cdot$).
+
+Last, we annotate a reference type ⸨⦑ref⦒⸢ω⸣␣τ⸩ with a
+\emph{ref-mode} $\omega$. If $\omega$ is ⸨⦑RW⦒⋕p⸩, then the reference
+is writeable by parties $p$; if $\omega$ is ⸨⦑RO⦒⸩ then it is
+read-only.
+
+\subsection{Expressions}
+
+To simplify the formal semantics, we simplify \mpc's expression
+language to be in a kind of \emph{administrative normal form} (ANF):
+Most expression forms operate directly on variables $x$, rather than
+subexpressions $e$. Thus, while we might be accustomed to writing
+program syntax like ⸨⦑ref⦒␣(1+⦑read⦒)⸩, \mpc's formal syntax
+would require something like \\
+⸨␣␣⦑let⦒␣x = ⦑read⦒␣⦑in⦒␣⦑let⦒␣y = 1␣⦑in⦒␣⦑let⦒␣z = y+x␣⦑in⦒␣⦑ref⦒␣z⸩ \\
+The expressiveness of the language is not impacted by this
+restriction, and a direct-style syntax (with syntactically-recursive
+subexpressions) is easily transformed into our language without
+changing its meaning.
+
+\paragraph{Standard expression constructs}
+%
+Most of \mpc's expression forms are
+standard. We isolate \emph{atomic expressions} $a$ as a sub-category
+of full expressions $e$. Atomic expressions evaluate to a final result
+in one “small” step, which simplifies the presentation of the semantics.
+They include variables $x$; integers $i$; binary integer operations
+⸨x ⊙ y⸩ (left abstract, but could be, e.g., addition and multiplication);
+ternary conditional ⸨x ¿ y ◇ z⸩ (an “if” expression which evaluates
+both branches and returns one result);
+%
+sum injection ⸨ιᵢ␣x⸩;
+%
+pair creation ⸨⟨x,y⟩⸩ and projection ⸨πᵢ␣x⸩ ;
+%
+(recursive) function creation ⸨λ⸤z⸥x⍪ e⸩;
+%
+reference creation ⸨⦑ref⦒␣x⸩ dereference ⸨¡x⸩ and assignment ⸨x ≔ y⸩;
+%
+and recursive type introduction ⸨⦑fold⦒␣x⸩ and
+elimination ⸨⦑unfold⦒␣x⸩ (in support of iso-recursive types).
+%
+Sum elimination ⸨⦑case⦒␣x␣❴y⍪e⸤1⸥❵␣❴y⍪e⸤2⸥❵⸩ is a full expression ⸨e⸩
+because it does not reduce to a value in one step; here, $y$ binds in
+the branch bodies $e_i$, only one of which is
+evaluated.\footnote{We can encode ⸨⦑if⦒␣x␣⦑then⦒␣e⸤1⸥␣⦑else⦒␣e⸤2⸥⸩ as
+  ⸨⦑let⦒␣z=0␣⦑in⦒␣⦑let⦒␣y=x ¿ ι₁␣z ◇ ι₂␣z␣⦑in⦒␣⦑case⦒␣y␣❴\_⍪e⸤1⸥❵␣❴\_⍪e⸤2⸥❵⸩.}
+  %
+Function
+application ⸨x␣y⸩ and local variable binding ⸨⦑let⦒␣x=e⸤1⸥␣⦑in⦒␣e⸤2⸥⸩
+describe full expressions for the same reason. The ⸨⦑par⦒[p]␣e⸩ expression
+is special and specific to our distributed programming setting, which
+we describe next.
+
+% In \mpc, we use syntax that matches the literature, which is
+% sometimes different than what we are using in PAL\@. In particular,
+% $\eproj{1}{e}$ is written \texttt{fst} $e$ (for ``first'') and
+% $\eproj{2}{e}$ is written \texttt{snd} $e$ in PAL; $\einj{1}{e}$ is
+% written \texttt{L} $e$ and $\einj{2}{e}$ is written \texttt{R} $e$;
+% $\elam{x}{e}$ is written as \texttt{fun x -> }$e$ in PAL. The syntax for \texttt{case} (for
+% unpackaging sum types) is slightly different also. We discuss syntax
+% and derived forms a bit more in \Cref{sec:derived}.
+
+\paragraph{Distributed computing constructs}
+%
+The \mpc expression ⸨⦑par⦒[p]␣e⸩ says that $e$ may be computed at
+parties $p$ in parallel (hence the syntax ⸨⦑par⦒⸩). That is, every
+party $A \in p$ may evaluate $e$. We say ``may'' here because
+nesting such an expression in another ⸨⦑par⦒⸩ could shrink the set of
+parties. For example, $e$ in ⸨⦑par⦒[p]␣(⦑par⦒[q]␣e)⸩ will be
+evaluated by $p \cap q$; if this intersection is $\eset$ then $e$
+is essentially dead code.
+
+We call the set of parties $m$ computing an expression in parallel
+the \emph{mode}. We say the parties $A \in m$ are \emph{present}
+for a computation. The semantics of many constructs depends on the
+mode. A number $i$ created in mode $m$ (having type ⸨⦑int⦒@m⸩) is
+known only to parties $A \in m$. This means that adding two numbers
+located at $p$ can only be done in a mode $m$ such that
+$m \subseteq p$; if the mode contained additional parties
+$A \not\in p$ then they wouldn't know what to do; such states will be
+stuck in our semantics. The same goes for functions, sums, and
+references. The ⸨⦑read⦒⸩ and ⸨⦑write⦒␣x⸩ expressions perform local
+I/O and so can only be run in a mode with a single party.
+
+On the other hand, it is possible that a variable $x$ is in scope for
+$A$, but maps to a value only usable by $B$. Party $A$ can
+still manipulate a placeholder for $x$ (e.g., to store it in a
+datastructure or pass it to a function) but may never compute with its
+contents (e.g., add to it or branch on it). This approach
+simplifies the design of the language at the cost of missing some
+(unlikely, but ultimately harmless) logic errors.
+
+Generally speaking, \mpc's design aims to ensure that any expression
+$e$ of type $\sigma @ m$ will have the \emph{same run-time value} at
+each $A \in m$. This is a key invariant underpinning \mpc's centralized
+interpretation.
+
+\paragraph{MPC-specific constructs}
+%
+The \mpc expression ⸨⦑share⦒[p→q]␣x⸩ directs $p$ (required to be a singleton party set) to
+create secret shares of $x$, an integer, and distribute the shares to
+each party in
+$q$. All parties $p \cup q$ must be present. The resulting value
+has type ⸨⦑int⦒⸢⦑enc⦒⋕q⸣@q⸩. This type reads “an integer, encrypted
+(i.e., secret shared) between parties ⸨q⸩, and accessible to parties
+⸨q⸩”. The duplication of ⸨q⸩ may seem redundant, but they may differ
+in other contexts. The first ⸨q⸩ represents \emph{who has the
+shares} (determined when the share is created), and the second ⸨q⸩
+represents \emph{who has access to this value} (determined by the
+enclosing ⦑par⦒ blocks). If this encrypted value flows to a part of
+the program only executed by ⸨q′ ⊂ q⸩, then it will not be possible to
+recombine shares, since not all parties ⸨q⸩ will be present.
+We can also make a share of a constant
+usable by parties $p$ via ⸨⦑embed⦒[p]␣x⸩; making shares of
+constants does not require the sharing parties to communicate.
+
+Parties $q$ can all mutually compute on a shared, encrypted value
+using ⸨x ⊙ y⸩ and ⸨x ¿ y ◇ z⸩.  Recall from above that the latter is a
+multiplexor: we select between ⸨y⸩ and ⸨z⸩ based on whether $x$ is zero or
+non-zero. The former models binary operations over numeric types.
+When operating on encrypted values, both the multiplexor and binary
+operation expressions will necessitate \emph{communication} in the
+distributed semantics, and an actual implementation will use an
+underling MPC protocol to implement the computation over the encrypted value.
+All parties to which a share was sent must
+all be present when computing on it. E.g., for numbers of type
+⸨⦑int⦒⸢⦑enc⦒⋕{A,B}⸣⸩ to be added, both $A$ and $B$ must be
+present. Indeed, it must be \emph{exactly} these parties which are
+present; we do not allow more, since other parties would not be
+able to carry out the operation (they don't have access to the
+share).
+% Note that relational operators on shares (such as $<$ in the GCD example) can be encoded as arithmetic ones.
+
+An MPC is completed by invoking ⸨⦑reveal⦒[q]␣x⸩. This takes a share
+(among some set of parties $p$) and converts it to cleartext,
+sharing the result among parties $q$. Doing so requires that all of
+$p \cup q$ are present so that the shareholders
+can agree to send the value, and the result-receivers are ready to
+receive it.
+
+\section{Semantics and Metatheory}
+\label{sec:lam-mpc-meta}
+
+\subsection{Centralized Semantics}
+
+\subsection{Type System}
+
+\subsection{Distributed Semantics}
 
 \chapter{\obliv, A Language for Probabilistically Oblivious Computation}
+\label{ch:lam-obliv}
 
 \ins{Take from lam-obliv paper}
 
 \chapter{Proposal: \lang, A Secure MPC Language With User-Defined ORAM}
+\label{ch:proposal}
 
 Building on \mpc and \obliv, I will design and implement a MPC language, \lang, which is \textbf{probabilistic},
 \textbf{abstractly centralized}, and \textbf{high assurance}.
@@ -421,7 +690,7 @@ Building on \mpc and \obliv, I will design and implement a MPC language, \lang, 
 
 As mentioned in Chapter~\ref{}, \lang will build directly on \mpc. The syntax of \lang extends \mpc according to Figure~\ref{fig:lang-syntax}.
 
-\ins{TODO: syntax figure}
+\ins{TODO: syntax figure} \\
 
 The two important new pieces of syntax are the atomic expressions for uniform, random samples, ⸨𝒰␣τ⸩,
 and zero-information reveal, ⸨⦑safe⦒[p]␣x⸩.
@@ -429,8 +698,14 @@ Uniform, random sampling ⸨𝒰␣τ⸩ chooses a uniform, random value of type
 declassification (just like ⸨⦑reveal⦒⸩) but is checked statically to make sure that the value being revealed is conditionally
 uniform. We also add booleans to the language and permit sharing of both booleans and integers.
 
-We additionally introduce a value constructor, ⸨½␣bv⸩, which indicates that a base value is uniformly random. The locatedness metafunction,
-⸨⸩ \ins{todo: fix, use Darais font}, leaves ⸨½␣bv⸩ as is.
+
+
+
+\ins{describe challenges with type system, safety} \\
+\ins{describe challenges with simulation -- centralized semantics is probabilistic now} \\
+\ins{describe challenges with PMTO\%} \\
+
+\section{Implementation}
 
 \begin{enumerate}
 \item What? Case Studies. Why? The ORAM implementations presented in \obliv are in client-server model. These implementations will
@@ -526,6 +801,7 @@ features such as function secret sharing and cryptographic pseudo-random functio
 \appendix
 
 \chapter{The GMW Protocol}
+\label{ch:gmw}
 
 MPC works by allowing a secret, in cleartext, to be split up into many ``shares'' which are considered ciphertext
 and therefore may be safely distributed to other parties and recombined later. More specifically, shares have the following properties:
@@ -668,6 +944,8 @@ which message \bob chose. Likewise, if \bob were able to see more than one of th
 sufficiently protect ⸨α⸩\footnote{More formally, the XOR with a random value forms a one-time pad (OTP) encryption scheme, which is only secure
   if the key is never reused.}. However, 1-4 OT guarantees that \bob can only see the message that he chooses.
 
-In the next section, we'll look at how this protocol can be scaled up to a full-blown programming language for secure computation.
+\chapter{Oblivious RAM}
+\label{ch:oram}
+
 
 \end{document}
