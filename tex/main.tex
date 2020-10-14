@@ -432,15 +432,13 @@ zero-information appropriately.
 \chapter{\mpc, A Language for Concise MPC}
 \label{ch:lam-mpc}
 
-This chapter presents the formalization of \mpc. We begin in \cref{sec:lam-mpc-overview} by providing
-an overview of the language, and then in \cref{sec:lam-mpc-meta} briefly summarize the other aspects
-of the language including its centralized semantics, type system, distributed
-semantics, and metatheory (type safety, simulation, and obliviousness).
+The goal is to sufficiently explain~\nameref{thm:mpc-simulation}.
 
-\section{Overview}
-\label{sec:lam-mpc-overview}
+\begin{theorem}[Forward Simulation] \label{thm:mpc-simulation}
+  If ⸨ς —→⋆ ς′⸩, ⸨ς′⸩ is terminal, ⸨ς↯ ↝⋆ G⸩ and ⸨G ⫽↝⸩, then ⸨G = ς′↯⸩.
+\end{theorem}
 
-\subsection{Types}
+In other words, we can centralized execute then slice, or we can slice and then distributed execute, but we'll get the same answer.
 
 F⁅
 \begingroup
@@ -449,47 +447,36 @@ F⁅
 D⁅
 M⁅
 Aːrcrcl@{␠}l
-A⁅ i     ⧼∈⧽ ℤ            ⧼ ⧽                                & «integers»
-A⁃ A,B,C ⧼∈⧽ ‹party›      ⧼ ⧽                                & «parties»
-A⁃ m,p,q ⧼∈⧽ ‹party-set›  ⧼≜⧽ ℘(‹party›) ⩴ ❴A,…,A❵           & «sets of parties»
-A⁃ α     ⧼∈⧽ ‹tvar›       ⧼ ⧽                                & «type variables»
-A⁃ ψ     ⧼∈⧽ ‹prot›       ⧼⩴⧽ ⋅                              & «cleartext»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑enc⦒⋕m                        & «encrypted»
-A⁃ ω     ⧼∈⧽ ‹ref-mode›   ⧼⩴⧽ ⦑RW⦒⋕m                         & «read/write»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑RO⦒                           & «read only»
-A⁃ σ     ⧼∈⧽ ‹loc-type›   ⧼⩴⧽ ⦑int⦒⸢ψ⸣                       & «integer type»
-A⁃       ⧼ ⧽              ⧼¦⧽ τ + τ                          & «sums type»
-A⁃       ⧼ ⧽              ⧼¦⧽ τ ᵐ→ τ                         & «function type»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑ref⦒⸢ω⸣␣τ                     & «reference type»
-A⁃ τ     ⧼∈⧽ ‹type›       ⧼⩴⧽ σ@m                            & «located type»
-A⁃       ⧼ ⧽              ⧼¦⧽ α                              & «type variable reference»
-A⁃       ⧼ ⧽              ⧼¦⧽ τ × τ                          & «pair type»
-A⁃       ⧼ ⧽              ⧼¦⧽ μα⍪ τ                          & «recursive type»
-A⁃ x,y,z ⧼∈⧽ ‹var›        ⧼ ⧽                                & «variables»
-A⁃ ⊙     ⧼∈⧽ ‹binop›      ⧼ ⧽                                & «binary operations (e.g., plus, times)»
-A⁃ a     ⧼∈⧽ ‹atomic›     ⧼⩴⧽ x                              & «variable reference»
-A⁃       ⧼ ⧽              ⧼¦⧽ i                              & «integer literal»
-A⁃       ⧼ ⧽              ⧼¦⧽ x ⊙ x                          & «binary operation»
-A⁃       ⧼ ⧽              ⧼¦⧽ x ¿ x ◇ x                      & «atomic conditional»
-A⁃       ⧼ ⧽              ⧼¦⧽ ιᵢ␣x                           & «sum injection (⸨i ∈ ❴1,2❵⸩)»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⟨x,x⟩                          & «pair creation»
-A⁃       ⧼ ⧽              ⧼¦⧽ πᵢ␣x                           & «pair projection (⸨i ∈ ❴1,2❵⸩)»
-A⁃       ⧼ ⧽              ⧼¦⧽ λ⸤z⸥x⍪ e                       & «(recursive) function creation»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑ref⦒␣x                        & «reference creation»
-A⁃       ⧼ ⧽              ⧼¦⧽ ¡x                             & «dereference»
-A⁃       ⧼ ⧽              ⧼¦⧽ x ≔ x                          & «reference assignment»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑fold⦒␣x                       & «recursive type introduction»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑unfold⦒␣x                     & «recursive elimination»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑read⦒                         & «read int input»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑write⦒␣x                      & «write output»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑embed⦒[p]␣x                      & «encrypted a known constant»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑share⦒[p→p]␣x                 & «share encrypted value»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑reveal⦒[p]␣x                  & «reveal encrypted value»
-A⁃ e     ⧼∈⧽ ‹expr›       ⧼⩴⧽ a                              & «atomic expression»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑case⦒␣x␣❴x⍪e❵␣❴x⍪e❵           & «tagged union elimination»
-A⁃       ⧼ ⧽              ⧼¦⧽ x␣x                            & «function elimination»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑par⦒[p]␣e                     & «parallel execution»
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑let⦒␣x=e␣⦑in⦒␣e               & «let binding»
+A⁅ b     ⧼∈⧽ 𝔹            ⧼ ⧽                                & ⟪booleans⟫
+A⁃ i     ⧼∈⧽ ℤ            ⧼ ⧽                                & ⟪integers⟫
+A⁃ A,B,C ⧼∈⧽ ‹party›      ⧼ ⧽                                & ⟪parties⟫
+A⁃ m,p,q ⧼∈⧽ ‹party-set›  ⧼≜⧽ ℘(‹party›) ⩴ ❴A,…,A❵           & ⟪sets of parties⟫
+A⁃ ψ     ⧼∈⧽ ‹prot›       ⧼⩴⧽ ⋅                              & ⟪cleartext⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑enc⦒⋕m                        & ⟪encrypted⟫
+A⁃ μ     ⧼∈⧽ ‹base-type›  ⧼⩴⧽ ⦑int⦒                         & ⟪integer type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑bool⦒                         & ⟪boolean type⟫
+A⁃ σ     ⧼∈⧽ ‹loc-type›   ⧼⩴⧽ μ⸢ψ⸣                          & ⟪protocol type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ τ ᵐ→ τ                         & ⟪function type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ τ × τ                          & ⟪pair type⟫
+A⁃ τ     ⧼∈⧽ ‹type›       ⧼⩴⧽ σ@m                            & ⟪located type⟫
+A⁃ x,y,z ⧼∈⧽ ‹var›        ⧼ ⧽                                & ⟪variables⟫
+A⁃ ⊙     ⧼∈⧽ ‹binop›      ⧼ ⧽                                & ⟪binary operations (e.g., plus, times)⟫
+A⁃ e     ⧼∈⧽ ‹expr›       ⧼⩴⧽ x                              & ⟪variable reference⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ i                              & ⟪integer literal⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ b                              & ⟪boolean literal⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ e ⊙ e                          & ⟪binary operation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ e ¿ e ◇ e                      & ⟪atomic conditional⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⟨e,e⟩                          & ⟪pair creation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ πᵢ␣e                           & ⟪pair projection (⸨i ∈ ❴1,2❵⸩)⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ λ⸤z⸥x⍪ e                       & ⟪(recursive) function creation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑read⦒␣μ                         & ⟪read int input⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑write⦒␣e                      & ⟪write output⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑embed⦒[p]␣e                   & ⟪encrypted a known constant⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑share⦒[p→p]␣e                 & ⟪share encrypted value⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑declassify⦒[p]␣e              & ⟪reveal encrypted value⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ e␣e                            & ⟪function elimination⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑par⦒[p]␣e                     & ⟪parallel execution⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑let⦒␣x=e␣⦑in⦒␣e               & ⟪let binding⟫
 A⁆
 M⁆
 D⁆
@@ -498,187 +485,57 @@ D⁆
 \label{fig:mpc-syntax}
 F⁆
 
-The syntax of \mpc is in \cref{fig:mpc-syntax}. \mpc types comprise a
-series of standard types---integers,
-sums, functions, mutable references, pairs, and
-recursive types---augmented with three additional elements.
-
-First: types are of two varieties, notated $\sigma$ and
-$\tau$. The former are \emph{located types}, which classify integers,
-sums, functions, and references. Values of $\sigma$ type are
-\emph{located} in the sense that they can be manipulated only at
-particular hosts. The metavariable
-$m$ represents a set of parties, and a located type is written
-$\sigma @ m$. Types $\tau$ include located types and also pair types
-and recursive types. Pairs and recursive values are \emph{not} located, in the
-sense that all parties can see their
-structure. All parties may \emph{access} the contents of these types,
-however, they may not be able to compute with the results,
-which may be available only at their designated locations.
-
-Second: integers are annotated with a
-\emph{protocol} $\psi$ that indicates whether they are either
-cleartext ($\cdot$) or are \emph{encrypted} and shared among parties
-$p$. For concreteness, we imagine the encryption protocol is
-Goldreich, Widgerson, and Micali (GMW)~\citeyear{STOC:GolMicWig87},
-and values of this type are \emph{secret shares}, but the formal
-language is indifferent to the cryptographic details. Note that we
-often just write ⸨⦑int⦒⸩ for cleartext integer types, to reduce
-clutter (i.e., eliding the $\cdot$).
-
-Last, we annotate a reference type ⸨⦑ref⦒⸢ω⸣␣τ⸩ with a
-\emph{ref-mode} $\omega$. If $\omega$ is ⸨⦑RW⦒⋕p⸩, then the reference
-is writeable by parties $p$; if $\omega$ is ⸨⦑RO⦒⸩ then it is
-read-only.
-
-\subsection{Expressions}
-
-To simplify the formal semantics, we simplify \mpc's expression
-language to be in a kind of \emph{administrative normal form} (ANF):
-Most expression forms operate directly on variables $x$, rather than
-subexpressions $e$. Thus, while we might be accustomed to writing
-program syntax like ⸨⦑ref⦒␣(1+⦑read⦒)⸩, \mpc's formal syntax
-would require something like \\
-⸨␣␣⦑let⦒␣x = ⦑read⦒␣⦑in⦒␣⦑let⦒␣y = 1␣⦑in⦒␣⦑let⦒␣z = y+x␣⦑in⦒␣⦑ref⦒␣z⸩ \\
-The expressiveness of the language is not impacted by this
-restriction, and a direct-style syntax (with syntactically-recursive
-subexpressions) is easily transformed into our language without
-changing its meaning.
-
-\paragraph{Standard expression constructs}
-%
-Most of \mpc's expression forms are
-standard. We isolate \emph{atomic expressions} $a$ as a sub-category
-of full expressions $e$. Atomic expressions evaluate to a final result
-in one “small” step, which simplifies the presentation of the semantics.
-They include variables $x$; integers $i$; binary integer operations
-⸨x ⊙ y⸩ (left abstract, but could be, e.g., addition and multiplication);
-ternary conditional ⸨x ¿ y ◇ z⸩ (an “if” expression which evaluates
-both branches and returns one result);
-%
-sum injection ⸨ιᵢ␣x⸩;
-%
-pair creation ⸨⟨x,y⟩⸩ and projection ⸨πᵢ␣x⸩ ;
-%
-(recursive) function creation ⸨λ⸤z⸥x⍪ e⸩;
-%
-reference creation ⸨⦑ref⦒␣x⸩ dereference ⸨¡x⸩ and assignment ⸨x ≔ y⸩;
-%
-and recursive type introduction ⸨⦑fold⦒␣x⸩ and
-elimination ⸨⦑unfold⦒␣x⸩ (in support of iso-recursive types).
-%
-Sum elimination ⸨⦑case⦒␣x␣❴y⍪e⸤1⸥❵␣❴y⍪e⸤2⸥❵⸩ is a full expression ⸨e⸩
-because it does not reduce to a value in one step; here, $y$ binds in
-the branch bodies $e_i$, only one of which is
-evaluated.\footnote{We can encode ⸨⦑if⦒␣x␣⦑then⦒␣e⸤1⸥␣⦑else⦒␣e⸤2⸥⸩ as
-  ⸨⦑let⦒␣z=0␣⦑in⦒␣⦑let⦒␣y=x ¿ ι₁␣z ◇ ι₂␣z␣⦑in⦒␣⦑case⦒␣y␣❴\_⍪e⸤1⸥❵␣❴\_⍪e⸤2⸥❵⸩.}
-  %
-Function
-application ⸨x␣y⸩ and local variable binding ⸨⦑let⦒␣x=e⸤1⸥␣⦑in⦒␣e⸤2⸥⸩
-describe full expressions for the same reason. The ⸨⦑par⦒[p]␣e⸩ expression
-is special and specific to our distributed programming setting, which
-we describe next.
-
-% In \mpc, we use syntax that matches the literature, which is
-% sometimes different than what we are using in PAL\@. In particular,
-% $\eproj{1}{e}$ is written \texttt{fst} $e$ (for ``first'') and
-% $\eproj{2}{e}$ is written \texttt{snd} $e$ in PAL; $\einj{1}{e}$ is
-% written \texttt{L} $e$ and $\einj{2}{e}$ is written \texttt{R} $e$;
-% $\elam{x}{e}$ is written as \texttt{fun x -> }$e$ in PAL. The syntax for \texttt{case} (for
-% unpackaging sum types) is slightly different also. We discuss syntax
-% and derived forms a bit more in \Cref{sec:derived}.
-
-\paragraph{Distributed computing constructs}
-%
-The \mpc expression ⸨⦑par⦒[p]␣e⸩ says that $e$ may be computed at
-parties $p$ in parallel (hence the syntax ⸨⦑par⦒⸩). That is, every
-party $A \in p$ may evaluate $e$. We say ``may'' here because
-nesting such an expression in another ⸨⦑par⦒⸩ could shrink the set of
-parties. For example, $e$ in ⸨⦑par⦒[p]␣(⦑par⦒[q]␣e)⸩ will be
-evaluated by $p \cap q$; if this intersection is $\eset$ then $e$
-is essentially dead code.
-
-We call the set of parties $m$ computing an expression in parallel
-the \emph{mode}. We say the parties $A \in m$ are \emph{present}
-for a computation. The semantics of many constructs depends on the
-mode. A number $i$ created in mode $m$ (having type ⸨⦑int⦒@m⸩) is
-known only to parties $A \in m$. This means that adding two numbers
-located at $p$ can only be done in a mode $m$ such that
-$m \subseteq p$; if the mode contained additional parties
-$A \not\in p$ then they wouldn't know what to do; such states will be
-stuck in our semantics. The same goes for functions, sums, and
-references. The ⸨⦑read⦒⸩ and ⸨⦑write⦒␣x⸩ expressions perform local
-I/O and so can only be run in a mode with a single party.
-
-On the other hand, it is possible that a variable $x$ is in scope for
-$A$, but maps to a value only usable by $B$. Party $A$ can
-still manipulate a placeholder for $x$ (e.g., to store it in a
-datastructure or pass it to a function) but may never compute with its
-contents (e.g., add to it or branch on it). This approach
-simplifies the design of the language at the cost of missing some
-(unlikely, but ultimately harmless) logic errors.
-
-Generally speaking, \mpc's design aims to ensure that any expression
-$e$ of type $\sigma @ m$ will have the \emph{same run-time value} at
-each $A \in m$. This is a key invariant underpinning \mpc's centralized
-interpretation.
-
-\paragraph{MPC-specific constructs}
-%
-The \mpc expression ⸨⦑share⦒[p→q]␣x⸩ directs $p$ (required to be a singleton party set) to
-create secret shares of $x$, an integer, and distribute the shares to
-each party in
-$q$. All parties $p \cup q$ must be present. The resulting value
-has type ⸨⦑int⦒⸢⦑enc⦒⋕q⸣@q⸩. This type reads “an integer, encrypted
-(i.e., secret shared) between parties ⸨q⸩, and accessible to parties
-⸨q⸩”. The duplication of ⸨q⸩ may seem redundant, but they may differ
-in other contexts. The first ⸨q⸩ represents \emph{who has the
-shares} (determined when the share is created), and the second ⸨q⸩
-represents \emph{who has access to this value} (determined by the
-enclosing ⦑par⦒ blocks). If this encrypted value flows to a part of
-the program only executed by ⸨q′ ⊂ q⸩, then it will not be possible to
-recombine shares, since not all parties ⸨q⸩ will be present.
-We can also make a share of a constant
-usable by parties $p$ via ⸨⦑embed⦒[p]␣x⸩; making shares of
-constants does not require the sharing parties to communicate.
-
-Parties $q$ can all mutually compute on a shared, encrypted value
-using ⸨x ⊙ y⸩ and ⸨x ¿ y ◇ z⸩.  Recall from above that the latter is a
-multiplexor: we select between ⸨y⸩ and ⸨z⸩ based on whether $x$ is zero or
-non-zero. The former models binary operations over numeric types.
-When operating on encrypted values, both the multiplexor and binary
-operation expressions will necessitate \emph{communication} in the
-distributed semantics, and an actual implementation will use an
-underling MPC protocol to implement the computation over the encrypted value.
-All parties to which a share was sent must
-all be present when computing on it. E.g., for numbers of type
-⸨⦑int⦒⸢⦑enc⦒⋕{A,B}⸣⸩ to be added, both $A$ and $B$ must be
-present. Indeed, it must be \emph{exactly} these parties which are
-present; we do not allow more, since other parties would not be
-able to carry out the operation (they don't have access to the
-share).
-% Note that relational operators on shares (such as $<$ in the GCD example) can be encoded as arithmetic ones.
-
-An MPC is completed by invoking ⸨⦑reveal⦒[q]␣x⸩. This takes a share
-(among some set of parties $p$) and converts it to cleartext,
-sharing the result among parties $q$. Doing so requires that all of
-$p \cup q$ are present so that the shareholders
-can agree to send the value, and the result-receivers are ready to
-receive it.
-
-\section{Semantics and Metatheory}
-\label{sec:lam-mpc-meta}
-
-\subsection{Centralized Semantics}
-
-\subsection{Type System}
-
-\subsection{Distributed Semantics}
-
 \chapter{\obliv, A Language for Probabilistically Oblivious Computation}
 \label{ch:lam-obliv}
 
-\ins{Take from lam-obliv paper}
+The goal is to sufficiently explain~\nameref{thm:obliv-pmto}.
+
+\begin{theorem}[PMTO] \label{thm:obliv-pmto}
+  If ⸨e₁ : τ⸩, ⸨e₂ : τ⸩, ⸨e₁ ≈⸤l⸥ e₂⸩, ⸨e₁ ⇢⋆ ⇡~{t₁}⸩, and ⸨e₂ ⇢⋆ ⇡~{t₂}⸩, then ⸨⇡~{t₁} ⇡~≈⸤l⸥ ⇡~{t₂}⸩.
+\end{theorem}
+
+In other words, if two expressions cannot be distinguished from each other, then neither can the distributions of memory traces
+that they emit.
+
+F⁅
+\begingroup
+\setlength\arraycolsep{0pt} % default is 6pt
+\smaller
+D⁅
+M⁅
+Aːrcrcl@{␠}l
+A⁅ b   ⧼∈⧽ 𝔹           ⧼ ⧽                               & ⟪booleans⟫
+A⁃ i   ⧼∈⧽ ℤ           ⧼ ⧽                                & ⟪integers⟫
+A⁃ ℓ   ⧼∈⧽ ‹label›     ⧼⩴⧽ ‹P› ¦ ‹S›                     & ⟪public and secret⟫
+A⁃     ⧼ ⧽ 𝑚𝑐3c{⟪(«where» ⸨‹P›⊏‹S›⸩)⟫}                   & ⟪security labels⟫
+A⁃ ρ   ⧼∈⧽ R           ⧼ ⧽                               & ⟪probability region⟫
+A⁃ μ   ⧼∈⧽ ‹base-type› ⧼⩴⧽ ⦑int⦒                         & ⟪integer type⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⦑bool⦒                         & ⟪boolean type⟫
+A⁃ τ   ⧼∈⧽ ‹type›      ⧼⩴⧽ μ⸤ℓ⸥⸢ρ⸣                        & ⟪non-random base type⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⦑½⦒ μ⸤‹S›⸥⸢ρ⸣                   & ⟪secret uniform bool⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ τ × τ                          & ⟪tuple⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ τ → τ                          & ⟪function⟫
+A⁃ x,y ⧼∈⧽ ‹var›       ⧼ ⧽                                 & ⟪variables⟫
+A⁃ ⊙   ⧼∈⧽ ‹binop›     ⧼ ⧽                                & ⟪binary operations (e.g., plus, times)⟫
+A⁃ e   ⧼∈⧽ ‹expr›      ⧼⩴⧽ x                              & ⟪variable reference⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ i⸤ℓ⸥                            & ⟪integer literal⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ b⸤ℓ⸥                            & ⟪boolean literal⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ e ⊙ e                          & ⟪binary operation⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ e ¿ e ◇ e                      & ⟪atomic conditional⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⟨e,e⟩                           & ⟪tuple creation⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⦑let⦒␣x,y = e␣⦑in⦒␣e            & ⟪tuple elimination⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ λ⸤z⸥x⍪ e                       & ⟪(recursive) function creation⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⦑unif⦒⸢ρ⸣␣μ                      & ⟪uniform, random sample in region⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⦑cast⦒⸤l⸥␣x                    & ⟪cast from uniform⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ e␣e                            & ⟪function elimination⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⦑let⦒␣x = e␣⦑in⦒␣e               & ⟪variable binding⟫
+A⁆
+M⁆
+D⁆
+\endgroup
+\caption{\obliv Syntax}
+\label{fig:obliv-syntax}
+F⁆
 
 \chapter{Proposal: \lang, A Secure MPC Language With User-Defined ORAM}
 \label{ch:proposal}
@@ -688,25 +545,74 @@ Building on \mpc and \obliv, I will design and implement a MPC language, \lang, 
 
 \section{Design}
 
-As mentioned in Chapter~\ref{}, \lang will build directly on \mpc. The syntax of \lang extends \mpc according to Figure~\ref{fig:lang-syntax}.
+The goal is to sufficiently explain~\nameref{thm:lang-simulation} and~\nameref{thm:lang-pmto}.
 
-\ins{TODO: syntax figure} \\
+\begin{theorem}[Forward Simulation] \label{thm:lang-simulation}
+  If ⸨ς —→⋆ ⇡~{ς′}⸩, ⸨⇡~{ς′}⸩ is terminal, ⸨ς↯ ↝⋆ ⇡~{G}⸩ and ⸨⇡~{G} ⫽↝⸩, then ⸨⇡~{G} = ⇡~{ς′}↯⸩.
+\end{theorem}
 
-The two important new pieces of syntax are the atomic expressions for uniform, random samples, ⸨𝒰␣τ⸩,
-and zero-information reveal, ⸨⦑safe⦒[p]␣x⸩.
-Uniform, random sampling ⸨𝒰␣τ⸩ chooses a uniform, random value of type ⸨τ⸩. The zero-information reveal ⸨⦑safe⦒[p]␣x⸩ performs a
-declassification (just like ⸨⦑reveal⦒⸩) but is checked statically to make sure that the value being revealed is conditionally
-uniform. We also add booleans to the language and permit sharing of both booleans and integers.
+\begin{theorem}[PMTO\%] \label{thm:lang-pmto}
+  If ⸨ς₁ : τ⸩, ⸨ς₂ : τ⸩, ⸨ς₁ ≈⸤l⸥ ς₂⸩, ⸨ς₁ ⇢⋆ ⇡~{t₁}⸩, ⸨ς₂ ⇢⋆ ⇡~{t₂}⸩, and ⸨R⸤l⸥(⇡~{t₁}) = R⸤l⸥(⇡~{t₂})⸩, then ⸨⇡~{t₁} ⇡~≈⸤l⸥ ⇡~{t₂}⸩.
+\end{theorem}
 
+F⁅
+\begingroup
+\setlength\arraycolsep{0pt} % default is 6pt
+\smaller
+D⁅
+M⁅
+Aːrcrcl@{␠}l
+A⁅ b     ⧼∈⧽ 𝔹            ⧼ ⧽                                & ⟪booleans⟫
+A⁃ i     ⧼∈⧽ ℤ            ⧼ ⧽                                & ⟪integers⟫
+A⁃ A,B,C ⧼∈⧽ ‹party›      ⧼ ⧽                                & ⟪parties⟫
+A⁃ m,p,q ⧼∈⧽ ‹party-set›  ⧼≜⧽ ℘(‹party›) ⩴ ❴A,…,A❵           & ⟪sets of parties⟫
+A⁃ ρ     ⧼∈⧽ R           ⧼ ⧽                               & ⟪probability region⟫
+A⁃ ψ     ⧼∈⧽ ‹prot›       ⧼⩴⧽ ⋅                              & ⟪cleartext⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑enc⦒⋕m                        & ⟪encrypted⟫
+A⁃ μ     ⧼∈⧽ ‹base-type›  ⧼⩴⧽ ⦑int⦒                         & ⟪integer type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑bool⦒                         & ⟪boolean type⟫
+A⁃ σ     ⧼∈⧽ ‹loc-type›   ⧼⩴⧽ μ⸢ρ ; ψ⸣                          & ⟪protocol type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑½⦒ μ⸢ρ ; ψ⸣                   & ⟪uniform type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ τ ᵐ→ τ                         & ⟪function type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ τ × τ                          & ⟪pair type⟫
+A⁃ τ     ⧼∈⧽ ‹type›       ⧼⩴⧽ σ@m                            & ⟪located type⟫
+A⁃ x,y,z ⧼∈⧽ ‹var›        ⧼ ⧽                                & ⟪variables⟫
+A⁃ ⊙     ⧼∈⧽ ‹binop›      ⧼ ⧽                                & ⟪binary operations (e.g., plus, times)⟫
+A⁃ e     ⧼∈⧽ ‹expr›       ⧼⩴⧽ x                              & ⟪variable reference⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ i                              & ⟪integer literal⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ b                              & ⟪boolean literal⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ e ⊙ e                          & ⟪binary operation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ e ¿ e ◇ e                      & ⟪atomic conditional⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⟨e,e⟩                          & ⟪pair creation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑let⦒␣x,y = e␣⦑in⦒␣e            & ⟪tuple elimination⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑par⦒[p]␣e                     & ⟪parallel execution⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑read⦒␣μ                       & ⟪read int input⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑write⦒␣e                      & ⟪write output⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑embed⦒[p]␣e                   & ⟪encrypted a known constant⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑share⦒[p→p]␣e                 & ⟪share encrypted value⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑declassify⦒[p]␣e              & ⟪declassify encrypted value⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑unif⦒[p]⸢ρ⸣␣μ                  & ⟪uniform, random sample in region⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑cast⦒[p]⸤l⸥␣x                    & ⟪cast from uniform⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ λ⸤z⸥x⍪ e                       & ⟪(recursive) function creation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ e␣e                            & ⟪function elimination⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑let⦒␣x=e␣⦑in⦒␣e               & ⟪let binding⟫
+A⁆
+M⁆
+D⁆
+\endgroup
+\caption{\mpc Syntax}
+\label{fig:mpc-syntax}
+F⁆
 
+Labels are the combination of party set and protocol. We interpret functions and tuples as having an implicit cleartext protocl.
 
-
-\ins{describe challenges with type system, safety} \\
-\ins{describe challenges with simulation -- centralized semantics is probabilistic now} \\
-\ins{describe challenges with PMTO\%} \\
+Differences from \mpc. We have a new uniform type. Atomic conditional works like in \obliv, returning tuple in-order or out
+of order. This is necessary for affinity. Tuple elimination is now by pattern-matching, again for compatibility with affinity. The
+only non-trivial change is the addition of uniform sampling and casting from \obliv.
 
 \section{Implementation}
 
+\ins{
 \begin{enumerate}
 \item What? Case Studies. Why? The ORAM implementations presented in \obliv are in client-server model. These implementations will
   be written to abide by the MPC type system and will be in the more restrictive ORAM-SC model. Also, frankly, the existing literature
@@ -734,37 +640,7 @@ uniform. We also add booleans to the language and permit sharing of both boolean
   probabilistic choice operation to the single-threaded semantics it will no longer be deterministic. This could complicate the proof of
   simulation.
 \end{enumerate}
-
-As I mentioned briefly in Chapter~\ref{ch:intro}, the primary goal of this thesis is to develop secure MPC language, \lang, which
-support user-defined ORAM implementations. By virtue of all well-typed \lang programs being secure, any well-typed user-defined ORAM
-is also guaranteed to be secure. The basis of \lang will be the MPC language, \mpc, presented in Chapters~\ref{ch:taste-mpc},\ref{ch:mpc}.
-As we saw in Chapters~\ref{ch:taste-obliv},\ref{ch:obliv}, efficient ORAM implementations rely crucially on the ability to sample from
-uniform distributions\footnote{Formally, the logarithmic lower-bound on oblivious simulation only applies in the PRAM model of computation.}.
-So, if we want \lang to support efficient, user-defined ORAM constructions we must add to \mpc a feature which permits uniform, random sampling.
-While this may seem like a fairly innocuous change, it is veritable Pandora's box with respect to the metatheory of our language. The \mpc
-language defines security as~\nameref{thm:mod-mod} which says that memory address traces do not depend on secrets, modulo differences induced
-by declassification. After adding uniform, random sampling this property no longer holds. In one case, the property can be violated by programs
-which are intuitively safe.
-
-M⁅
-\begin{array}{r@{␠}lcl}
-   «0:» & 𝑚𝑐3l{ ⦑par⦒[\alice,\bob] }
-\\ «1:» & ␠⦑let⦒␣s    ⧼=⧽ ⦑par⦒[\alice]␣⦑read⦒␣⦑in⦒
-\\ «2:» & ␠⦑let⦒␣a    ⧼=⧽ ⦑array⦒(2)[λ␣\_ → 0]␣⦑in⦒
-\\ «3:» & ␠⦑let⦒␣r    ⧼=⧽ ⦑unif⦒(❴0,1❵)␣⦑in⦒
-\\ «4:» & ␠a[r]
-\end{array}
-M⁆
-
-On line 1, \alice binds a secret value to ⸨s⸩. On line 2, both \alice and \bob declare an array, ⸨a⸩, of two cells both containing the value
-⸨0⸩. Finally, on lines 3 and 4, we generate a uniform, random sample from the set ⸨❴0,1❵⸩, bind it to ⸨r⸩ and access the array ⸨a⸩ at index
-⸨r⸩. We assume that both \alice and \bob generate the same value when they randomly sample\footnote{This can be achieved by having \alice and \bob generate their own samples, which are then shared and XOR'd with each other.}. This program is cleary secure, since all the code after
-line 1 is independent of ⸨s⸩. However, this code does not satisfy~\ref{thm:mto-mod}. This property implicitly assumes that the semantics is
-deterministic! In other words, it assumes that any change in the memory address trace must have been induced by dependence on a secret. This
-is precisely the issue that \obliv language attempts to overcome by adopting a probabilistic version of MTO,~\ref{thm:pmto}.
-
-\begin{theorem}[PMTO\%]\label{thm:pmto-mod}
-\end{theorem}
+}
 
 \chapter{Open Problems}
 
