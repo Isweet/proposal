@@ -432,7 +432,114 @@ zero-information appropriately.
 \chapter{\mpc, A Language for Concise MPC}
 \label{ch:lam-mpc}
 
-The goal is to sufficiently explain~\nameref{thm:mpc-simulation}.
+In~\cref{sec:background-symphony} we walked through the centralized interpretation of the Millionaire's Problem in \mpc. Now that we have
+the intution, let's look at the formal description for this language. Having a formal model will allow us to state some properties of the
+language more precisely.
+
+\section{Overview}
+\label{sec:lam-mpc-overview}
+
+The syntax of \mpc is in \cref{fig:mpc-syntax}. \mpc types comprise a
+series of standard types---integers, booleans functions, and pair types---augmented
+with two additional elements.
+
+The first exotic feature is \emph{located types}. These types are located
+in the sense that they can be manipulated only at particular hosts.
+The metavariable $m$ represents a set of parties, and a type is written $\sigma @ m$. The \mpc expression
+⸨⦑par⦒[p]␣e⸩ determines the locatedness. It says that $e$ may be computed at
+parties $p$ in parallel (hence the syntax ⸨⦑par⦒⸩). That is, every
+party $A \in p$ may evaluate $e$. We say ``may'' here because
+nesting such an expression in another ⸨⦑par⦒⸩ could shrink the set of
+parties. For example, $e$ in ⸨⦑par⦒[p]␣(⦑par⦒[q]␣e)⸩ will be
+evaluated by $p \cap q$; if this intersection is $\eset$ then $e$
+is essentially dead code.
+
+We call the set of parties $m$ computing an expression in parallel
+the \emph{mode}. We say the parties $A \in m$ are \emph{present}
+for a computation. The semantics of many constructs depends on the
+mode. A number $i$ created in mode $m$ (having type ⸨⦑int⦒@m⸩) is
+known only to parties $A \in m$. This means that adding two numbers
+located at $p$ can only be done in a mode $m$ such that
+$m \subseteq p$; if the mode contained additional parties
+$A \not\in p$ then they wouldn't know what to do; such states will be
+stuck in our semantics. The same goes for functions, sums, and
+references. The ⸨⦑read⦒⸩ and ⸨⦑write⦒␣x⸩ expressions perform local
+I/O and so can only be run in a mode with a single party.
+
+On the other hand, it is possible that a variable $x$ is in scope for
+$A$, but maps to a value only usable by $B$. Party $A$ can
+still manipulate a placeholder for $x$ (e.g., to store it in a
+datastructure or pass it to a function) but may never compute with its
+contents (e.g., add to it or branch on it). This approach
+simplifies the design of the language at the cost of missing some
+(unlikely, but ultimately harmless) logic errors.
+
+Generally speaking, \mpc's design aims to ensure that any expression
+$e$ of type $\sigma @ m$ will have the \emph{same run-time value} at
+each $A \in m$. This is a key invariant underpinning \mpc's centralized
+interpretation.
+
+The second exotic feature is \emph{secret share types}.
+Base types are annotated with a
+\emph{protocol} $\psi$ that indicates whether they are either
+cleartext ($\cdot$) or are \emph{encrypted} and shared among parties
+$p$. For concreteness, we imagine the encryption protocol is
+Goldreich, Widgerson, and Micali (GMW)~\citeyear{STOC:GolMicWig87},
+and values of this type are \emph{secret shares}, but the formal
+language is indifferent to the cryptographic details. Note that we
+often just write ⸨⦑int⦒⸩ for cleartext integer types, to reduce
+clutter (i.e., eliding the $\cdot$).
+
+The \mpc expression ⸨⦑share⦒[p→q]␣x⸩ directs $p$ (required to be a singleton party set) to
+create secret shares of $x$, an integer, and distribute the shares to
+each party in
+$q$. All parties $p \cup q$ must be present. The resulting value
+has type ⸨⦑int⦒⸢⦑enc⦒⋕q⸣@q⸩. This type reads “an integer, encrypted
+(i.e., secret shared) between parties ⸨q⸩, and accessible to parties
+⸨q⸩”. The duplication of ⸨q⸩ may seem redundant, but they may differ
+in other contexts. The first ⸨q⸩ represents \emph{who has the
+shares} (determined when the share is created), and the second ⸨q⸩
+represents \emph{who has access to this value} (determined by the
+enclosing ⦑par⦒ blocks). If this encrypted value flows to a part of
+the program only executed by ⸨q′ ⊂ q⸩, then it will not be possible to
+recombine shares, since not all parties ⸨q⸩ will be present.
+We can also make a share of a constant
+usable by parties $p$ via ⸨⦑embed⦒[p]␣x⸩; making shares of
+constants does not require the sharing parties to communicate.
+
+Parties $q$ can all mutually compute on a shared, encrypted value
+using ⸨x ⊙ y⸩ and ⸨x ¿ y ◇ z⸩.  Recall from above that the latter is a
+multiplexor: we select between ⸨y⸩ and ⸨z⸩ based on whether $x$ is zero or
+non-zero. The former models binary operations over numeric types.
+When operating on encrypted values, both the multiplexor and binary
+operation expressions will necessitate \emph{communication} in the
+distributed semantics, and an actual implementation will use an
+underling MPC protocol to implement the computation over the encrypted value.
+All parties to which a share was sent must
+all be present when computing on it. E.g., for numbers of type
+⸨⦑int⦒⸢⦑enc⦒⋕{A,B}⸣⸩ to be added, both $A$ and $B$ must be
+present. Indeed, it must be \emph{exactly} these parties which are
+present; we do not allow more, since other parties would not be
+able to carry out the operation (they don't have access to the
+share).
+% Note that relational operators on shares (such as $<$ in the GCD example) can be encoded as arithmetic ones.
+
+An MPC is completed by invoking ⸨⦑declassify⦒[q]␣x⸩. This takes a share
+(among some set of parties $p$) and converts it to cleartext,
+sharing the result among parties $q$. Doing so requires that all of
+$p \cup q$ are present so that the shareholders
+can agree to send the value, and the result-receivers are ready to
+receive it.
+
+The notion of locatedness is crucial in proving that \mpc satisfies
+a property called~\nameref{thm:mpc-simulation}. The~\nameref{thm:mpc-simulation}
+property is what allows us to view the langauge as \textbf{abstractly centralized}. The
+next section is dedicated to explaining this property, and highlighting some of
+its consequences.
+
+\section{Simulation}
+
+\ins{The goal is to sufficiently explain~\nameref{thm:mpc-simulation}.}
 
 \begin{theorem}[Forward Simulation] \label{thm:mpc-simulation}
   If ⸨ς —→⋆ ς′⸩, ⸨ς′⸩ is terminal, ⸨ς↯ ↝⋆ G⸩ and ⸨G ⫽↝⸩, then ⸨G = ς′↯⸩.
@@ -465,6 +572,7 @@ A⁃ e     ⧼∈⧽ ‹expr›       ⧼⩴⧽ x                              &
 A⁃       ⧼ ⧽              ⧼¦⧽ i                              & ⟪integer literal⟫
 A⁃       ⧼ ⧽              ⧼¦⧽ b                              & ⟪boolean literal⟫
 A⁃       ⧼ ⧽              ⧼¦⧽ e ⊙ e                          & ⟪binary operation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑if⦒␣e␣⦑then⦒␣e␣⦑else⦒␣e          & ⟪atomic conditional⟫
 A⁃       ⧼ ⧽              ⧼¦⧽ e ¿ e ◇ e                      & ⟪atomic conditional⟫
 A⁃       ⧼ ⧽              ⧼¦⧽ ⟨e,e⟩                          & ⟪pair creation⟫
 A⁃       ⧼ ⧽              ⧼¦⧽ πᵢ␣e                           & ⟪pair projection (⸨i ∈ ❴1,2❵⸩)⟫
@@ -544,6 +652,8 @@ Building on \mpc and \obliv, I will design and implement a MPC language, \lang, 
 \textbf{abstractly centralized}, and \textbf{high assurance}.
 
 \section{Design}
+
+
 
 The goal is to sufficiently explain~\nameref{thm:lang-simulation} and~\nameref{thm:lang-pmto}.
 
