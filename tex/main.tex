@@ -538,6 +538,7 @@ next section is dedicated to explaining this property, and highlighting some of
 its consequences.
 
 \section{Simulation}
+\label{sec:lam-mpc-simulation}
 
 \ins{The goal is to sufficiently explain~\nameref{thm:mpc-simulation}.}
 
@@ -648,12 +649,35 @@ F⁆
 \chapter{Proposal: \lang, A Secure MPC Language With User-Defined ORAM}
 \label{ch:proposal}
 
-Building on \mpc and \obliv, I will design and implement a MPC language, \lang, which is \textbf{probabilistic},
-\textbf{abstractly centralized}, and \textbf{high assurance}.
+Having seen \mpc and \obliv formally, we are now in a position to explain how the MPC language, \lang, will be constructed.
+We will start by making \lang \textbf{probabilistic} by extending \mpc with a feature for uniform, random sampling. This new
+feature will be analogous to the ⸨⦑unif⦒⸩ feature of \obliv. By extending \mpc we expect that the language will already be ``mostly''
+\textbf{abstractly centralized}. However, we will need to establish this formally by proving that \lang satisfies an appropriate
+version of the~\nameref{thm:mpc-simulation} theorem from~\cref{sec:lam-mpc-simulation}. Finally, \lang will be made
+\textbf{high assurance} by extending \lang with a feature for zero-information declassification of random values. This feature
+is analogous to the ⸨⦑cast⦒⸩ feature of \obliv. We intend for the type system to ensure that uses of ⸨⦑cast⦒⸩ are appropriate
+--- i.e. that they really don't reveal any information to other parties. Achieving this will require updating the type system
+of \lang with the affinity and probability region features of the \obliv language. Again, we will need to establish that the
+type system achieves its goal by proving~\nameref{thm:lang-pmto}.
+
+As a means of confirming that \lang is useful, we will build on the existing Haskell implementation of \mpc. That implementation
+includes only a centralized interpreter which does not actually perform any MPC. Adding on to this centralized interpreter, we will
+add a distributed interpreter which uses the EMP MPC framework as the MPC backend. Finally, we will implement a type checker based
+on the formal type system. Having done this, we will implement a number of case studies in \lang. At a minimum, we will implement
+the ORAM schemes described in~\cref{ch:oram} --- Trivial ORAM, Circuit ORAM, and Recursive (Circuit) ORAM. Having done so, we will
+have confirmed our type system is expressive enough to type check state of the art ORAM protocols. Finally, using our distributed
+interpreter we will confirm that the ORAM schemes have the expected asymptotic complexity (and should therefore be competitive with
+the ORAM protocols in existing languages like Obliv-C and SCALE-MAMBA).
 
 \section{Design}
 
 
+
+Labels are the combination of party set and protocol. We interpret functions and tuples as having an implicit cleartext protocl.
+
+Differences from \mpc. We have a new uniform type. Atomic conditional works like in \obliv, returning tuple in-order or out
+of order. This is necessary for affinity. Tuple elimination is now by pattern-matching, again for compatibility with affinity. The
+only non-trivial change is the addition of uniform sampling and casting from \obliv.
 
 The goal is to sufficiently explain~\nameref{thm:lang-simulation} and~\nameref{thm:lang-pmto}.
 
@@ -714,43 +738,37 @@ D⁆
 \label{fig:mpc-syntax}
 F⁆
 
-Labels are the combination of party set and protocol. We interpret functions and tuples as having an implicit cleartext protocl.
-
-Differences from \mpc. We have a new uniform type. Atomic conditional works like in \obliv, returning tuple in-order or out
-of order. This is necessary for affinity. Tuple elimination is now by pattern-matching, again for compatibility with affinity. The
-only non-trivial change is the addition of uniform sampling and casting from \obliv.
-
 \section{Implementation}
 
-\ins{
-\begin{enumerate}
-\item What? Case Studies. Why? The ORAM implementations presented in \obliv are in client-server model. These implementations will
-  be written to abide by the MPC type system and will be in the more restrictive ORAM-SC model. Also, frankly, the existing literature
-  on the differences between these two models sucks. I hope to more clearly articulate the differences and similarities in my thesis
-  by showing the implementations side-by-side. How? Adapt the implementations from~\citet{lam-obliv} according to the descriptions of
-  ORAM-SC in the literature~\cite{}.
-\item What? Type Checker. Why? To verify that the formal type sytem is feasible to implement and interesting. By ``interesting'' we mean
-  that it can successfully typecheck the ORAM case studies. Also, as an additional contribution, the \mpc implementation presented
-  in~\citet{symphony} does not include a type checker. So, we will also show that the interesting case studies from that paper type check.
-  Finally, this will allow us to rapidly test different designs for the formal type system. How? Write a bunch of Haskell. As a first cut
-  we will graft the affinity and probability region features from \obliv onto the type system of \mpc.
-\item What? MPC Interpreter. Why? The formal semantics of \mpc and \lang are parameterized by the underlying MPC protocols. This may
-  may create some doubt in readers that the semantics is truly modelling the implementation of an MPC language. Again, the implementation
-  will serve to show that the formal semantics are feasible and interesting. How? We have already added the foundation of this functionality
-  by using the Haskell FFI to call out to the (two-party, semi-honest) EMP library. For example, we have the Millionaire's Problem working.
-\item What? Static Semantics. Why? We enforce the security properties of programs in \lang by showing that security is implied by
-  well-typing. We want PMTO\% and simulation, so we have to design a type system which satisfies the former without wrecking the latter.
-  How? Having implemented the type checker, we can base the static semantics on that.
-\item What? Prove Type Safety, PMTO\%, and Simulation. These are all desirable properties. The first says that the types are coherent with
-  the runtime behavior of the program. The second says that programs are secure, they only leak information which is explicitly declassified
-  according to a reveal expression. The third says that the single-threaded, or centralized, interpretation of programs is consistent with
-  the distributed (``real'') interpretation. How? We expect that the proof of type safety will be a standard syntactic proof using progress
-  and preservation. The proof of PMTO\% will build on the techniques (mixed semantics, simulation) for PMTO in \obliv and the proof of MTO\%
-  in \mpc. One possible challenge is the proof of simulation between the single-threaded and distributed semantics. Since we are adding a
-  probabilistic choice operation to the single-threaded semantics it will no longer be deterministic. This could complicate the proof of
-  simulation.
-\end{enumerate}
-}
+We must now consider if the formal language we have designed is useful. Can we write interesting programs in the language?
+Will those programs be efficient? Questions such as these must be answered empirically. We will address both of these questions
+using the ORAM protocols described in~\cref{ch:oram}. In particular, since we are claiming that our type system has a very powerful
+property ---~\cref{thm:lang-pmto} --- we might also expect it to be very restrictive. How do we know it actually accepts the ORAM
+protocols we would like to prove are oblivious? For this reason, we take ORAM protcols to be representative ``interesting programs.''
+
+The \mpc language has an existing Haskell interpreter. However, this interpreter only implements the centralized semantics of \mpc.
+In particular, it doesn't actually perform any MPC and doesn't run as multiple communicating processes. Our first implementation
+goal will be to extend the existing interpreter to also support a distribued mode. We have already partially completed this task
+by implementing a Haskell FFI to the C++ bindings for EMP. The prototype distributed mode is capable of sharing integers, performing
+primitive operations (e.g. addition, comparison), and revealing the result. For example, we have successfully implemented the Millionaire's Problem
+from~\ref{sec:background-symphony}. There is more work to support ORAM -- we will need to handle random numbers, references, and
+more primitive operations at a minimum. Furthermore, since EMP is limited to two parties, so too is our distributed mode.
+
+The existing \mpc implementation does not have a type checker. We will first add the type checker of \mpc to the implementation without
+the additional features (affinity, probability regions) required for \lang. This type system should be sufficient for checking, for example,
+that Trivial ORAM\footnote{Interestingly, this will already confirm that Trivial ORAM in the MPC model is~\ref{thm:mpc-mto}.}. Then, we will
+add the challenging features of affinity and probability regions. In prior work, we implemented the type system of \obliv and used it to
+type check various ORAM case studies. We expect that we will be able to use our experience from that artifact here.
+
+Finally, we can address the two empirical questions mentioned above. First, we will implement the ORAM protocols in our language and confirm
+that they type check (and are therefore oblivious). Second, with our distributed mode, we will confirm that the ORAM protocols have the
+expected asymptotic behavior. We will perform a series of experiments in which \ins{todo: my inclination is to be vague about this, ask mike}
+This will confirm that our language can support RAM-model computation which is competitive with existing languages that offer ORAM support
+(e.g. Obliv-C, SCALE-MAMBA).
+
+
+\ins{mention somewhere that these ORAM implementations are different from the ones in \obliv -- these are not client-server but instead in
+  the ORAM-SC model in which neither party knows the position tag of inserted elements.}
 
 \chapter{Open Problems}
 
@@ -769,7 +787,7 @@ Our prior work has shown that Oblivious Data Structures (ODS's), proposed by Wan
 way to support ODS's within the language while retaining the security guarantees provided by the tyep system.
 
 \paragraph{Other Security Policies}
-PMTO\% is perhaps the most obvious security policone could prove about MPC programs which admit ORAM. However, it is not the only property
+PMTO\% is perhaps the most obvious security policy one could prove about MPC programs which admit ORAM. However, it is not the only property
 one could prove. There is a rich literature of different declassification policies, as well as weaker variants of (P)MTO like Differential
 MTO~\cite{} and manual computational proofs of securit with explicit complexity-theoretic reductions~\cite{easycrypt}.
 
