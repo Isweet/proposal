@@ -597,7 +597,7 @@ F⁆
 \chapter{\obliv, A Language for Probabilistically Oblivious Computation}
 \label{ch:lam-obliv}
 
-The goal is to sufficiently explain~\nameref{thm:obliv-pmto}.
+\ins{The goal is to sufficiently explain~\nameref{thm:obliv-pmto}.}
 
 \begin{theorem}[PMTO] \label{thm:obliv-pmto}
   If ⸨e₁ : τ⸩, ⸨e₂ : τ⸩, ⸨e₁ ≈⸤l⸥ e₂⸩, ⸨e₁ ⇢⋆ ⇡~{t₁}⸩, and ⸨e₂ ⇢⋆ ⇡~{t₂}⸩, then ⸨⇡~{t₁} ⇡~≈⸤l⸥ ⇡~{t₂}⸩.
@@ -671,15 +671,17 @@ the ORAM protocols in existing languages like Obliv-C and SCALE-MAMBA).
 
 \section{Design}
 
+The syntax of \lang is shown, at long last, in~\cref{fig:lang-syntax}. The security label lattice is the same as
+the \mpc language. Labels are a combination of location and protocol. As such, we no longer need the ⸨‹P›⸩ and ⸨‹S›⸩ labels
+of \obliv. \lang takes the uniform type of \obliv and adds a protocol to it, ⸨⦑½⦒ μ⸢ρ ; ψ⸣⸩, indicating that random values
+can be shared. The atomic conditional works as described in \obliv, returning a tuple of its arguments in-order if the guard
+is true, and permuted otherwise. As in \obliv, this is necessary in an affine type system. Tuple elimination is now by
+pattern-matching instead of projection, again for compatibility with affinity. The only non-trivial change is the additon of
+uniform sampling, ⸨⦑unif⦒⸢ρ⸣␣μ⸩, and casting, ⸨⦑cast⦒⸤ψ⸥[p]␣x⸩.
 
+\ins{observation: pmto is hard when you are allowed to declassify b/c casting to secret doesn't imply that value will never be revealed.} \\
 
-Labels are the combination of party set and protocol. We interpret functions and tuples as having an implicit cleartext protocl.
-
-Differences from \mpc. We have a new uniform type. Atomic conditional works like in \obliv, returning tuple in-order or out
-of order. This is necessary for affinity. Tuple elimination is now by pattern-matching, again for compatibility with affinity. The
-only non-trivial change is the addition of uniform sampling and casting from \obliv.
-
-The goal is to sufficiently explain~\nameref{thm:lang-simulation} and~\nameref{thm:lang-pmto}.
+\ins{The goal is to sufficiently explain~\nameref{thm:lang-simulation} and~\nameref{thm:lang-pmto}.}
 
 \begin{theorem}[Forward Simulation] \label{thm:lang-simulation}
   If ⸨ς —→⋆ ⇡~{ς′}⸩, ⸨⇡~{ς′}⸩ is terminal, ⸨ς↯ ↝⋆ ⇡~{G}⸩ and ⸨⇡~{G} ⫽↝⸩, then ⸨⇡~{G} = ⇡~{ς′}↯⸩.
@@ -725,8 +727,8 @@ A⁃       ⧼ ⧽              ⧼¦⧽ ⦑write⦒␣e                      & 
 A⁃       ⧼ ⧽              ⧼¦⧽ ⦑embed⦒[p]␣e                   & ⟪encrypted a known constant⟫
 A⁃       ⧼ ⧽              ⧼¦⧽ ⦑share⦒[p→p]␣e                 & ⟪share encrypted value⟫
 A⁃       ⧼ ⧽              ⧼¦⧽ ⦑declassify⦒[p]␣e              & ⟪declassify encrypted value⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑unif⦒[p]⸢ρ⸣␣μ                  & ⟪uniform, random sample in region⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑cast⦒[p]⸤l⸥␣x                    & ⟪cast from uniform⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑unif⦒⸢ρ⸣␣μ                  & ⟪uniform, random sample in region⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑cast⦒⸤ψ⸥[p]␣x                    & ⟪cast from uniform⟫
 A⁃       ⧼ ⧽              ⧼¦⧽ λ⸤z⸥x⍪ e                       & ⟪(recursive) function creation⟫
 A⁃       ⧼ ⧽              ⧼¦⧽ e␣e                            & ⟪function elimination⟫
 A⁃       ⧼ ⧽              ⧼¦⧽ ⦑let⦒␣x=e␣⦑in⦒␣e               & ⟪let binding⟫
@@ -735,7 +737,7 @@ M⁆
 D⁆
 \endgroup
 \caption{\mpc Syntax}
-\label{fig:mpc-syntax}
+\label{fig:lang-syntax}
 F⁆
 
 \section{Implementation}
