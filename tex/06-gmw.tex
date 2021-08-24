@@ -1,0 +1,143 @@
+\chapter{The GMW Protocol}
+\label{ch:gmw}
+
+MPC works by allowing a secret, in cleartext, to be split up into many ``shares'' which are considered ciphertext
+and therefore may be safely distributed to other parties and recombined later. More specifically, shares have the following properties:
+\begin{enumerate}
+\item Shares can be combined to reveal the original cleartext secret.
+\item A share does not reveal any information about the secret.
+\item Parties can cooperate to compute over shares. For example, being able to create shares of boolean values
+  and compute XOR and AND over those shares forms a complete basis for computation. Primitives such as addition,
+  comparison, etc. can be built from these boolean operations.
+\end{enumerate}
+
+The languages discussed in this proposal are agnostic to the underlying MPC protocol. We only require that the underlying MPC protocol
+have the properties listed above. For the purposes of exposition, however, we choose to use the GMW protocol [cite] as a
+representative for MPC protocols in general.
+
+In GMW, the secrets being shared are booleans. To represent integers with arithmetic, comparison, etc. we use a two's
+complement representation. For example, a digital circuit with only XOR and AND gates can be used to half adders,
+full-adders, and ripple-carry adders. A party \alice can generate her share of her (boolean) secret \aliceSec by
+generating a random number:
+
+M⁅
+\aliceSh{\aliceSec} ← 𝒰(❴0,1❵)
+M⁆
+
+The notation ⸨⌊v⌋⸤P⸥⸩ indicates that this is ⸨P⸩'s share of the value ⸨v⸩. Then, \alice generates \bob's share of \aliceSec
+as the XOR of her share with the original secret:
+
+M⁅
+\bobSh{\aliceSec} ← \aliceSh{\aliceSec} ⊕ \aliceSec
+M⁆
+
+At this point, there are a few important things to notice. First, \bob's share is effectively another random number.
+As long as he never sees \aliceSh{\aliceSec} he can't distinguish his share \bobSh{\aliceSec} from a fresh, uniform
+boolean value. This establishes property (2) of MPC above. Second, XOR has the following properties:
+
+\begin{fact}[⸨⊕⸩-Inverse]
+\label{fact:xor-inverse}
+  ⸨∀ b ∈ 𝔹␣.␣b ⊕ b = 0⸩
+\end{fact}
+
+\begin{fact}[⸨⊕⸩-Identity]
+\label{fact:xor-identity}
+  ⸨∀ b ∈ 𝔹␣.␣b ⊕ 0 = 0 ⊕ b = b⸩
+\end{fact}
+
+These two properties ensure that the original secret, \aliceSec, can be recovered by XOR'ing the shares together:
+
+M⁅
+  Aːllll
+  A⁅ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ⧼=⧽ \aliceSh{\aliceSec} ⊕ \aliceSh{\aliceSec} ⊕ \aliceSec & ␠⟅ by \bobSh{\aliceSec} ⟆
+  A⁃                                         ⧼=⧽ 0 ⊕ \aliceSec & ␠⟅ by \nameref{fact:xor-inverse} ⟆
+  A⁃                                         ⧼=⧽ \aliceSec & ␠⟅ by \nameref{fact:xor-identity} ⟆
+  A⁆
+M⁆
+
+which establishes MPC property (1) above. Now, let's assume that \bob executes the same protocol to share his secret, \bobSec,
+with \alice by splitting it into \aliceSh{\bobSec} and \bobSh{\bobSec}. So, at this point \alice has her shares of both secrets
+and similarly for \bob. How can we accomplish property (3) of MPC? To compute ⸨\aliceSec ⊕ \bobSec⸩ we can simply have \alice and \bob
+evaluate the XOR of their shares independently:
+
+M⁅
+  Aːllll
+  A⁅ \aliceSh{A⸨ \aliceSec ⊕ \bobSec A⸩} ⧼←⧽ \aliceSh{\aliceSec} ⊕ \aliceSh{\bobSec}
+  A⁃ \bobSh{A⸨ \aliceSec   ⊕ \bobSec A⸩} ⧼←⧽ \bobSh{\aliceSec}   ⊕ \bobSh{\bobSec}
+  A⁆
+M⁆
+
+Why does this work? Well, it's because XOR is associative:
+
+M⁅
+  Aːllll
+  A⁅ \aliceSh{\aliceSec ⊕ \bobSec} ⊕ \bobSh{\aliceSec ⊕ \bobSec} ⧼=⧽
+      (\aliceSh{\aliceSec} ⊕ \aliceSh{\bobSec}) ⊕ (\bobSh{\aliceSec} ⊕ \bobSh{\bobSec}) & ␠⟪[Definition of XOR of shares]⟫
+  A⁃ ⧼=⧽
+      (\aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec}) ⊕ (\aliceSh{\bobSec} ⊕ \bobSh{\bobSec}) & ␠⟪[Associativity of XOR]⟫
+  A⁃ ⧼=⧽
+      \aliceSec ⊕ \bobSec & ␠⟪[Share Recovery]⟫
+  A⁆
+M⁆
+
+Now for the tricky bit. How do we compute ⸨\aliceSec ∧ \bobSec⸩? To describe this gate we assume that we have access to a
+protocol called 1-4 Oblivious Transfer (OT). This protocol allows a sender, ⸨S⸩, to send 4 messages to a receiver, ⸨R⸩, in such a
+way that (a) ⸨R⸩ is only allowed to see 1 of the 4 messages and (b) ⸨S⸩ cannot tell which message ⸨R⸩ chose.
+
+Assuming that we have access to such a protocol, we can compute \alice's share of the AND very simply:
+
+M⁅
+  Aːllll
+  A⁅ \alices{σ}                          ⧼←⧽ 𝒰(❴0,1❵)
+  A⁃ \aliceSh{A⸨ \aliceSec ∧ \bobSec A⸩} ⧼←⧽ \alices{σ}
+  A⁆
+M⁆
+
+Now, we still need to figure out how \bob will compute his share of the AND. This will involve the 1-4 OT protocol in which \alice is the
+sender and \bob is the receiver. Consider Table~\ref{tab:and-ot}, which is constructed by \alice. Each row indicates one of the possible
+outcomes for \bob's shares, \bobSh{\aliceSec} and \bobSh{\bobSec}.
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{|c|c|c|c|}
+    \hline
+    \bobSh{\aliceSec} & \bobSh{\bobSec} & A⸨ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ∧ \aliceSh{\bobSec} ⊕ \bobSh{\bobSec} A⸩ & ⸨r⸩ \\ \hline
+    ⸨0⸩ & ⸨0⸩ & A⸨ α⸤0,0⸥ = \aliceSh{\aliceSec} ⊕ 0 ∧ \aliceSh{\bobSec} ⊕ 0 A⸩ & A⸨ r⸤0,0⸥ = \alices{σ} ⊕ α⸤0,0⸥ A⸩ \\ \hline
+    ⸨0⸩ & ⸨1⸩ & A⸨ α⸤0,1⸥ = \aliceSh{\aliceSec} ⊕ 0 ∧ \aliceSh{\bobSec} ⊕ 1 A⸩ & A⸨ r⸤0,1⸥ = \alices{σ} ⊕ α⸤0,1⸥ A⸩ \\ \hline
+    ⸨1⸩ & ⸨0⸩ & A⸨ α⸤1,0⸥ = \aliceSh{\aliceSec} ⊕ 1 ∧ \aliceSh{\bobSec} ⊕ 0 A⸩ & A⸨ r⸤1,0⸥ = \alices{σ} ⊕ α⸤1,0⸥ A⸩ \\ \hline
+    ⸨1⸩ & ⸨1⸩ & A⸨ α⸤1,1⸥ = \aliceSh{\aliceSec} ⊕ 1 ∧ \aliceSh{\bobSec} ⊕ 1 A⸩ & A⸨ r⸤1,1⸥ = \alices{σ} ⊕ α⸤1,1⸥ A⸩ \\ \hline
+  \end{tabular}
+  \caption{B⸨testingB⸩\ins{TODO: couldn't figure out how to use colored math in here without an error.}}
+  \label{tab:and-ot}
+\end{table}
+
+If \alice now sends ⸨(r⸤0,0⸥,␣r⸤0,1⸥,␣r⸤1,0⸥,␣r⸤1,1⸥)⸩ via 1-4 OT to \bob, then \bob can select the message which corresponds the outcome
+of his shares. For example, if \bob's shares are ⸨\bobSh{\aliceSec} = \bobSh{\bobSec} = 0⸩ then he would select ⸨r⸤0,0⸥⸩ (corresponding
+to the first row in Table~\ref{tab:and-ot}).
+
+M⁅
+  Aːllll
+  A⁅ \bobSh{\aliceSec ∧ \bobSec} ⧼←⧽ r␣‹where›␣& r = r⸤0,0⸥␣‹if›␣\bobSh{\aliceSec} = 0␣‹and›␣\bobSh{\bobSec} = 0
+  A⁃ & & & r = r⸤0,1⸥␣‹if›␣\bobSh{\aliceSec} = 0␣‹and›␣\bobSh{\bobSec} = 1
+  A⁃ & & & r = r⸤1,0⸥␣‹if›␣\bobSh{\aliceSec} = 1␣‹and›␣\bobSh{\bobSec} = 0
+  A⁃ & & & r = r⸤1,1⸥␣‹if›␣\bobSh{\aliceSec} = 1␣‹and›␣\bobSh{\bobSec} = 1
+  A⁆
+M⁆
+
+Finally, let's check that this is correct and secure. First, correctness:
+
+M⁅
+  Aːllll
+  A⁅ \aliceSh{\aliceSec ∧ \bobSec} ⊕ \bobSh{\aliceSec ∧ \bobSec} ⧼=⧽ \alices{σ} ⊕ (\alices{σ} ⊕ α⸤i,j⸥) & ␠⟪[Definition of ⸨∧⸩]⟫
+  A⁃ & & ‹where›␣i = \bobSh{\aliceSec}␣‹and›␣j = \bobSh{\bobSec}
+  A⁃ ⧼=⧽ α⸤i,j⸥ & ␠⟪[Fact~\ref{xor-inverse}]⟫
+  A⁃ ⧼=⧽ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ∧ \aliceSh{\bobSec} ⊕ \bobSh{\bobSec} & ␠⟪[Definition (by OT on Table~\ref{tab:and-ot})]⟫
+  A⁃ ⧼=⧽ \aliceSec ∧ \bobSec & ␠⟪[Share Recovery]⟫
+  A⁆
+M⁆
+
+Now, why is this secure? The security relies crucially on the properties of 1-4 OT. If \alice could tell which message \bob chose she would
+immediately learn the values of \bob's shares and be able to recover \bob's secret. However, 1-4 OT guarantees that \alice cannot tell
+which message \bob chose. Likewise, if \bob were able to see more than one of the messages sent by \alice then ⸨α ⊕ \alices{σ}⸩ would not
+sufficiently protect ⸨α⸩\footnote{More formally, the XOR with a random value forms a one-time pad (OTP) encryption scheme, which is only secure
+  if the key is never reused.}. However, 1-4 OT guarantees that \bob can only see the message that he chooses.

@@ -1,0 +1,66 @@
+\chapter{\obliv, A Language for Probabilistically Oblivious Computation}
+\label{ch:lam-obliv}
+
+An oblivious computation is one that is free of direct and indirect information leaks, e.g., due to observable differences
+in timing and memory access patterns. In this chapter, we'll give a formal description of \obliv, a core language whose
+type system enforces obliviousness. We show that \obliv satisfies~\nameref{thm:obliv-pmto}, a probabilistic variant of obliviousness.
+We also show that \obliv's type system is expressive enough to typecheck an asymptotically optimal client-server ORAM implementation.
+
+\section{Overview}
+\label{sec:lam-obliv-overview}
+
+The syntax of \obliv is presented in \Cref{fig:obliv-syntax}. \obliv types comprise a
+series of standard types---integers, booleans, functions, and pair types---as well as
+a special type for secret, uniform distributions of booleans.
+
+F⁅
+\begingroup
+\setlength\arraycolsep{0pt} % default is 6pt
+\smaller
+D⁅
+M⁅
+Aːrcrcl@{␠}l
+A⁅ b   ⧼∈⧽ 𝔹           ⧼ ⧽                               & ⟪booleans⟫
+A⁃ i   ⧼∈⧽ ℤ           ⧼ ⧽                                & ⟪integers⟫
+A⁃ ℓ   ⧼∈⧽ ‹label›     ⧼⩴⧽ ‹P› ¦ ‹S›                     & ⟪public and secret⟫
+A⁃     ⧼ ⧽ 𝑚𝑐3c{⟪(«where» ⸨‹P›⊏‹S›⸩)⟫}                   & ⟪security labels⟫
+A⁃ ρ   ⧼∈⧽ R           ⧼ ⧽                               & ⟪probability region⟫
+A⁃ μ   ⧼∈⧽ ‹base-type› ⧼⩴⧽ ⦑int⦒                         & ⟪integer type⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⦑bool⦒                         & ⟪boolean type⟫
+A⁃ τ   ⧼∈⧽ ‹type›      ⧼⩴⧽ μ⸤ℓ⸥⸢ρ⸣                        & ⟪non-random base type⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⦑½⦒ μ⸤‹S›⸥⸢ρ⸣                   & ⟪secret uniform bool⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ τ × τ                          & ⟪tuple⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ τ → τ                          & ⟪function⟫
+A⁃ x,y ⧼∈⧽ ‹var›       ⧼ ⧽                                 & ⟪variables⟫
+A⁃ ⊙   ⧼∈⧽ ‹binop›     ⧼ ⧽                                & ⟪binary operations (e.g., plus, times)⟫
+A⁃ e   ⧼∈⧽ ‹expr›      ⧼⩴⧽ x                              & ⟪variable reference⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ i⸤ℓ⸥                            & ⟪integer literal⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ b⸤ℓ⸥                            & ⟪boolean literal⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ e ⊙ e                          & ⟪binary operation⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ e ¿ e ◇ e                      & ⟪atomic conditional⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⟨e,e⟩                           & ⟪tuple creation⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⦑let⦒␣x,y = e␣⦑in⦒␣e            & ⟪tuple elimination⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ λ⸤z⸥x⍪ e                       & ⟪(recursive) function creation⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⦑unif⦒⸢ρ⸣␣μ                      & ⟪uniform, random sample in region⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⦑cast⦒⸤l⸥␣x                    & ⟪cast from uniform⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ e␣e                            & ⟪function elimination⟫
+A⁃     ⧼ ⧽             ⧼¦⧽ ⦑let⦒␣x = e␣⦑in⦒␣e               & ⟪variable binding⟫
+A⁆
+M⁆
+D⁆
+\endgroup
+\caption{\obliv Syntax}
+\label{fig:obliv-syntax}
+F⁆
+
+\section{Obliviousness}
+\label{sec:lam-obliv-obliviousness}
+
+\ins{The goal is to sufficiently explain~\nameref{thm:obliv-pmto}.}
+
+\begin{theorem}[PMTO] \label{thm:obliv-pmto}
+  If ⸨e₁ : τ⸩, ⸨e₂ : τ⸩, ⸨e₁ ≈⸤l⸥ e₂⸩, ⸨e₁ —→⋆ ⇡~{t₁}⸩, and ⸨e₂ —→⋆ ⇡~{t₂}⸩, then ⸨⇡~{t₁} ⇡~≈⸤l⸥ ⇡~{t₂}⸩.
+\end{theorem}
+
+In other words, if two expressions cannot be distinguished from each other, then neither can the distributions of memory traces
+that their executions emit.

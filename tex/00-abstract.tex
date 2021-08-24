@@ -1,0 +1,8 @@
+\emph{Secure Multiparty Computation} (MPC) has emerged as a promising approach to mutually confidential computation.
+Traditionally, MPC programs do not allow memory to be addressed using secret values. This precludes, for example,
+a secure binary search in which the element being accessed is considered secret.
+This restriction is relaxed by ensuring that the secure computation is (probabilistically) \emph{oblivious}.
+Unfortunately, existing languages for MPC do not support efficient, oblivious programming. We propose \lang,
+a probabilistically oblivious language for MPC. We will show that \lang can express asymptotically optimal
+secure ORAM (SC-ORAM) constructions, thereby proving that they are oblivious. This will allow for provably secure,
+asymptotically optimal implementations of RAM-model secure computations, such as binary search.
