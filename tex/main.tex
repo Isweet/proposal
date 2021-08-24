@@ -491,22 +491,65 @@ language precisely.
 \section{Overview}
 \label{sec:lam-mpc-overview}
 
-The syntax of \mpc is in \cref{fig:mpc-syntax}. \mpc types comprise a
+The syntax of \mpc is presented in \Cref{fig:mpc-syntax}. \mpc types comprise a
 series of standard types---integers, booleans functions, and pair types---augmented
 with two additional elements.
 
+F⁅
+\begingroup
+\setlength\arraycolsep{0pt} % default is 6pt
+\smaller
+D⁅
+M⁅
+Aːrcrcl@{␠}l
+A⁅ b     ⧼∈⧽ 𝔹            ⧼ ⧽                                & ⟪booleans⟫
+A⁃ i     ⧼∈⧽ ℤ            ⧼ ⧽                                & ⟪integers⟫
+A⁃ A,B,C ⧼∈⧽ ‹party›      ⧼ ⧽                                & ⟪parties⟫
+A⁃ m,p,q ⧼∈⧽ ‹party-set›  ⧼≜⧽ ℘(‹party›) ⩴ ❴A,…,A❵          & ⟪sets of parties⟫
+A⁃ ψ     ⧼∈⧽ ‹prot›       ⧼⩴⧽ ⋅                             & ⟪cleartext⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑enc⦒⋕m                        & ⟪encrypted⟫
+A⁃ μ     ⧼∈⧽ ‹base-type›  ⧼⩴⧽ ⦑int⦒                         & ⟪integer type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑bool⦒                         & ⟪boolean type⟫
+A⁃ σ     ⧼∈⧽ ‹loc-type›   ⧼⩴⧽ μ⸢ψ⸣                          & ⟪protocol type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ τ →ₘ τ                         & ⟪function type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ τ × τ                          & ⟪pair type⟫
+A⁃ τ     ⧼∈⧽ ‹type›       ⧼⩴⧽ σ@m                           & ⟪located type⟫
+A⁃ x,y,z ⧼∈⧽ ‹var›        ⧼ ⧽                                & ⟪variables⟫
+A⁃ ⊙     ⧼∈⧽ ‹binop›      ⧼ ⧽                                & ⟪binary operations (e.g., plus, times)⟫
+A⁃ e     ⧼∈⧽ ‹expr›       ⧼⩴⧽ x                             & ⟪variable reference⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ i                              & ⟪integer literal⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ b                              & ⟪boolean literal⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ e ⊙ e                          & ⟪binary operation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑if⦒␣e␣⦑then⦒␣e␣⦑else⦒␣e       & ⟪atomic conditional⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ e ¿ e ◇ e                      & ⟪atomic multiplexor⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⟨e,e⟩                          & ⟪pair creation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ πᵢ␣e                           & ⟪pair projection (⸨i ∈ ❴1,2❵⸩)⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ λ⸤z⸥x.␣e                       & ⟪(recursive) function creation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑read⦒␣μ                       & ⟪read int input⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑write⦒␣e                      & ⟪write output⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑share⦒[p→p]␣e                 & ⟪share encrypted value⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑reveal⦒[p]␣e                  & ⟪reveal encrypted value⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ e␣e                            & ⟪function elimination⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑par⦒[p]␣e                     & ⟪parallel execution⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑let⦒␣x=e␣⦑in⦒␣e               & ⟪let binding⟫
+A⁆
+M⁆
+D⁆
+\endgroup
+\caption{\mpc Syntax}
+\label{fig:mpc-syntax}
+F⁆
+
 The first exotic feature is \emph{located types}. These types are located
-in the sense that they can be manipulated only at particular hosts.
+in the sense that they can be manipulated only at particular principals.
 The metavariable ⸨m⸩ represents a set of parties, and a type is written ⸨σ@m⸩. The \mpc expression
 ⸨⦑par⦒[p]␣e⸩ determines the locatedness. It says that ⸨e⸩ may be computed at
 parties ⸨p⸩ in parallel (hence the syntax ⸨⦑par⦒⸩). That is, every
 party ⸨A ∈ p⸩ may evaluate ⸨e⸩. We say ``may'' here because
 nesting such an expression in another ⸨⦑par⦒⸩ could shrink the set of
 parties. For example, ⸨e⸩ in ⸨⦑par⦒[p]␣(⦑par⦒[q]␣e)⸩ will be
-evaluated by ⸨p ∩ q⸩; if this intersection is $\eset$ then ⸨e⸩
+evaluated by ⸨p ∩ q⸩; if this intersection is ⸨ø⸩ then ⸨e⸩
 is essentially dead code.
-
-\ins{todo: replace math mode with darais}
 
 We call the set of parties ⸨m⸩ computing an expression in parallel
 the \emph{mode}. We say the parties ⸨A ∈ m⸩ are \emph{present}
@@ -516,12 +559,12 @@ known only to parties $A \in m$. This means that adding two numbers
 located at $p$ can only be done in a mode $m$ such that
 $m \subseteq p$; if the mode contained additional parties
 $A \not\in p$ then they wouldn't know what to do; such states will be
-stuck in our semantics. The same goes for functions, sums, and
-references. The ⸨⦑read⦒⸩ and ⸨⦑write⦒␣x⸩ expressions perform local
+stuck in our semantics. The same goes for pairs and functions.
+The ⸨⦑read⦒␣μ⸩ and ⸨⦑write⦒␣e⸩ expressions perform local
 I/O and so can only be run in a mode with a single party.
 
 On the other hand, it is possible that a variable $x$ is in scope for
-$A$, but maps to a value only usable by $B$. Party $A$ can
+$A$, but maps to a value only known to $B$. Party $A$ can
 still manipulate a placeholder for $x$ (e.g., to store it in a
 datastructure or pass it to a function) but may never compute with its
 contents (e.g., add to it or branch on it). This approach
@@ -540,12 +583,12 @@ cleartext ($\cdot$) or are \emph{encrypted} and shared among parties
 $p$. For concreteness, we imagine the encryption protocol is
 Goldreich, Widgerson, and Micali (GMW)~\citeyear{STOC:GolMicWig87},
 and values of this type are \emph{secret shares}, but the formal
-language is indifferent to the cryptographic details. Note that we
+semantics is agnostic to the cryptographic details. Note that we
 often just write ⸨⦑int⦒⸩ for cleartext integer types, to reduce
 clutter (i.e., eliding the $\cdot$).
 
-The \mpc expression ⸨⦑share⦒[p→q]␣x⸩ directs $p$ (required to be a singleton party set) to
-create secret shares of $x$, an integer, and distribute the shares to
+The \mpc expression ⸨⦑share⦒[p→q]␣e⸩ directs $p$ (required to be a singleton party set) to
+create secret shares of $e$, an integer, and distribute the shares to
 each party in
 $q$. All parties $p \cup q$ must be present. The resulting value
 has type ⸨⦑int⦒⸢⦑enc⦒⋕q⸣@q⸩. This type reads “an integer, encrypted
@@ -557,14 +600,11 @@ represents \emph{who has access to this value} (determined by the
 enclosing ⦑par⦒ blocks). If this encrypted value flows to a part of
 the program only executed by ⸨q′ ⊂ q⸩, then it will not be possible to
 recombine shares, since not all parties ⸨q⸩ will be present.
-We can also make a share of a constant
-usable by parties $p$ via ⸨⦑embed⦒[p]␣x⸩; making shares of
-constants does not require the sharing parties to communicate.
 
 Parties $q$ can all mutually compute on a shared, encrypted value
-using ⸨x ⊙ y⸩ and ⸨x ¿ y ◇ z⸩.  The latter is a
-multiplexor: we select between ⸨y⸩ and ⸨z⸩ based on whether $x$ is ⸨true⸩ or
-⸨false⸩. The former models binary operations over numeric and boolean types.
+using ⸨e₁ ⊙ e₂⸩ and ⸨e ¿ e₁ ◇ e₂⸩. The latter is a
+multiplexor: we select between ⸨v₁⸩ and ⸨v₂⸩, the results of evaluating ⸨e₁⸩ and ⸨e₂⸩,
+based on whether $e$ is ⸨true⸩ or ⸨false⸩. The former models binary operations over numeric and boolean types.
 When operating on encrypted values, both the multiplexor and some binary
 operation expressions will necessitate \emph{communication} in the
 distributed semantics, and an actual implementation will use an
@@ -575,80 +615,120 @@ present. Indeed, it must be \emph{exactly} these parties which are
 present; we do not allow more, since other parties would not be
 able to carry out the operation (they don't have access to the
 share).
-% Note that relational operators on shares (such as $<$ in the GCD example) can be encoded as arithmetic ones.
 
-An MPC is completed by invoking ⸨⦑declassify⦒[q]␣x⸩. This takes a share
+An MPC is completed by invoking ⸨⦑reveal⦒[q]␣e⸩. This takes a share
 (among some set of parties $p$) and converts it to cleartext,
 sharing the result among parties $q$. Doing so requires that all of
 $p \cup q$ are present so that the shareholders
 can agree to send the value, and the result-receivers are ready to
 receive it.
 
-The notion of locatedness is crucial in proving that \mpc satisfies~\nameref{thm:mpc-simulation}.
+The notion of locatedness is crucial in proving that \mpc{} satisfies~\nameref{thm:mpc-simulation}.
 The~\nameref{thm:mpc-simulation} property is what allows us to view the language as \textbf{abstractly sequential}. The
 next section is dedicated to explaining this property, and highlighting some of its consequences.
 
 \section{Simulation}
 \label{sec:lam-mpc-simulation}
 
-Before we can state~\nameref{thm:mpc-simulation} we must formally describe how \mpc programs execute. We start with
-an abstract view of execution which is sequential.
+\subsection{Sequential Semantics}
 
-The~\nameref{thm:mpc-simultion} theorem has a very practical interpretation.
+\ins{TOOD: put actual figure here?}
 
-\ins{The goal is to sufficiently explain~\nameref{thm:mpc-simulation}.}
+The sequential semantics is defined by a judgement ⸨ς → ς⸩ which says that
+one configuration, ⸨ς ⩴ m,γ,κ,e⸩, can step to another. A configuration
+⸨ς⸩ is a 4-tuple comprising the current mode ⸨m⸩, environment ⸨γ⸩, stack
+⸨κ⸩, and expression ⸨e⸩. Environments ⸨γ ⩴ var ⇀ value⸩, map variables to
+values. A stack ⸨κ⸩ is a list of frames ⸨⟨⦑let⦒␣x=□␣⦑in⦒␣e¦m,γ⟩⸩, where
+⸨⊤⸩ represents the empty stack. Values, ⸨v ⩴ u@m␣|␣★⸩, are either located
+values ⸨u⸩ at mode ⸨m⸩ or else are opaque, ⸨★⸩. A located value, ⸨u⸩,
+contains all standard values mutually defined on ⸨v⸩, e.g. a pair value is ⸨⟨v, v⟩⸩.
+Base values are tagged with a protocol ⸨ψ⸩. For example, a
+pair of shares among ⸨\{A,B\}⸩ is ⸨⟨i₁⸢⦑enc⦒⋕\{A,B\}⸣@\{A,B\},i₂⸢⦑enc⦒⋕\{A,B\}⸣@\{A,B\}⟩@\{A,B\}⸩.
+
+Finally, the semantics heavily relies on a metafunction, ⸨‗↙ₘ ∈ ‹value› → ‹value›⸩, which \emph{(re)locates} a
+value to a scope with parties ⸨m⸩ present. For located values ⸨u@p⸩, ⸨‗↙ₘ⸩
+relocates them to ⸨p ∩ m⸩, unless the intersection is empty in which case the
+value is inaccessible, so it becomes ⸨★⸩. Relocating is a deep operation;
+⸨u@p↙ₘ⸩ also relocates the contents ⸨u⸩ to ⸨u↙ₘ⸩, which recurses over
+the sub-terms of ⸨u⸩. This step has no effect on closures, though: the closure's
+environment's variables get relocated when they are referenced.
+
+The semantics ensure the whenever a located value ⸨u⸩ is introduced, it is tagged with
+the appropriate mode ⸨m⸩ from the current configuration ⸨ς⸩. The relocation metafunction
+is used on variable access, to relocate a value to the mode of the current lexical scope.
+For example, the program ⸨⦑let⦒␣x = ⦑par⦒␣[A,B] 10␣⦑in⦒␣⦑par⦒␣[A]␣x⸩ should evaluate to
+⸨10@{A}⸩. Likewise, when a value ⸨u@p⸩ is eliminated, we check that all necessary parties
+are present ⸨m ⊆ p⸩. These two patterns ensure that the sequential semantics will get stuck
+whenever a distributed deployment would get stuck. For example, in the program
+⸨⦑par⦒␣[A,B]␣(⦑par⦒␣[A]␣10) + (⦑par⦒␣[B]␣20)⸩, the introduction rules for integers ensure that
+the inner ⸨⦑par⦒⸩ expressions will reduce to ⸨10@\{A\}⸩ and ⸨20@\{B\}⸩. The elimination rule, ⸨+⸩,
+will check ⸨\{A,B\} ⊆ \{A\}⸩ and ⸨\{A,B\} ⊆ \{B\}⸩ which will fail, causing the program to get stuck.
+
+\subsection{Distributed Semantics}
+
+The distributed semantics is defined by a judgement ⸨D ↝ D⸩ which says that
+one distributed configuration, ⸨D ∈ ‹party› ⇀ ‹local-config›⸩, can step to another.
+A configuration, ⸨D⸩, is a partial mapping between parties and their local
+view of execution. A ⸨‹local-config›⸩ is just like a sequential configuration, ⸨ς⸩,
+except that the components contain local values, ⸨⇡.v⸩. Local values are just like
+sequential values, except that location annotations ⸨‗@m⸩ have been stripped away.
+For example, a pair of shares among ⸨\{A,B\}⸩ is ⸨⟨i₁⸢⦑enc⦒⋕\{A,B\}⸣,i₂⸢⦑enc⦒⋕\{A,B\}⸣⟩⸩.
+
+For most expressions, the distributed semantics simply steps an individual party independently of
+the rest. To step an individual party, ⸨P⸩, we execute a step on its local configuration, ⸨D(P)⸩.
+These individual steps look very similar to sequential steps, except that mode annotation is not added
+or checked. A local configuration still has a mode component, because we do need to check that the mode
+agrees with, for example, the protocol tag ⸨⦑enc⦒⋕q⸩. When locally stepping an expression ⸨⦑par⦒␣[P]␣…⸩
+we additionally check that ⸨P ∈ p⸩ where ⸨P⸩ is the whose local configuration we are stepping.
+
+The only expressions which do not step on an
+invididual party are the \emph{synchronizing} expressions, ⸨⦑share⦒⸩ and ⸨⦑reveal⦒⸩. These expressions
+step by transferring data from one party to the other(s), and so the rules maniuplate multiple local
+configurations at once. In both the sequential and distributed rules we require that (1) the sharer,
+⸨p⸩, be a singleton ⸨|p| = 1⸩, (2) the sharees, ⸨q⸩, be non-empty ⸨q ≠ ø⸩, and (3) that only the
+sharer and sharees are present ⸨m = p ∪ q⸩. In distributed mode, we move the shared value from ⸨p⸩
+to ⸨q⸩ by pulling ⸨⇡.v⸩ from ⸨D(p)⸩ and updating all the local configurations ⸨D(q)⸩.
+
+\subsection{Correspondence}
+
+The key observation that makes these semantics agree is that if the sequential semantics
+gets stuck due to an elimination form with a failing mode check then the distributed semantics
+will get stuck due to an elimination form attempting to inspect the opaque value ⸨★⸩. For example,
+let's return to the example ⸨⦑par⦒␣[A,B]␣(⦑par⦒␣[A]␣10) + (⦑par⦒␣[B]␣20)⸩. We saw that this expression
+gets stuck in the sequential semantics due to a failure of both mode checks when evaluating ⸨+⸩:
+⸨\{A,B\} ⊈ \{A\}⸩ and ⸨\{A,B\} ⊈ \{B\}⸩. In the distributed semantics, we will execute each party
+independently, eventually arriving at ⸨10 + ★⸩ on $A$ and ⸨★ + 20⸩ on $B$. Both parties will get
+stuck, and the entire distributed configuration will be stuck.
+
+We can state our formal correspondence between the sequential and distributed semantics formally
+as~\nameref{thm:mpc-simulation}. This theorem says that for any well-typed sequential configuration,
+⸨ς⸩, ⸨ς⸩ successfully terminates as ⸨ς'⸩ if and only if the corresponding distributed configuration
+⸨ς↯⸩ successfully terminates as ⸨ς'↯⸩. The ⸨‗↯⸩ metafunction takes a sequential configuration to an
+appropriate distributed configuration. We call it this metafunction \emph{slicing} since it ``slices''
+away all of the mode annotations appropriately, leaving a distributed configuration in which each
+party is mapped to a local configuration containing only local values which that party knows.
+
+The forward direction of~\nameref{thm:mpc-simulation} is proved by induction. The backward direction
+requires that we first establish that the distributed semantics enjoys \emph{confluence}. Confluence
+says that any executions beginning with the same configuration must eventually arrive at a shared
+configuration. For the distributed semantics, this means that for any distributed configuration ⸨D⸩,
+if ⸨D ↝⋆ D₁⸩ and ⸨D ↝⋆ D₂⸩ then there must be a ⸨D'⸩ such that ⸨D₁ ↝⋆ D'⸩ and ⸨D₂ ↝⋆ D'⸩. The backward
+direction can then be established by appealing to the forward direction, using confluence to rule out the
+possibility of rogue executions.
 
 \begin{theorem}[Forward Simulation] \label{thm:mpc-simulation}
-  If ⸨ς —→⋆ ς′⸩, ⸨ς′⸩ is terminal, ⸨ς↯ ↝⋆ G⸩ and ⸨G ⫽↝⸩, then ⸨G = ς′↯⸩.
+  ⸨∀␣⊢ ς⸩, ⸨ς —→⋆ ς'⸩ and ⸨ς'⸩ is terminal ⸨⟺⸩ ⸨ς↯ ↝⋆ ς'↯⸩ and ⸨ς'↯⸩ is terminal.
 \end{theorem}
 
-In other words, we can centralized execute then slice, or we can slice and then distributed execute, but we'll get the same answer.
+Intuitively,~\nameref{thm:mpc-simulation} tells us that all well-typed, terminating programs
+will give us the same answer whether they are executed in the sequential or distributed semantics.
+This makes precise what it means for a language to be a \textbf{abstractly sequential}. Programmers
+can reason about the behavior of their program without considering all the possible interleaved
+executions that a deployment may encounter.
 
-F⁅
-\begingroup
-\setlength\arraycolsep{0pt} % default is 6pt
-\smaller
-D⁅
-M⁅
-Aːrcrcl@{␠}l
-A⁅ b     ⧼∈⧽ 𝔹            ⧼ ⧽                                & ⟪booleans⟫
-A⁃ i     ⧼∈⧽ ℤ            ⧼ ⧽                                & ⟪integers⟫
-A⁃ A,B,C ⧼∈⧽ ‹party›      ⧼ ⧽                                & ⟪parties⟫
-A⁃ m,p,q ⧼∈⧽ ‹party-set›  ⧼≜⧽ ℘(‹party›) ⩴ ❴A,…,A❵           & ⟪sets of parties⟫
-A⁃ ψ     ⧼∈⧽ ‹prot›       ⧼⩴⧽ ⋅                              & ⟪cleartext⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑enc⦒⋕m                        & ⟪encrypted⟫
-A⁃ μ     ⧼∈⧽ ‹base-type›  ⧼⩴⧽ ⦑int⦒                         & ⟪integer type⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑bool⦒                         & ⟪boolean type⟫
-A⁃ σ     ⧼∈⧽ ‹loc-type›   ⧼⩴⧽ μ⸢ψ⸣                          & ⟪protocol type⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ τ ᵐ→ τ                         & ⟪function type⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ τ × τ                          & ⟪pair type⟫
-A⁃ τ     ⧼∈⧽ ‹type›       ⧼⩴⧽ σ@m                            & ⟪located type⟫
-A⁃ x,y,z ⧼∈⧽ ‹var›        ⧼ ⧽                                & ⟪variables⟫
-A⁃ ⊙     ⧼∈⧽ ‹binop›      ⧼ ⧽                                & ⟪binary operations (e.g., plus, times)⟫
-A⁃ e     ⧼∈⧽ ‹expr›       ⧼⩴⧽ x                              & ⟪variable reference⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ i                              & ⟪integer literal⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ b                              & ⟪boolean literal⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ e ⊙ e                          & ⟪binary operation⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑if⦒␣e␣⦑then⦒␣e␣⦑else⦒␣e          & ⟪atomic conditional⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ e ¿ e ◇ e                      & ⟪atomic conditional⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⟨e,e⟩                          & ⟪pair creation⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ πᵢ␣e                           & ⟪pair projection (⸨i ∈ ❴1,2❵⸩)⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ λ⸤z⸥x⍪ e                       & ⟪(recursive) function creation⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑read⦒␣μ                         & ⟪read int input⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑write⦒␣e                      & ⟪write output⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑embed⦒[p]␣e                   & ⟪encrypted a known constant⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑share⦒[p→p]␣e                 & ⟪share encrypted value⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑declassify⦒[p]␣e              & ⟪reveal encrypted value⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ e␣e                            & ⟪function elimination⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑par⦒[p]␣e                     & ⟪parallel execution⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑let⦒␣x=e␣⦑in⦒␣e               & ⟪let binding⟫
-A⁆
-M⁆
-D⁆
-\endgroup
-\caption{\mpc Syntax}
-\label{fig:mpc-syntax}
-F⁆
+\section{Symphony: An Interpreter for \mpc}
+
+\ins{TODO}
 
 \chapter{\obliv, A Language for Probabilistically Oblivious Computation}
 \label{ch:lam-obliv}
@@ -660,7 +740,7 @@ F⁆
 \end{theorem}
 
 In other words, if two expressions cannot be distinguished from each other, then neither can the distributions of memory traces
-that they emit.
+that their executions emit.
 
 F⁅
 \begingroup
