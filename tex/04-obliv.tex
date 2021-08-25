@@ -1,113 +1,406 @@
 \chapter{\obliv, A Language for Probabilistically Oblivious Computation}
-\label{ch:lam-obliv}
+\label{ch:obliv}
 
 An oblivious computation is one that is free of direct and indirect information leaks, e.g., due to observable differences
 in timing and memory access patterns. In this chapter, we'll give a formal description of \obliv, a core language whose
 type system enforces obliviousness. We show that \obliv satisfies~\nameref{thm:obliv-pmto}, a probabilistic variant of obliviousness.
 We also show that \obliv's type system is expressive enough to typecheck an asymptotically optimal client-server ORAM implementation.
 
-\section{Overview}
-\label{sec:lam-obliv-overview}
+\section{Design}
+\label{sec:obliv-design}
 
-The syntax of \obliv is presented in \Cref{fig:obliv-syntax}. \obliv types comprise a
-series of standard types---integers, booleans, functions, and pair types---as well as
-a special type for secret, uniform distributions of booleans.
+The formal language design consists of the syntax (\Cref{fig:obliv-syntax}), type system (\Cref{fig:obliv-types},
+and a small-step, probabilistic operational semantics (\Cref{fig:obliv-sem}. The type system is sound, and designed to additionally
+enforce that well-typed programs satisfy~\nameref{thm:obliv-pmto}. In other words, they are (probabilistically) oblivious.
+The proof of~\nameref{thm:obliv-pmto} is complex and we elide the full details here. Interested readers can consult the full paper~\cite{}.
 
-F⁅
-\begingroup
-\setlength\arraycolsep{0pt} % default is 6pt
-\smaller
-D⁅
-M⁅
-Aːrcrcl@{␠}l
-A⁅ b     ⧼∈⧽ 𝔹           ⧼ ⧽                               & ⟪booleans⟫
-A⁃ i     ⧼∈⧽ ℤ           ⧼ ⧽                               & ⟪integers⟫
-A⁃ ℓ     ⧼∈⧽ ‹label›     ⧼⩴⧽ ‹P› ¦ ‹S›                    & ⟪public and secret⟫
-A⁃       ⧼ ⧽ 𝑚𝑐3c{⟪(«where» ⸨‹P›⊏‹S›⸩)⟫}                   & ⟪security labels⟫
-A⁃ ρ     ⧼∈⧽ R           ⧼ ⧽                               & ⟪probability region⟫
-A⁃ μ     ⧼∈⧽ ‹base-type› ⧼⩴⧽ ⦑int⦒                        & ⟪integer type⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ ⦑bool⦒                        & ⟪boolean type⟫
-A⁃ τ     ⧼∈⧽ ‹type›      ⧼⩴⧽ μ⸤ℓ⸥⸢ρ⸣                       & ⟪non-random base type⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ ⦑½⦒μ⸤‹S›⸥⸢ρ⸣                  & ⟪secret uniform bool⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ τ × τ                          & ⟪tuple⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ τ → τ                          & ⟪function⟫
-A⁃ x,y,z ⧼∈⧽ ‹var›       ⧼ ⧽                                & ⟪variables⟫
-A⁃ ⊙     ⧼∈⧽ ‹binop›     ⧼ ⧽                                & ⟪binary operations (e.g., plus, times)⟫
-A⁃ e     ⧼∈⧽ ‹expr›      ⧼⩴⧽ x                             & ⟪variable reference⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ i⸤ℓ⸥                           & ⟪integer literal⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ b⸤ℓ⸥                           & ⟪boolean literal⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ e ⊙ e                          & ⟪binary operation⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ ⦑if⦒␣e␣⦑then⦒␣e␣⦑else⦒␣e       & ⟪conditional⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ e ¿ e ◇ e                      & ⟪multiplexor⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ ⟨e,e⟩                          & ⟪pair creation⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ πᵢ␣e                           & ⟪pair projection (⸨i ∈ ❴1,2❵⸩)⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ λ⸤z⸥x⍪ e                       & ⟪(recursive) function creation⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ e␣e                            & ⟪function elimination⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ ⦑let⦒␣x = e␣⦑in⦒␣e             & ⟪variable binding⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ ⦑unif⦒⸢ρ⸣␣μ                    & ⟪uniform, random sample in region⟫
-A⁃       ⧼ ⧽             ⧼¦⧽ ⦑cast⦒⸤l⸥␣e                    & ⟪cast from uniform⟫
-A⁆
-M⁆
-D⁆
-\endgroup
-\caption{\obliv Syntax}
-\label{fig:obliv-syntax}
-F⁆
+\FigureOblivSyntax{fig:obliv-syntax}{\obliv formal syntax.}
 
-The only exotic feature of \obliv is the inclusion of \emph{uniform types}. A
-value of uniform type ⸨⦑½⦒ μ⸤‹S›⸥⸢ρ⸣⸩ is always labeled secret (⸨‹S›⸩), and represents
-a uniform distribution over the base type ⸨μ⸩. The \emph{probability region}, ⸨ρ⸩, is
-a static name for a collection of uniform values, and the base values that may be derived
-from them. Uniform values are associated with a region ⸨ρ⸩ when they are created with
-⸨⦑unif⦒⸢ρ⸣␣μ⸩. The probability region annotation is propagated from the uniform type
-⸨⦑½⦒μ⸤‹S›⸥⸢ρ⸣⸩ to base type ⸨μ⸤‹S›⸥⸢ρ⸣⸩ when typing a secret cast, ⸨⦑cast⦒⸤‹S›⸥␣e⸩.
-Both literals ⸨b⸤ℓ⸥⸩ and public casts, ⸨⦑cast⦒⸤‹P›⸥␣e⸩, are assigned the probability
-region ⸨⊥⸩. We say that a value is ``in region ⸨ρ⸩'' if it has type ⸨⦑½⦒μ⸤‹S›⸥⸢ρ⸣⸩
-or ⸨μ⸤ℓ⸥⸢ρ⸣⸩.
+\subsection{Syntax}
+\label{subsec:obliv-design-syntax}
 
-Probability regions form a join semi-lattice. The type system maintains the invariant that
-values of in region ⸨ρ⸩ are probabilistically independent of values in region ⸨ρ'⸩, provided
-that ⸨ρ' ⊏ ρ⸩. For example, the typing rule for
-multiplexors says that if ⸨e₁ : μ⸤ℓ⸥⸢ρ₁⸣⸩, ⸨e₂ : ⦑½⦒μ⸤‹S›⸥⸢ρ₂⸣⸩, and ⸨e₃ : ⦑½⦒μ⸤‹S›⸥⸢ρ₃⸣⸩,
-then we must check ⸨ρ₁ ⊏ ρ₂⸩ and ⸨ρ₁ ⊏ ρ₃⸩ to ensure that the result of the multiplexor
-is also uniform. Intuitively, we are saying that if the guard of the multiplexor is probabilistically
-independent of each of the branches, and the branches are uniform, then the result
-of the multiplexor is also uniform.
+Figure~\ref{fig:obliv-syntax} shows the syntax for \obliv. The term language is
+expressions ⸨e⸩. The set of values ⸨v⸩ is comprised of (1) base values such as
+variables ⸨x⸩ (included to enable a substitution-based semantics) and recursive function
+definitions ⸨⦑fun⦒⸤y⸥(x{⦂}τ).e⸩ where the function body may refer to itself
+using variable ⸨y⸩; and (2) connectives from the expression language ⸨e⸩ which
+identify a subset of expressions which are also values, such as pairs ⸨⟨v,v⟩⸩
+with type ⸨τ × τ⸩.
 
-\section{Obliviousness}
-\label{sec:lam-obliv-obliviousness}
+Expressions also include bit literals ⸨b⸤ℓ⸥⸩ (of type ⸨⦑bit⦒⸤ℓ⸥⸢⊥⸣⸩) which are
+either ⸨⦑O⦒⸩ or ⸨⦑I⦒⸩ and annotated with their security label
+⸨ℓ⸩.
+%
+A security label ⸨ℓ⸩ is either
+⸨‹S›⸩ (secret) or ⸨‹P›⸩ (public). Values with the label ⸨‹S›⸩ are invisible to
+the adversary. Bit types include this security label along with a probability
+region ⸨ρ⸩. The expression ⸨⦑flip⦒⸢ρ⸣()⸩ produces a flip value, i.e.,
+a uniformly random bit of type ⸨⦑flip⦒⸢ρ⸣⸩.
+The annotation assigns the coin to region ⸨ρ⸩. Coin flips are semantically secret, and have
+limited use; we can compute on one using ⸨⦑mux⦒⸩ or ⸨⦑xor⦒⸩, cast one to a
+public bit via ⸨⦑cast⦒⸤‹P›⸥⸩, or cast to a secret bit via ⸨⦑cast⦒⸤‹S›⸥⸩. To
+simplify the type system, casts only apply to values, however ⸨⦑cast⦒⸤ℓ⸥(e)⸩
+could be used as shorthand for ⸨⦑let⦒␣x = e␣⦑in⦒␣⦑cast⦒⸤ℓ⸥(x)⸩.
 
-The semantics of \obliv are defined by a judgement ⸨ς —→ ⇡~{ς}⸩ which says that
-configuration ⸨ς ⩴ γ,κ,e⸩, takes a step to the distribution of configurations ⸨⇡~{ς}⸩.
-All the expressions which are deterministic (i.e. all expressions except ⸨⦑unif⦒⸢ρ⸣␣μ⸩)
-produce a point distribution over the appropriate resulting configuration. For example,
-the expression ⸨10⸤‹P›⸥ + 20⸤‹P›⸥⸩ evaluates to the point distribution of ⸨30⸤‹P›⸥⸩.
-The uniform expression, ⸨⦑unif⦒⸢ρ⸣␣μ⸩, simply lifts the appropriate uniform distribution
-over values of base type ⸨μ⸩ to configurations.
+The expression ⸨e₁ {¿} e₂ {◇} e₃⸩ unconditionally evaluates ⸨e₂⸩ and ⸨e₃⸩ and
+returns their values as a pair in the given order if ⸨e₁⸩ evaluates to ⸨⦑I⦒⸩, or in the
+opposite order if it evaluates to ⸨⦑O⦒⸩. This is very similar to the multiplexor
+from \mpc, except that it returns a pair. The components of tuples
+⸨e⸩ constructed as ⸨⟨e₁,e₂⟩⸩ can be accessed via ⸨⦑let⦒␣x₁,x₂=e␣⦑in⦒␣...⸩
+\obliv also has normal let binding, function application, and means to manipulate
+mutable reference cells.
 
-The evaluation relation ⸨e —→⋆ ⇡~{t}⸩ is defined by first inserting ⸨e⸩ into the initial
-configuration, ⸨ø,⊥,e⸩, and then lifting the single-step judgement ⸨—→⸩ to distributions
-of traces. This is done by standard monadic composition in the Giry monad. A trace ⸨t⸩
-is a list of configurations encountered during execution.
+\obliv captures the key elements that make implementing oblivious
+algorithms possible, notably: random and secret bits, trace-oblivious
+multiplexing, public revelation of secret random values, and general
+computational support in tuples, conditionals and recursive functions.
+Other features can be encoded in these, e.g., general numbers and
+operators on them can be encoded as tuples of bits, and arrays can be
+encoded as tuples of references (read/written using (nested) conditionals).
+Our prototype interpreter implements these things directly.
 
-Lastly, we must define a notion of label-equivalence over expressions and distributions
-of traces. The definition of label-equivalence over expressions, ⸨e₁ ≈⸤ℓ⸥ e₂⸩, is standard.
-We can define label-equivalence of trace distributions ⸨⇡~{t₁} ⇡~≈⸤l⸥ ⇡~{t₂}⸩, as follows.
-We say that two trace distributions are label-equivalent if the distributions are probabilistically
-after projecting according to label-equivalence on traces. The definition of label-equivalence on traces
-is standard: their contents must be point-wise label-equivalent. Finally, two configurations are label-equivalent
-if all their componenets are, where the low-equivalence of the environment and stack are defined recursively.
+\FigureOblivSemantics{fig:obliv-sem}{\obliv semantics.}
 
-The key property of the type system which ensures that programs are oblivious is that only (conditionally) uniform
-values are ever casted to public. Since uniform distributions carry no information, they are guaranteed not to leak
-any information about secrets in the program. The challenge is establishing that a value is uniform, even when it may
-have been duplicated (using ⸨⦑cast⦒⸤‹S›⸥⸩) and correlated with other distributions (using a multiplexor).
+\subsection{Semantics}
+\label{subsec:obliv-design-sem}
 
-We formally define an oblivious language as one that satisfies~\nameref{thm:obliv-pmto}. This theorem says that two label-equivalent,
-well-typed expressions, ⸨e₁⸩ and ⸨e₂⸩ evaluate to distributions of traces ⸨⇡~{t₁}⸩ and ⸨⇡~{t₂}⸩ which are also label-equivalent.
-The proof is complex, involving a simulation argument with an alternative ``mixed'' semantics, and then a separate proof that
-individual steps in the mixed semantics are also probabilistically oblivious.
+\Cref{fig:obliv-sem} presents a monadic, probabilistic small-step
+semantics for \obliv programs. The top of the figure contains some new and
+extended syntax. Values (and, by extension, expressions) are extended with
+forms for bit values ⸨⦑bitv⦒⸤ℓ⸥(b)⸩, flip values ⸨⦑flipv⦒(b)⸩, and
+reference locations ⸨⦑locv⦒(ι)⸩; these do not appear in source programs. Stores
+⸨σ⸩ map locations to values. Stores are paired with expressions to form
+\emph{configurations} ⸨ς⸩. A sequence of configurations arising during an
+evaluation is collected in a \emph{trace} ⸨t⸩.  We define evaluation
+contexts ⸨E⸩ (not shown) in the style of~\citet{felleisen1992revised} to enforce a
+left-to-right, call-by-value evaluation strategy.
 
-\begin{theorem}[PMTO] \label{thm:obliv-pmto}
-  If ⸨e₁ : τ⸩, ⸨e₂ : τ⸩, ⸨e₁ ≈⸤l⸥ e₂⸩, ⸨e₁ —→⋆ ⇡~{t₁}⸩, and ⸨e₂ —→⋆ ⇡~{t₂}⸩, then ⸨⇡~{t₁} ⇡~≈⸤l⸥ ⇡~{t₂}⸩.
-\end{theorem}
+The semantics is defined using the standard “denotational” discrete probability monad
+⸨𝒟⸩~\cite{10.1007/BFb0092872,Ramsey:2002:SLC:503272.503288}.
+
+In the probability monad ⸨𝒟⸩, the ⸨‹return›⸩ operation constructs a point
+distribution, and the ⸨‹bind›⸩ operation encodes the law of total probability,
+{i.e.}, constructs a marginal distribution from a conditional one. We only use
+proper distributions in the sense that the combined mass of all elements sums
+to 1. We do not denote possibly non-terminating programs directly into the
+monad, and therefore do not require the use of computable
+distributions~\cite{huang-computable-distributions} or
+sub-probability distributions~\cite{monniaux-ai-prob}—we use the monad only to denote distributions of
+configurations which occur after a finite number of small-step transitions,
+which is total.
+
+The definition of ⸨‹step›⸩ describes how a single configuration advances in a
+single probabilistic step, yielding a distribution of resulting configurations.
+The definition uses Haskell-style ⸨‹do›⸩ notation as the usual notation for
+⸨‹bind›⸩. Starting from the bottom, we can see that a value ⸨v⸩ advances to
+itself (more on why, below) and evaluating a redex ⸨e⸩ within a context ⸨E⸩
+steps the former and packages its result back with the latter, as usual. The
+cases for let binding, pair deconstruction, and function application are
+standard, using a substitution-based semantics. Likewise, rules for creating,
+reading, and writing from references operate on the store ⸨σ⸩ as
+usual.
+
+Moving to the first case, we see that literals ⸨b⸤ℓ⸥⸩ evaluate in one
+step to bit values. A ⸨⦑flip⦒⸢ρ⸣()⸩ expression evaluates to either
+⸨⦑flipv⦒(⦑I⦒)⸩ or ⸨⦑flipv⦒(⦑O⦒)⸩ as determined by ⸨‹bit›⸩, which ⸨½⸩
+probability for each outcome.
+%
+The ⸨⦑cast⦒⸤ℓ⸥⸩ case converts a flip to a similarly-labeled bit value.
+%
+The next few cases use the three-argument metafunction ⸨‹cond›(b,X,Y)⸩, which
+returns ⸨X⸩ if ⸨b⸩ is ⸨⦑I⦒⸩, and ⸨Y⸩ otherwise.
+%
+The two ⸨⦑bitv⦒⸤𝓁⸥(b) ¿ v₂ ◇ v₃⸩ cases operate in a similar way: they return the
+second two arguments of the multiplexor in order when the first
+argument is ⸨⦑bitv⦒⸤ℓ⸥(⦑I⦒)⸩, and in reverse order when it is
+⸨⦑bitv⦒⸤ℓ⸥(⦑O⦒)⸩. The security label of the result is the join of the labels of
+all elements in involved. (This is not needed for flip values, since these are
+always fixed to be secret.)
+%
+The case for ⸨⦑if⦒⸩ also uses ⸨‹cond›⸩ in the expected manner. The
+case for ⸨⦑xor⦒⸩ permits xor-ing a bit with a flip, returning a
+flip.
+
+The bottom of the figure defines function ⸨‹nstep›(N,ς)⸩. It composes ⸨N⸩
+invocations of ⸨‹step›⸩ starting at ⸨ς⸩ to produce a distribution of traces ⸨t⸩.
+
+Both ⸨‹step›⸩ and ⸨‹nstep›⸩ are \emph{partial} in the usual way:
+They are undefined (``stuck'') for nonsensical programs like
+⸨⦑locv⦒(ι) (⦑bitv⦒⸤ℓ⸥(b))⸩ (treating a reference location as if it were
+a function). The \obliv type system, explained next, rejects
+such programs while also ensuring~\nameref{thm:obliv-pmto}.
+
+\FigureOblivTypes{fig:obliv-types}{\obliv type system.}
+
+\subsection{Type System}
+\label{subsec:obliv-design-types}
+
+Figure~\ref{fig:obliv-types} defines the type system for \obliv source programs
+as rules for judgment ⸨Γ ⊢ e ⦂ τ ⨟ Γ'⸩, which states that under type
+environment ⸨Γ⸩ expression ⸨e⸩ has type ⸨τ⸩, and yields residual type
+environment ⸨Γ′⸩. We discuss typing configurations, including non-source
+program values, in the next section. Type environments map variables to either
+types ⸨τ⸩ or inaccessibility tags ⸨•⸩, which are used to enforce
+affinity of flips. We discuss the three key features of the type
+system---affinity, probability regions, and information flow
+control---in turn.
+
+\paragraph*{Affinity}
+%
+To enforce non-duplicability, when an affine variable is used by the
+program, its type is removed from the residual
+environment. Figure~\ref{fig:obliv-types} defines kinding metafunction ⸨𝒦⸩
+that assigns a type either the kind universal ⸨⦑U⦒⸩ (freely duplicatable) or
+affine ⸨⦑ A ⦒⸩ (non-duplicatable). Bits, functions, and references (but not
+their contents, necessarily) are always universal,
+and flips are always affine. A pair is considered affine if either of
+its components is. Rule *⦗VarU⦘ in Figure~\ref{fig:obliv-types} types
+universally-kinded variables; the output environment ⸨Γ⸩ is the same
+as the input environment. Rule *⦗VarA⦘ types an affine variable by
+marking it ⸨•⸩ in the output environment.
+
+Rules *⦗Cast-S⦘ and *⦗Cast-P⦘ permit converting flips to bits
+via the ⸨⦑cast⦒⸤‹S›⸥⸩ and ⸨⦑cast⦒⸤‹P›⸥⸩ coercions, respectively. The
+first converts a ⸨⦑flip⦒⸢ρ⸣⸩ to a ⸨⦑bit⦒⸤‹S›⸥⸢ρ⸣⸩ and does \emph{not} make
+its argument inaccessible (it returns the original ⸨Γ⸩) while the
+second converts to a ⸨⦑bit⦒⸤‹P›⸥⸢⊥⸣⸩ and does make it inaccessible
+(returning ⸨Γ'⸩). The type system is enforcing that any
+random number is made adversary-visible at most once; secret copies
+are allowed because they are never revealed.
+
+References may contain affine values, but references themselves are
+universal. Rather than track the affinity of aliased contents
+specifically, the *⦗Read⦘ rule disallows reading out of a reference
+cell whose contents are affine. Since the write operation returns the
+\emph{old} contents of the cell, programs can see the existing
+contents of any reference by first writing in a valid
+replacement~\cite{Baker:1992:LLL:142137.142162}.
+
+The *⦗Fun⦘ rule ensures that no affine variables in the defining
+context are consumed within the body of the function, i.e., they are
+not captured by its closure. We write ⸨Γ⊎[x↦‗, y↦‗ ]⸩ to split a
+context into a part that binds ⸨x⸩ and ⸨y⸩ and a part ⸨Γ⸩ that binds the rest;
+the ⸨Γ⸩ part is returned, dropping the ⸨x⸩ and ⸨y⸩
+bindings. Both *⦗Let⦘ and *⦗Let-Tup⦘ similarly remove their bound
+variables.
+
+Finally, note that different variables could be made inaccessible in
+different branches of a conditional, so *⦗If⦘ types each branch in the
+same initial context, but then joins their the output contexts; if a
+variable is made inaccessible by one branch, it will be inaccessible
+in the joined environment. Contexts are joined pointwise, and the join of two
+pointed types ⸨⇡•τ₁ ⊔ ⇡•τ₂⸩ is ⸨•⸩ when either ⸨⇡•τᵢ⸩ is ⸨•⸩, the same as
+⸨⇡•τᵢ⸩ when both ⸨⇡•τᵢ⸩ are equal and not ⸨•⸩, and undefined otherwise.
+
+\paragraph*{Information flow}
+%
+The type system aims to ensure that bits ⸨b⸤ℓ⸥⸩ whose security label
+⸨ℓ⸩ is secret ⸨‹S›⸩ cannot be learned by an adversary. Bit types
+⸨⦑bit⦒⸤ℓ⸥⸢ρ⸣⸩ include the security label ⸨ℓ⸩. The rules treat types
+with different labels as distinct, preventing so-called \emph{explicit} flows. For
+example, the *⦗Write⦘ rule prevents assigning a secret bit (of type
+⸨⦑bit⦒⸤‹S›⸥⸢ρ⸣⸩) to a reference whose type is
+⸨⦑ref⦒(⦑bit⦒⸤‹P›⸥⸢ρ⸣)⸩. Likewise, a function of type ⸨⦑bit⦒⸤‹P›⸥⸢ρ⸣ →
+τ⸩ cannot be called with an argument of type ⸨⦑bit⦒⸤‹S›⸥⸢ρ⸣⸩, per the
+*⦗App⦘ rule. In our implementation we relax *⦗App⦘ (but not *⦗Write⦘, due to
+the invariance of reference types) to allow public bits
+when secrets are expected; this is not done here just to keep things simpler.
+
+The rules also aim to prevent \emph{implicit} information flows. A
+typical static information flow type system~\cite{infoflow} would
+require the type of the conditional's guard
+to be less secret than the type of what it returns; e.g., the guard's
+type could be ⸨⦑bit⦒⸤‹S›⸥⸢ρ⸣⸩ but only if the final type ⸨τ⸩ is secret
+too. However, in \obliv we must be more restrictive: rule *⦗If⦘
+requires the guard to be public since the
+adversary-visible execution trace reveals which branch is taken, and
+thus the truth of the guard. Branching on secrets must be done via
+a multiplexor. Notice that rule *⦗Mux-Bit⦘ sets the label ⸨ℓ⸩ of the
+each element of the returned pair to be the join of the labels on the
+guard and the remaining components. As such, if the guard was secret,
+then the returned results will be.  The *⦗Mux-Flip⦘ rule
+always returns flips, which are invisible to the adversary, so the
+guard can be secret or public.
+
+\paragraph*{Probability regions.}
+%
+A probability region ⸨ρ⸩ appears on both ⸨⦑bit⦒⸩ and ⸨⦑flip⦒⸩
+types. The region is a static name for a collection of flip values and
+secret bit values that may be derived from them. A flip value is
+associated with a region ⸨ρ⸩ when it is created, per rule *⦗Flip⦘. Rule
+*⦗Cast-S⦘ ascribes the region ⸨ρ⸩ from the input ⸨⦑flip⦒⸢ρ⸣⸩ to the
+output type ⸨⦑bit⦒⸤‹S›⸥⸢ρ⸣⸩, tracking the flip value(s) from which the
+secret bit value was possibly derived. Per rule *⦗Bit⦘, bit literals
+have probability region ⸨⊥⸩, as do public bits produced by
+⸨⦑cast⦒⸤‹P›⸥⸩, per rule *⦗Cast-P⦘.
+
+Regions form a join semi-lattice.
+%
+The type system maintains the invariant that flips at region ⸨ρ⸩ are
+probabilistically independent of all secret bits in regions ⸨ρ′⸩ when
+strictly ordered ⸨ρ′ ⊏ ρ⸩. Strict ordering is used because it is
+«irreflexive» and «asymmetric». The semantic property of
+interest—probabilistic independence—is likewise irreflexive (except
+for point distributions), and asymmetry restricts future mux operations
+between values in one direction only; we say more below.
+
+Consider the *⦗Mux-Flip⦘ rule. If a secret
+bit is typed at region ⸨ρ₁⸩ and a flip value at region ⸨ρ₂⸩, and ⸨ρ₁ ⫽⊏ ρ₂⸩,
+then it may be that the values are correlated, and a ⸨⦑mux⦒⸩ involving the
+values may produce flips that are non-uniform.
+Both the *⦗Mux-Flip⦘ and *⦗Mux-Bit⦘ rules return outputs whose region is the join
+of the regions of all inputs, indicating that the result of the ⸨⦑mux⦒⸩ is only
+independent of values that were jointly independent of each of its components.
+
+Because freshly generated random bits are always independent of each other, the
+programmer is free to choose any regions when generating them via ⸨⦑flip⦒⸢ρ⸣()⸩
+expressions. However, once chosen, the ordering establishes an invariant which
+constrains the order in which mux operations can occur subsequently in the
+program.
+Let's look at how the type checker uses strict region ordering to accept and reject a safe and unsafe
+multiplexor. The following code uses regions ⸨ρ₁ ⊏ ρ₂⸩.
+\begin{center}
+\begin{tabular}{cc}
+\begin{minipage}{0.35\textwidth}
+\begin{lstlisting}[escapeinside={([}{])}]
+let sx,sy = (flip([$^{\rho_1}$])(),flip([$^{\rho_2}$])())
+let sk,_ = castS(sx) ([⸨¿⸩]) sx ([⸨◇⸩]) sy
+\end{lstlisting}
+{\small (a) Incorrect example}
+\end{minipage}
+&
+\begin{minipage}{0.45\textwidth}
+\begin{lstlisting}[escapeinside={([}{])}]
+ let sx = flip([$^{\rho_1}$])() in
+ let sy,sz = castS(sx) ([⸨¿⸩]) flip([$^{\rho_2}$])() ([⸨◇⸩]) flip([$^{\rho_2}$])()
+\end{lstlisting}
+{\small (b) Correct example}
+\end{minipage}
+\end{tabular}
+\end{center}
+The type checker first ascribes types ⸨⦑flip⦒⸢{ρ₁}⸣⸩ and
+⸨⦑flip⦒⸢{ρ₂}⸣⸩ to \code{sx} and \code{sy}, respectively, according to
+rules *⦗Let-Tup⦘, *⦗Flip⦘, and *⦗Tup⦘. It uses *⦗Cast-S⦘ to give
+\code{castS(sx)} type ⸨⦑bit⦒⸤‹S›⸥⸢{ρ₁}⸣⸩ and leaves \code{sx}
+accessible so that *⦗VarA⦘ can be used to give it and \code{sy} types
+⸨⦑flip⦒⸢{ρ₁}⸣⸩ and ⸨⦑flip⦒⸢{ρ₂}⸣⸩, respectively (then making them
+inaccessible). Rule *⦗Mux-Flip⦘ will now fail because the independence
+conditions do not hold. In particular, the region ⸨ρ₁⸩ of the
+guard is not strictly less than the region ⸨ρ₁⸩ of the second
+argument, i.e., ⸨ρ₁ ⫽⊏ ρ₁⸩.
+%
+The program labeled (b) above is well-typed.
+Here, the bit in
+the guard has region ⸨ρ₁⸩, the region of the two flips is ⸨ρ₂⸩ and ⸨ρ₁
+⊏ ρ₂⸩ as required by *⦗Mux-Flip⦘. It is easy
+to see that both \code{sy} and
+\code{sz} are uniformly distributed and independent of \code{sx}.
+
+Rule *⦗Xor-Flip⦘ permits xor'ing a secret with a flip, returning a
+flip, as long as the secret's region and the flip's region are
+well ordered, which preserves uniformity.
+
+We might be tempted not to order regions but instead
+maintain an invariant that flips and bits
+in distinct regions are independent. This turns out to not work.
+%
+While at the outset a fresh flip value is independent of all other
+values in the context of the program, the region ordering is needed to
+ensure that multiplexor operations will only occur in ``one direction.''
+{E.g.}, if two fresh flip values are created ⸨x = ⦑flip⦒⸢ρ₁⸣()⸩ and ⸨y
+= ⦑flip⦒⸢ρ₂⸣⸩, it is true that ⸨x⸩ and ⸨y⸩ are mutually independent. Thus it would
+seem reasonable that ⸨⦑cast⦒⸤S⸥(x) ¿ y ◇ …⸩ and
+⸨⦑cast⦒⸤S⸥(y) ¿ x ◇ …⸩ should both be well typed. While they are
+both safe in isolation, the combination is problematic. Consider the
+results of each mux---they are both flip values, and they are both
+valid to reveal using ⸨⦑cast⦒⸤P⸥⸩ individually. However, the resulting
+values are correlated (revealing one tells you information about the
+distribution of the other), which violates the uniformity guarantee of
+all ⸨⦑cast⦒⸤P⸥⸩ results. By ordering the regions, we are essentially
+promising to only allow ⦑mux⦒ operations like this in one direction
+but not the other, and therefore uniformity is never violated for
+revealed flip values. For example, by requiring ⸨ρ₁ ⊏ ρ₂⸩ we allow the
+first multiplexor above but not the second.
+
+\paragraph*{Type safety}
+
+\obliv is type safe in the traditional sense, i.e., that a well-typed
+program will not get stuck. However, our interest is in the stronger
+property that type-safe \obliv programs do not reveal secret
+information via inferences an adversary can draw from observing their
+execution. We state and prove this stronger property in the next section.
+
+\FigureOblivObs{fig:obliv-obs}{\obliv adversary observability.}
+
+\subsection{Probabilistic Memory Trace Obliviousness}
+\label{subsec:obliv-design-pmto}
+
+The main metatheoretic result of this chapter is that \obliv's type
+system ensures probabilistic memory trace obliviousness (PMTO). This
+section defines the property, but does not go into details on the proof.
+
+\Cref{fig:obliv-obs} presents a model ⸨‹obs›⸩ of the adversary's view of
+a computation as a new class of values,
+expressions and traces that ``hide'' sub-expressions
+considered to be secret (written ⸨•⸩).  Secret bit expressions, secret bit values, and secret flip
+values all map to ⸨•⸩. Compound values, expressions, stores, traces etc. call ⸨‹obs›⸩ in recursive
+positions as expected.
+
+Probabilistic memory trace obliviousness (PMTO), stated formally
+below, holds when observationally equivalent configurations induce
+distributions of traces that are themselves observationally equivalent
+after $N$ steps, for any $N$.\footnote{Noninterference
+  properties are often stated with a non-empty store.
+  Our notion of expression equivalence is simpler, and supports
+  low-equivalent expressions that pre-populate such a
+  store, so there is no loss of generality.}
+\begin{proposition}[PMTO]\label{thm:obliv-pmto}
+  J⁅ If: ⸨e₁⸩ and ⸨e₂⸩ are closed source expressions, ⸨⊢ e₁ ⦂ τ⸩, ⸨⊢ e₂ ⦂ τ⸩ and ⸨‹obs›(e₁) = ‹obs›(e₂)⸩
+  J⁃ Then: (1) ⸨‹nstep›(N,e₁)⸩ and ⸨‹nstep›(N,e₂)⸩ are defined
+  J⁃ And: (2) ⸨⇡~*{‹obs›}(‹nstep›(N,e₁)) = ⇡~*{‹obs›}(‹nstep›(N,e₂))⸩.
+  J⁆
+\end{proposition}
+\noindent
+(1) ensures that information is not leaked due to lack of progress, {i.e.}, if
+either program gets “stuck,” and that the main property (2) applies to all
+related, well-typed source expressions ⸨e₁⸩ and ⸨e₂⸩.
+
+\section{Implementation}
+\label{sec:obliv-impl}
+
+We have implemented an interpreter and type checker for \textsc{OblivML},  a language that extends \obliv in
+several (straightforward) ways.
+%
+First, we add natural number literals and random values; these can be
+  encoded in \obliv as fixed-width tuples of ⸨⦑bitv⦒⸩ and ⸨⦑flipv⦒⸩
+  respectively. We write them annotated with a security level, e.g.,
+  \code{2 S} or \code{2 P}, and write \code{rnd R ()} to generate a
+  random number at region \code{R}. We write \code{natS} to be the
+  type of a secret number in region ⸨⊥⸩; \code{natP} for the type of a
+  public number; \code{R natS} for the type of a secret number in the
+  region \code{R}.  We also write \code{R rnd} to be the
+  type of a random natural number in the region \code{R}.
+Second, we add arrays; in our code examples, we write
+  \code{a[n]} and \code{a[n] <- e} to read and write array
+  elements. An array of length $N$ can be encoded in \lang as
+  an $N$-tuple of references, using nested conditional expressions to
+  access the correct (public) index and swapping out affine
+  contents, as must be done with references.
+Finally, we add records, which are like tuples but permit field accessor
+  notation, \code{r.x}; if \code{x} is affine, doing so only consumes the field \code{x}
+rather than consuming all of \code{r}.
+
+To demonstrate the expressiveness of \obliv, we used our interpreter to
+program (and type check) a series of interesting oblivious
+algorithms. We have implemented a modern \emph{non-recursive, tree-based ORAM} (NORAM), which
+is a key component of state-of-the-art ORAM implementations~\cite{asiacrypt11,pathoram,circuitoram}.
+To our knowledge, ours is the first implementation automatically verified to
+be oblivious. Building on this NORAM, we also implemented a full \emph{recursive} ORAM.
+Type checking it requires some advanced (but standard) language features we
+have not implemented, including region polymorphism, recursive and variant
+types, and existential quantification. Finally, we have implemented \emph{oblivious stacks}
+(ostacks), a kind of oblivious data structure~\cite{ods} that builds on top of NORAM.
+In doing so, we discovered that oblivious stacks are cryptographically secure, but merely
+statistically secure~\cite{sweet-plas21}. They actually do leak information, but the security claim is the
+amount of leakage is negligible. Our implementation and all the examples discussed can be
+found online at \url{https://github.com/plum-umd/oblivml}.

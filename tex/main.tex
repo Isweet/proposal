@@ -8,7 +8,6 @@
 \usepackage{booktabs}
 \usepackage{graphbox}
 
-
 \input{darais-latex-imports}
 \input{darais-latex-macros}
 \input{figures}
@@ -19,6 +18,32 @@
 \newcommand{\obliv}{\ensuremath{\lambda_{\mathrm{Obliv}}}\xspace}
 
 \newcommand{\ins}[1]{\textcolor{red}{Ian: #1}}
+
+\newcommand{\underbracketarg}[2]{\underbracket[0.5pt]{#2}_{#1}}
+\newcommand{\code}[1]{\lstinline{#1}}
+\newcommand{\mfootnotesize}[1]{\ifmmode\textnormal{\smaller\(#1\)}\else{\smaller #1}\fi}
+
+\lstdefinestyle{customcaml}{
+	numbers=left,
+	belowcaptionskip=1\baselineskip,
+	breaklines=true,
+	tabsize=4,
+	% frame=L,
+	xleftmargin=\parindent,
+	language=Caml,
+	showstringspaces=false,
+  basicstyle=\linespread{0.5}\footnotesize\sffamily,
+	columns=flexible,
+	otherkeywords={fix, mux, xor, with, region, castP, castS, flip, rnd, castU, castNU},
+	literate={{<-}{{$\leftarrow\,$}}2
+		{->}{{$\rightarrow\,$}}2},
+	numberstyle=\tiny\rmfamily,
+	keywordstyle=\bfseries\color{green!40!black},
+	commentstyle=\itshape\color{purple!40!black},
+	identifierstyle=\color{blue!80!black},
+	stringstyle=\color{orange},
+}
+\lstset{language=Caml,style=customcaml}
 
 %%% Macros for MPC
 \newcommand{\alice}{B⸨‹A›B⸩\xspace}

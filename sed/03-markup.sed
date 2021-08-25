@@ -18,6 +18,7 @@ s/⇡e\*/\\overbracket/g
 s/⇣-\*/\\underline /g
 s/⇣w\*/\\underbrace/g
 s/⇣e\*/\\underbracket/g
+s/⇣v\*/\\underbracketarg /g
 
 s/⇡/\\overset /g
 s/⇣/\\underset /g
@@ -87,7 +88,7 @@ s/C⎨/\\begingroup\\protect\\renewcommand\\colorMATH{\\colorMATHC}\\protect\\re
 s/C⎬/\\endgroup /g
 
 # ^^^^^^^^^^^ #
-# COLOR MODES # 
+# COLOR MODES #
 
 # ⟪ text color + textrm    ⟫
 # ⦑ syntax color + texttt  ⦒
@@ -95,7 +96,7 @@ s/C⎬/\\endgroup /g
 
 # ‹  textrm     ›
 # «  textit     »
-# ⋖  texttt     ⋗ 
+# ⋖  texttt     ⋗
 # «* textbf    *»
 # ⦗  textsc     ⦘
 # ❪  math mode  ❫
@@ -109,7 +110,7 @@ s/⸩/}}}}/g
 s/⦑/{{\\color{\\colorSYNTAX}\\texttt{/g
 s/⦒/}}}/g
 
-s/‹/{\\text{/g
+s/‹/{\\mtext{/g
 s/›/}}/g
 s/«\*/{\\textbf{/g
 s/\*»/}}/g
