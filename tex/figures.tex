@@ -1,0 +1,318 @@
+\newcommand\FigureMPCSyntax[2]{
+\begin{figure}
+\begingroup
+\setlength\arraycolsep{0pt} % default is 6pt
+\small
+D⁅
+\vspace*{-2ex}
+M⁅
+Aːrcrcl@{␠}l
+A⁅ i     ⧼∈⧽ ℤ            ⧼ ⧽                                & «integers»
+A⁃ A,B,C ⧼∈⧽ ‹party›      ⧼ ⧽                                & «parties»
+A⁃ m,p,q ⧼∈⧽ ‹pset›       ⧼≜⧽ ℘(‹party›)                     & «sets of parties»
+A⁃ x,y,z ⧼∈⧽ ‹var›        ⧼ ⧽                                & «variables»
+A⁃ ⊙     ⧼∈⧽ ‹bop›        ⧼ ⧽                                & «binary ops (⸨+⸩{,} ⸨×⸩{,} ...)»
+A⁃ a     ⧼∈⧽ ‹atom›       ⧼⩴⧽ x                             & «variable reference»
+A⁃       ⧼ ⧽              ⧼¦⧽ i                              & «integer literal»
+A⁃       ⧼ ⧽              ⧼¦⧽ p                              & «party set literal»
+A⁃       ⧼ ⧽              ⧼¦⧽ x ⊙ x                          & «binary operation»
+A⁃       ⧼ ⧽              ⧼¦⧽ x ¿ x ◇ x                      & «atomic conditional»
+A⁃       ⧼ ⧽              ⧼¦⧽ ιᵢ␣x                           & «sum injection»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⟨x,x⟩                          & «pair creation»
+A⁃       ⧼ ⧽              ⧼¦⧽ πᵢ␣x                           & «pair projection»
+A⁃       ⧼ ⧽              ⧼¦⧽ λ⸤z⸥x⍪ e                       & «(rec.) function def»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑ref⦒␣x                        & «reference creation»
+A⁃       ⧼ ⧽              ⧼¦⧽ ¡x                             & «dereference»
+A⁃       ⧼ ⧽              ⧼¦⧽ x ≔ x                          & «reference assignment»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑read⦒                         & «read int input»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑write⦒␣x                      & «write output»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑share⦒[x→x]␣x                 & «share encrypted val.»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑reveal⦒[x→x]␣x                & «reveal encrypted val.»
+A⁃ e     ⧼∈⧽ ‹expr›       ⧼⩴⧽ a                              & «atomic expression»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑case⦒␣x␣❴⇡-x.e❵❴⇡-x.e❵        & «elim for sums, psets»
+A⁃       ⧼ ⧽              ⧼¦⧽ x␣x                            & «function call»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑par⦒[x]␣e                     & «parallel execution»
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑let⦒␣x=e␣⦑in⦒␣e               & «let binding»
+A⁆
+M⁆
+\vspace*{-2ex}
+D⁆
+\endgroup
+\vspace*{-2ex}
+\caption{#2}
+\label{#1}
+\vspace*{-2ex}
+\end{figure}
+}
+
+\newcommand\FigureMPCSemanticsAux[2]{
+\begin{figure}
+\begingroup
+\setlength\arraycolsep{0pt} % default is 6pt
+\small
+D⁅
+\vspace*{-2ex}
+M⁅
+X⁅Aːrclcl@{␠}l
+  A⁅ ℓ     ⧼∈⧽ ‹loc›         ⧼ ⧽                      & «memory locations»
+  A⁃ ψ     ⧼∈⧽ ‹prot›        ⧼⩴⧽ ⋅                    & «cleartext»
+  A⁃       ⧼ ⧽               ⧼¦⧽ ⦑enc⦒⋕m              & «encrypted»
+  A⁃ γ     ⧼∈⧽ ‹env›         ⧼≜⧽ ‹var› ⇀ ‹value›      & «value environment»
+  A⁃ δ     ⧼∈⧽ ‹store›       ⧼≜⧽ ‹loc› ⇀ ‹value›      & «value store»
+  A⁃ u     ⧼∈⧽ ‹loc-value›   ⧼⩴⧽ i⸢ψ⸣                 & «integer/share value»
+  A⁃       ⧼ ⧽               ⧼¦⧽ p                    & «party set value»
+  A⁃       ⧼ ⧽               ⧼¦⧽ ιᵢ␣v                 & «tagged union injection»
+  A⁃       ⧼ ⧽               ⧼¦⧽ ⟨v,v⟩                & «pairs»
+  A⁃       ⧼ ⧽               ⧼¦⧽ ⟨λ⸤z⸥x⍪e,γ⟩          & «closures»
+  A⁃       ⧼ ⧽               ⧼¦⧽ ℓ⸢⋕m⸣                 & «reference»
+  A⁃ v     ⧼∈⧽ ‹value›       ⧼⩴⧽ u@m                  & «located value»
+  A⁃       ⧼ ⧽               ⧼¦⧽ ★                    & «opaque value»
+  A⁆
+X⁃
+X⁃⩊B⁅ ‗↙ₘ ∈ ‹loc-value› → ‹loc-value› ␣⨟␣ ‹value› → ‹value› B⁆
+X⁃
+X⁃ Aː[t]rclcl
+   A⁅ i⸢ψ⸣        ⧼↙ₘ⧽ ⧼≜⧽ i ⸢ψ⸣
+   A⁃ p           ⧼↙ₘ⧽ ⧼≜⧽ p
+   A⁃ (ιᵢ␣v)      ⧼↙ₘ⧽ ⧼≜⧽ ιᵢ␣(v↙ₘ)
+   A⁆
+   ⩊
+   Aː[t]rclcl
+   A⁅ ⟨v₁,v₂⟩     ⧼↙ₘ⧽ ⧼≜⧽ ⟨v₁↙ₘ,v₂↙ₘ⟩
+   A⁃ ⟨λ⸤z⸥x⍪e,γ⟩ ⧼↙ₘ⧽ ⧼≜⧽ ⟨λ⸤z⸥x⍪e,γ⟩
+   A⁃ ℓ⸢⋕p⸣       ⧼↙ₘ⧽ ⧼≜⧽ ℓ⸢⋕p⸣
+   A⁆
+X⁃
+X⁃(u@p)↙ₘ ≜ ‘❴Aːl@{␣}c@{␣}l
+              A⁅ u↙⸤m⸥@(p∩m) & «if» & p ∩ m ≠ ∅
+              A⁃ ★           & «if» & p ∩ m = ∅
+              A⁆’.
+  ⩊
+  ★↙ₘ ≜ ★
+X⁆
+M⁆
+\vspace*{-2ex}
+D⁆
+\endgroup
+\vspace*{-2ex}
+\caption{#2}
+\label{#1}
+\vspace*{-2ex}
+\end{figure}
+}
+
+\newcommand\FigureMPCSemanticsSequential[2]{
+\begin{figure*}
+\begingroup
+\setlength\arraycolsep{0pt} % default is 6pt
+\def\MathparLineskip{\lineskip=6pt}
+\small
+D⁅
+\vspace*{-2ex}
+M⁅
+X⁅ ⩊ κ ∈ ‹stack›  ⩴ ⊤ ¦ ⟨⦑let⦒␣x=□␣⦑in⦒␣e¦m,γ⟩∷κ
+   ⩊ ς ∈ ‹config› ⩴ m,γ,δ,κ,e
+   ⩊ ⩊
+X⁆
+M⁆
+\hrule
+\vspace*{0.5ex}
+M⁅ X⁅ ⩊ B⁅ γ ⊢⸤m⸥ δ,a ↪ δ,v B⁆ X⁆
+M⁆
+\vspace*{-5ex}
+P⁅ Rː⦗ST-Var⦘
+   R⁅ -------------------------------------------
+      γ ⊢⸤m⸥ δ,x ↪ δ,γ(x)↙⸤m⸥
+   R⁆
+P⁃ Rː⦗ST-Lit⦘
+   R⁅ -------------------------------------------
+      {Aːrclcl
+       A⁅ γ ⧼⊢⸤m⸥⧽ δ,i ⧼↪⧽ δ,i@m
+       A⁃ γ ⧼⊢⸤m⸥⧽ δ,p ⧼↪⧽ δ,p@m
+       A⁆}
+   R⁆
+% P⁃ Rː⦗ST-Prin⦘
+%    R⁅ -------------------------------------------
+%       γ ⊢⸤m⸥ δ,p ↪ δ,p@m
+%    R⁆
+P⁃ Rː⦗ST-Int-Binop⦘
+   R⁅{Aː[b]rcl
+      A⁅ i₁⸢ψ⸣@m ⧼=⧽ γ(x₁)↙⸤m⸥
+      A⁃ i₂⸢ψ⸣@m ⧼=⧽ γ(x₂)↙⸤m⸥
+      A⁆}
+   R⁃ ⊢⸤m⸥ ψ
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,x₁⊙x₂ ↪ δ,⟦⊙⟧(i₁,i₂)⸢ψ⸣@m
+   R⁆
+P⁃ Rː⦗ST-PSet-Binop⦘
+   R⁅{Aː[b]rcl
+      A⁅ p₁@m ⧼=⧽ γ(x₁)↙⸤m⸥
+      A⁃ p₂@m ⧼=⧽ γ(x₂)↙⸤m⸥
+      A⁆}
+   % R⁃ v = {‘❴Aːl@{␠}l@{␠}l
+   %           A⁅ ‹true›  & ⟪«if»⟫ & p₁ = p₂
+   %           A⁃ ‹false› & ⟪«if»⟫ & p₁ ≠ p₂
+   %           A⁆’.}
+   % R⁃ {Aːl A⁅ \vphantom{p₁⸢ψ⸣@m = γ(x₁)↙⸤m⸥}
+   %         A⁃ \vphantom{p₁⸢ψ⸣@m = γ(x₁)↙⸤m⸥} ⊢⸤m⸥ ψ
+   %         A⁆}
+      -------------------------------------------
+      {Aːrclcl
+       A⁅ γ ⧼⊢⸤m⸥⧽ δ,x₁∪x₂ ⧼↪⧽ δ,(p₁∪p₂)@m
+       %A⁃ γ ⧼⊢⸤m⸥⧽ δ,x₁≡x₂ ⧼↪⧽ δ,v@m
+       A⁆}
+   R⁆
+P⁃ Rː⦗ST-Mux⦘
+   R⁅{Aː[b]rcl
+      A⁅ i₁⸢ψ⸣@m ⧼=⧽ γ(x₁)↙⸤m⸥
+      A⁃ i₂⸢ψ⸣@m ⧼=⧽ γ(x₂)↙⸤m⸥
+      A⁃ i₃⸢ψ⸣@m ⧼=⧽ γ(x₃)↙⸤m⸥
+      A⁆}
+   R⁃ ⊢⸤m⸥ ψ
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,x₁ ¿ x₂ ◇ x₃ ↪ δ,‹cond›(i₁,i₂,i₃)⸢ψ⸣@m
+   R⁆
+P⁃ Rː⦗ST-Pair⦘
+   R⁅{Aːrcl
+      A⁅ v₁ ⧼=⧽ γ(x₁)↙⸤m⸥
+      A⁃ v₂ ⧼=⧽ γ(x₂)↙⸤m⸥
+      A⁆}
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,⟨x₁,x₂⟩ ↪ δ,⟨v₁,v₂⟩@m
+   R⁆
+P⁃ Rː⦗ST-Proj⦘
+   R⁅ ⟨v₁,v₂⟩@m = γ(x)↙⸤m⸥
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,πᵢ␣x ↪ δ,vᵢ
+   R⁆
+P⁃ Rː⦗ST-Inj⦘
+   R⁅ v = γ(x)↙⸤m⸥
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,ιᵢ␣x ↪ δ,(ιᵢ␣v)@m
+   R⁆
+P⁃ Rː⦗ST-Fun⦘
+   R⁅ -------------------------------------------
+      γ ⊢⸤m⸥ δ,λ⸤z⸥x⍪ e ↪ δ,⟨λ⸤z⸥x⍪ e, γ⟩@m
+   R⁆
+P⁃ Rː⦗ST-Ref⦘
+   R⁅ v = γ(x)↙⸤m⸥
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,⦑ref⦒␣x ↪ ❴ℓ↦v❵⊎δ,ℓ⸢⋕m⸣@m
+   R⁆
+P⁃ Rː⦗ST-Deref⦘
+   R⁅ ℓ⸢⋕q⸣@m = γ(x)↙⸤m⸥
+   %R⁃ m     ⊆ q
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,¡x ↪ δ,δ(ℓ)↙⸤m⸥
+   R⁆
+P⁃ Rː⦗ST-Assign⦘
+   R⁅{Aːrcl
+      A⁅ ℓ⸢⋕m⸣@m ⧼=⧽ γ(x₁)↙⸤m⸥
+      A⁃ v           ⧼=⧽ γ(x₂)↙⸤m⸥
+      A⁆}
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,x₁ ≔ x₂ ↪ δ[ℓ↦v],v
+   R⁆
+P⁃ Rː⦗ST-Read⦘
+   R⁅ |m| = 1
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,⦑read⦒ ↪ δ,i@m
+   R⁆
+P⁃ Rː⦗ST-Write⦘
+   R⁅ i@m = γ(x)↙⸤m⸥
+   R⁃ |m| = 1
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,⦑write⦒␣x ↪ δ,0@m
+   R⁆
+P◘ Rː⦗ST-Share⦘
+   R⁅{Aː[b]rcl
+      A⁅ p@m   ⧼=⧽ γ(x₁)↙⸤m⸥
+      A⁃ q@m   ⧼=⧽ γ(x₂)↙⸤m⸥
+      A⁃ i@p  ⧼=⧽ γ(x₃)↙⸤p⸥
+      A⁆}
+   R⁃{Aː[b]rcl
+      A⁅ p     ⧼⊆⧽ q
+      A⁃ |p|   ⧼=⧽ 1
+      A⁆}
+   R⁃{Aː[b]rcl
+      A⁅ q ⧼≠⧽ ∅
+      A⁃ m ⧼=⧽ p ∪ q
+      A⁆}
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,⦑share⦒[x₁ → x₂]␣x₃ ↪ δ,i⸢⦑enc⦒⋕q⸣@q
+   R⁆
+P⁃ Rː⦗ST-Reveal⦘
+   R⁅{Aː[b]rcl
+      A⁅ p@m          ⧼=⧽ γ(x₁)↙⸤m⸥
+      A⁃ q@m          ⧼=⧽ γ(x₂)↙⸤m⸥
+      A⁃ i⸢⦑enc⦒⋕p⸣@p ⧼=⧽ γ(x₃)↙⸤p⸥
+      A⁆}
+   R⁃{Aː[b]rcl
+      A⁅ q ⧼≠⧽ ∅
+      A⁃ m ⧼=⧽ p ∪ q
+      A⁆}
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,⦑reveal⦒[x₁ → x₂]␣x₃ ↪ δ,i@q
+   R⁆
+P⁆
+\vspace*{-2ex}
+M⁅
+X⁅⩊B⁅ ς —→ ς B⁆X⁆
+M⁆
+\vspace*{-5ex}
+P⁅ Rː⦗ST-Case-Inj⦘
+   R⁅ (ιᵢ␣v)@m = γ(x₁)↙⸤m⸥
+      --------------------------------------
+      m,γ,δ,κ,⦑case⦒␣x₁␣❴x₂.e₁❵❴x₂.e₂❵ —→ m,❴x₂↦v❵⊎γ,δ,κ,eᵢ
+   R⁆
+P⁃ Rː⦗ST-Case-PSet-Emp⦘
+   R⁅ ∅@m = γ(x₁)↙⸤m⸥
+      --------------------------------------
+      m,γ,δ,κ,⦑case⦒␣x₁␣❴.e₁❵❴x₂x₃.e₂❵ —→ m,γ,δ,κ,e₁
+   R⁆
+P⁃ Rː⦗ST-Case-PSet-Cons⦘
+   R⁅ (❴A❵⊎p)@m = γ(x₁)↙⸤m⸥
+      --------------------------------------
+      m,γ,δ,κ,⦑case⦒␣x₁␣❴.e₁❵❴x₂x₃.e₂❵ —→ m,❴x₂↦❴A❵,x₃↦p❵⊎γ,δ,κ,e₂
+   R⁆
+P⁃ Rː⦗ST-Par⦘
+   R⁅ p@m = γ(x)↙⸤m⸥
+   R⁃ m∩p ≠ ∅
+      -------------------------------------------
+      m,γ,δ,κ,⦑par⦒[x]␣e —→ m∩p,γ,δ,κ,e
+   R⁆
+P⁃ Rː⦗ST-ParEmpty⦘
+   R⁅ p@m = γ(x)↙⸤m⸥
+   R⁃ m∩p = ∅
+   R⁃ γ′ = ❴x′↦★❵⊎γ
+      -------------------------------------------
+      m,γ,δ,κ,⦑par⦒[x]␣e —→ m,γ′,δ,κ,x′
+   R⁆
+P⁃ Rː⦗ST-App⦘
+   R⁅ v₁ = γ(x₁)↙⸤m⸥
+   R⁃  v₂ = γ(x₂)↙⸤m⸥
+   R⁃ ⟨λ⸤z⸥x⍪ e, γ′⟩@m = v₁
+      ----------------------------------------
+      m,γ,δ,κ,x₁␣x₂ —→ m,❴z↦v₁,x↦v₂❵⊎γ′,δ,κ,e
+   R⁆
+P⁃ Rː⦗ST-LetPush⦘
+   R⁅ κ′ = ⟨⦑let⦒␣x=□␣⦑in⦒␣e₂¦m,γ⟩∷κ
+      ------------------------------------------
+      m,γ,δ,κ,⦑let⦒␣x=e₁␣⦑in⦒␣e₂ —→ m,γ,δ,κ′,e₁
+   R⁆
+P⁃ Rː⦗ST-LetPop⦘
+   R⁅ γ ⊢⸤m⸥ δ,a ↪ δ′,v
+   R⁃ κ = ⟨⦑let⦒␣x=□␣⦑in⦒␣e¦m′,γ′⟩∷κ′
+      -------------------------------------
+      m,γ,δ,κ,a —→ m′,❴x↦v❵⊎γ′,δ′,κ′,e
+   R⁆
+P⁆
+\vspace*{-2ex}
+D⁆
+\endgroup
+\vspace*{-2ex}
+\caption{#2}
+\label{#1}
+\vspace*{-2ex}
+\end{figure*}
+}

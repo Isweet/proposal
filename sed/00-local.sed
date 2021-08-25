@@ -11,6 +11,7 @@ s/τ̃/⇡~τ/g
 
 s/⦇/\\llparenthesis /g
 s/⦈/\\rrparenthesis /g
+s/\*⦗/{\\textsc{\\smaller /g
 s/⦗/⦗\\smaller\\smaller /g
 
 s/⦉//g

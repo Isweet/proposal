@@ -1,0 +1,254 @@
+\chapter{Overview}
+\label{ch:overview}
+
+\epigraph{Trust in me in all you do \\
+          Have the faith I have in you \\
+          Love will see us through \\
+          If only you trust in me}{
+            Etta James \\
+            \emph{Trust in Me}}
+
+Why should we care about the properties outlined in~\Cref{sec:intro-mpc-obliv}? To answer this question,
+we'll first need to describe the \mpc language in more depth so that it may be used as the \textit{lingua franca}
+for the remainder of the proposal. We will assume that readers are familiar with MPC and ORAM. For readers who don't have this
+background,~\Cref{ch:gmw,ch:oram} provide an overview of the GMW MPC protocol and ORAM respectively.
+
+\section{\mpc By Example}
+\label{sec:background-symphony}
+
+As a means of gentle introduction, let's consider the classic Millionaire's Problem in which two wealthy parties,
+\alice and \bob, would like to know who is wealthier.
+
+\begin{figure}[h]
+M⁅
+\begin{array}{r@{␠}lcl}
+   «0:» & 𝑚𝑐3l{ ⦑par⦒[\alice,\bob] }
+\\ «1:» & ␠⦑let⦒␣x    ⧼=⧽ ⦑par⦒[\alice]␣⦑read⦒␣⦑in⦒
+\\ «2:» & ␠⦑let⦒␣y    ⧼=⧽ ⦑par⦒[\bob]␣⦑read⦒␣⦑in⦒
+\\ «3:» & ␠⦑let⦒␣xₛ   ⧼=⧽ ⦑share⦒[\alice → \alice,\bob]␣x␣⦑in⦒
+\\ «4:» & ␠⦑let⦒␣yₛ   ⧼=⧽ ⦑share⦒[\bob → \alice,\bob]␣y␣⦑in⦒
+\\ «5:» & ␠⦑let⦒␣r    ⧼=⧽ xₛ < yₛ␣⦑in⦒
+\\ «6:» & ␠⦑let⦒␣z    ⧼=⧽ ⦑reveal⦒[\alice,\bob]␣r␣⦑in⦒
+\\ «7:» & ␠…
+\end{array}
+M⁆
+\caption{\mpc code for the Millionaire's Problem.}
+\label{fig:millionaires-symphony}
+\end{figure}
+
+The code in~\Cref{fig:millionaires-symphony} is written in the \mpc language. On line 0, the ⸨⦑par⦒[\alice,\bob]⸩ expression
+indicates that both \alice and \bob should execute the body of the expression. Any other principals will ignore the
+body of the expression and generate an \emph{opaque value}, denoted \opaque, instead. On line 1, \alice reads her wealth,
+⸨\alices{⋖wealth⋗}⸩, from local storage and binds it to ⸨x⸩. \bob evaluates the expression ⸨⦑par⦒[\alice]␣⦑read⦒⸩ to
+\opaque because he is not included in principals declared by the ⸨⦑par⦒[\alice]⸩ expression. On line 2, \bob reads his wealth,
+⸨\bobs{⋖wealth⋗}⸩, and binds it to ⸨y⸩ while \alice binds \opaque to ⸨y⸩. In summary, after line 2, the local environemnts are:
+
+M⁅
+  Aːcc
+  A⁅ \alice & \bob
+  A⁃ ⟨x ↦ \alices{⋖wealth⋗},␣y ↦ \opaque⟩␠ & ␠⟨x ↦ \opaque,␣y ↦ \bobs{⋖wealth⋗}⟩
+  A⁆
+M⁆
+
+On line 3, \alice splits her ⸨\alices{⋖wealth⋗}⸩ into two shares. She keeps her share and sends \bob's share to him. We use the same
+notation for shares which appears in \Cref{ch:gmw} to emphasize the connection between the explanation of GMW and the execution model
+of \mpc. On line 4, \bob splits his ⸨\bobs{⋖wealth⋗}⸩ into two shares. He keeps his share and send's \alice's share to her. So, after
+line 4 the local environments are:
+
+M⁅
+  Aːllll
+  A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob}
+    A⁃ ⟨…,&␣xₛ ↦ \aliceSh{\alices{⋖wealth⋗}}, & ␠⟨…,&␣xₛ ↦ \bobSh{\alices{⋖wealth⋗}},
+    A⁃    &␣yₛ ↦ \aliceSh{\bobs{⋖wealth⋗}}⟩   &     &␣yₛ ↦ \bobSh{\bobs{⋖wealth⋗}}⟩
+  A⁆
+M⁆
+
+On line 5, \alice and \bob compute over their shares to produce a share indicating who is wealthier. Here we assume that the language knows
+how to compute ⸨<⸩ over shares. For example, if the underlying MPC protocol were GMW then we would encode ⸨<⸩ as a magnitude circuit made
+up of XOR and AND gates.
+
+M⁅
+  Aːcc
+  A⁅ \alice & \bob
+  A⁃ ⟨…,␣r ↦ \aliceSh{A⸨\alices{⋖wealth⋗} < \bobs{⋖wealth⋗}A⸩}⟩ & ␠⟨…,␣r ↦ \bobSh{A⸨\alices{⋖wealth⋗} < \bobs{⋖wealth⋗}A⸩}⟩
+  A⁆
+M⁆
+
+Finally, on line 6, the shares of ⸨\alices{⋖wealth⋗} < \bobs{⋖wealth⋗}⸩ among \alice and \bob are combined and the
+result is revealed to both parties. The XOR operator, ⸨⊕⸩, is used to combine shares implicitly as part of the ⸨⦑reveal⦒⸩.
+
+M⁅
+  Aːllll
+  A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob}
+    A⁃ ⟨…,␣z &{} ↦ \aliceSh{A⸨\alices{⋖wealth⋗} < \bobs{⋖wealth⋗}A⸩} & ␠⟨…,␣z &{} ↦ \aliceSh{A⸨\alices{⋖wealth⋗} < \bobs{⋖wealth⋗}A⸩}
+    A⁃       &{}␣⊕ \bobSh{A⸨\alices{⋖wealth⋗} < \bobs{⋖wealth⋗}A⸩} & &{}␣⊕ \bobSh{A⸨\alices{⋖wealth⋗} < \bobs{⋖wealth⋗}A⸩}
+    A⁃       &{}␣= \alices{⋖wealth⋗} < \bobs{⋖wealth⋗}⟩ & &{}␣= \alices{⋖wealth⋗} < \bobs{⋖wealth⋗}⟩
+  A⁆
+M⁆
+
+The Millionaire's Problem in~\Cref{fig:millionaires-symphony} illustrates two non-standard features of \mpc. First, the programmer
+controls which parties evaluate which expressions by using ⸨⦑par⦒⸩ expressions. This is in contrast to languages like OblivC
+which must coordinate parties manually using ⸨⦑if⦒⸩ expressions. Second, clear and encrypted computations may be arbitrarily
+interleaved. There is no phase distinction between clear and encrypted computation. Languages such as OblivC and Wysteria
+require that clear and encrypted (MPC) computation be separated syntactically.
+
+\section{Desirable Properties of MPC}
+\label{sec:background-properties}
+
+In~\Cref{sec:intro} we claimed that a MPC language ought to be \textbf{Abstractly Sequential}, \textbf{Probabilistic},
+and \textbf{High Assurance}. But, what are these properties and why do we care about them?
+
+\subsection{Abstractly Sequential}
+\label{subsec:background-properties-centralized}
+
+A language which is abstractly sequential liberates the programmer from managing a distributed computation. In the context of MPC,
+the programmer does not need to perform commands conditionally on which party is executing. To see the difference, contrast the
+Obliv-C implementation of the Millionaire's Problem in~\Cref{fig:millionaires-oblivc} with the \mpc implementation
+in~\Cref{fig:millionaires-symphony}.
+
+\begin{figure}[h]
+\begin{lstlisting}[language=c,basicstyle=\footnotesize\ttfamily,numbers=left,stepnumber=1]
+  // File: million.h
+  typedef struct {
+    int in;
+    bool out;
+  } ProtocolIO;
+
+  void millionaire (void *args);
+
+  // File: million.oc
+  #include <million.h>
+  #include <obliv.oh>
+
+  void millionaire (void *args) {
+    ProtocolIO *io = args;
+    obliv int a, b;
+    obliv bool res = false;
+    a = feedOblivInt (io->in, 1);
+    b = feedOblivInt (io->in, 2);
+    obliv if (a < b) res = true;
+    revealOblivBool(&io->out, res, 0);
+  }
+
+  // File: million.c
+  #include <million.h>
+
+  int main (int argc, char *argv[]) {
+    ProtocolDesc pd;
+    ProtocolIO io;
+    int p = (argv[1] == '1' ? 1 : 2);
+    sscanf(argv[2], "%d", &io.in);
+    // ... set up TCP connections
+
+    setCurrentParty(&pd, p);
+    execYaoProtocol(&pd, millionaire, &io);
+    printf ("%d\n", io.out);
+    // ... cleanup
+  }
+\end{lstlisting}
+\caption{Obliv-C code for the Millionaire's Problem}
+\label{fig:millionaires-oblivc}
+\end{figure}
+
+Hopefully it is clear that many of the details of the distributed deployment have leaked into the application code.
+The \lstinline[language=c,basicstyle=\ttfamily]{main} function is responsible for scaffolding such as establishing TCP connections (line 31),
+explicitly executing the protocol (line 34), and populating the \lstinline[language=c,basicstyle=\ttfamily]{io} variable with party inputs (line 30). As
+a point of comparison, take a look back at~\Cref{fig:millionaires-symphony}. Notice that this code makes no mention of TCP connections,
+explicit execution of any protocol, or eagerly reading and caching secret inputs. Dealing with such infrastructure can be annoying, but
+is it safe? By allowing the programmer to execute code conditionally based on which party is executing, languages like Obliv-C allow code
+which has all the usual pitfalls of distributed programming. For example, deadlock caused by both parties attempting to receive values
+from each other before they have performed a send.
+
+In Chapter~\ref{ch:lam-mpc} we formally define \textbf{Abstractly Sequential} MPC languages as those which satisfy~\nameref{thm:mpc-safety} and~\nameref{thm:mpc-simulation}.
+~\nameref{thm:mpc-safety} guarantees that well-typed \mpc programs don't get stuck (encounter a runtime error).~\nameref{thm:mpc-simulation} guarantees
+that the sequential interpretation of a program terminates successfully if and only if the distributed interpretation terminates successfully (with the same
+result). These two theorems work together to guarantee that well-typed programs can't encounter liveness errors.
+
+\subsection{Probabilistic}
+\label{subsec:background-properties-probabilistic}
+
+In our terminology, an MPC language is \textbf{Probabilistic} if it supports a primitive for drawing uniform, random samples from a
+discrete, finite set. For example, drawing a uniform, random sample from ⸨𝔹⸩, the Booleans, corresponds to a fair coin toss. We
+could also draw from ⸨ℕ⸤32⸥⸩, Natural numbers modulo ⸨2^{32}⸩. Why is such a primitive important in an MPC language?
+
+As discussed in Chapter~\ref{sec:intro}, MPC languages rely on ORAM to support a RAM-model of computation. In their seminal paper,~\citet{}
+showed that Trivial ORAM, which has an overhead of $O(n)$, is optimal in a deterministic language. However, provided the ability
+to perform uniform, random samples, it is possible to design more efficient ORAMs. For example, tree-based ORAM schemes, including
+(Recursive) Circuit ORAM, require the position tag to be uniformly random. In addition to ORAMs, there are optimized oblivious algorithms
+and data structures which do not rely on ORAM, but do rely on randomness to achieve greater efficiency~\cite{}.
+
+To see how the use of random sampling is used to improve efficiency, consider the \mpc{} code in~\Cref{fig:mpc-2-oram}. The purpose of
+this code is to allow \bob to choose one of two secrets belonging to \alice without \alice learning which one \bob chose. On lines 1-2,
+\alice shares two secrets, ⸨s⸤A1⸥⸩ and ⸨s⸤A2⸥⸩, with \bob. On line 3, \bob's choice, ⸨s⸤B⸥⸩, is shared with \alice.
+On line 4, \bob flips a coin, ⸨u⸩, which he shares with \alice. On lines 5-6, the array, ⸨a⸩, is populated
+in-order if the coin ⸨u⸩ is heads (⸨0⸩), and out-of-order if the coin is tails (⸨1⸩). Finally, on line 7 the XOR of \bob's choice with the
+coin is revealed to both parties. Notice that if \bob's choice was ⸨0⸩ (heads) then he always gets ⸨s⸤A1⸥⸩ and
+likewise for ⸨1⸩ (tails) and ⸨s⸤A2⸥⸩.
+
+This code illustrates the importance of random sampling for efficient RAM access. If the MPC program had instead stored the array ⸨a⸩ in
+a Trivial ORAM then the lookup on line 8 would require 2 accesses (one for each element in the ORAM). This may not seem so bad, but consider
+the overhead if \bob wanted to choose from an array of length ⸨n⸩. In that case, the lookup would incur an $O(n)$ overhead!
+
+\begin{figure}[h]
+M⁅
+\begin{array}{r@{␠}lcl}
+   «0:» & 𝑚𝑐3l{ ⦑par⦒[\alice,\bob] }
+\\ «1:» & ␠⦑let⦒␣s⸤A1⸥ ⧼=⧽ ⦑share⦒[\alice → \alice,\bob]␣(⦑par⦒[\alice]␣⦑read⦒␣ℤ)␣⦑in⦒
+\\ «2:» & ␠⦑let⦒␣s⸤A2⸥ ⧼=⧽ ⦑share⦒[\alice → \alice,\bob]␣(⦑par⦒[\alice]␣⦑read⦒␣ℤ)␣⦑in⦒
+\\ «3:» & ␠⦑let⦒␣s⸤B⸥  ⧼=⧽ ⦑share⦒[\bob → \alice,\bob]␣(⦑par⦒[\bob]␣⦑read⦒␣ℕ⸤1⸥)␣⦑in⦒
+\\ «4:» & ␠⦑let⦒␣u     ⧼=⧽ ⦑share⦒[\bob → \alice,\bob]␣(⦑par⦒[\bob]␣𝒰(ℕ⸤1⸥))␣⦑in⦒
+\\ «5:» & ␠⦑let⦒␣⟨l,r⟩ ⧼=⧽ u == 0 ¿ ⟨s⸤A1⸥,s⸤A2⸥⟩ ◇ ⟨s⸤A2⸥,s⸤A1⸥⟩␣⦑in⦒
+\\ «6:» & ␠⦑let⦒␣a     ⧼=⧽ [l;␣r]␣⦑in⦒
+\\ «7:» & ␠⦑let⦒␣idx   ⧼=⧽ ⦑reveal⦒[\alice,\bob]␣s⸤B⸥ ⊕ u␣⦑in⦒
+\\ «8:» & ␠⦑let⦒␣r     ⧼=⧽ a[idx]␣⦑in⦒
+\\ «9:» & ␠…
+\end{array}
+M⁆
+\caption{Conceptual 2 element ORAM lookup in \mpc{}}
+\label{fig:mpc-2-oram}
+\end{figure}
+
+\subsection{High Assurance}
+\label{subsec:background-properties-assurance}
+
+An MPC language is \textbf{High Assurance} if it guarantees that programs are oblivious by construction.
+Existing MPC languages with support for uniform, random sampling cannot be considered high assurance because
+they do not allow developers to distinguish between \emph{declassification} and \emph{benign exposure}.
+A declassification intends to leak some necessary information about secrets. The information leak is part of
+the specification of the program. A benign exposure intends not to leak any information about secrets. Freedom
+from information leaks is part of the specification. For example, the Millionaire's Problem in~\Cref{fig:millionaires-symphony}
+features a declassification. The developer expects that declassification of the comparison will leak some information about the wealth of the
+participants. In contrast, the ⸨⦑reveal⦒⸩ expressions in the One-Time Pad and Mini-ORAM examples (~\Cref{fig:otp-symphony,fig:mpc-2-oram})
+are benign exposures. The developer expects that the ⸨⦑reveal⦒⸩ is not actually leaking any information about the secrets
+of either party.
+
+Existing MPC languages provide only a mechanism for declassification. These declassifications are trusted and any
+information leaked is assumed to be intentional. Unfortunately, this means that benign exposures must also use the
+declassification mechanism. As such, the leak-freedom of those exposures is not, and cannot be, checked by the language.
+Consider what happens if we change line 7 in the Mini-ORAM example to declassify ⸨s⸤B⸥⸩.
+In that case, the functional correctness of the program is unaffected but we have accidentally leaked \bob's secret to \alice!
+This information leak could have been prevented by a language which provides a mechanism to certify that benign exposures do
+not leak any information.
+
+Both MPC applications and libraries rely on benign exposure. Cryptographers rely on benign exposure to implement secure protocols such as ORAM,
+Function Secret Sharing~\cite{}, and Zero-Knowledge Proofs\cite{}. Cryptographers are not the only ones who we expect to leverage the
+benign exposure mechanism. It turns out that many application-level algorithms and data structures also rely on benign exposure. For example,
+various comparison-based algorithms in MPC are optimized by permuting the collection prior to sorting~\cite{hamada2012}. This allows occurrences of
+comparison in the sorting algorithm to use ⸨⦑if⦒⸩ over declassified comparison, instead of a multiplexor. These sorts of algorithms and
+data structures are more likely to be implemented by developers who are not experts in cryptography.
+
+A high assurance language is beneficial to both MPC experts and novices. Experts save time and gain confidence in their
+experimental protocols by relying on the language to enforce confidentiality. For example, modifying line 7 in
+Figure~\ref{fig:mpc-2-oram} to use a benign exposure means it need not be manually audited. Instead, the language would ensure that the
+exposure is safe. Likewise, MPC novices will benefit by being able to safely experiment with their own cryptographic optimizations
+without fear of accidentally leaking information they didn't intend to. They need only mark exposures that are expected to be
+leak-free appropriately.
+
+In~\Cref{ch:lam-obliv,ch:proposal} we formally define \textbf{High Assurance} languages as those which satisfy~\nameref{thm:obliv-pmto} and~\nameref{thm:lang-pmto}
+respectively. In the former, we discuss \obliv which is not an MPC language and doesn't have declassifications. It only contains what we referred to above
+as benign exposure. In the latter, we discuss \lang which is an MPC language and therefore has declassifications. As such, we must generalize~\nameref{thm:obliv-pmto}
+to~\nameref{thm:lang-pmto} to take declassifications into account. In both languages, a sound static type system is used as the enforcement mechanism. Only well-typed
+programs are guaranteed to be oblivious.
+
+\ins{IDEA: In future paper, implement quicksort (1) on top of ORAM and then (2) using permutation optimization. Show that (2) is much
+  faster, which suggests that building ORAM into the language and using it everywhere is not a good solution.}

@@ -1,0 +1,113 @@
+\chapter{\obliv, A Language for Probabilistically Oblivious Computation}
+\label{ch:lam-obliv}
+
+An oblivious computation is one that is free of direct and indirect information leaks, e.g., due to observable differences
+in timing and memory access patterns. In this chapter, we'll give a formal description of \obliv, a core language whose
+type system enforces obliviousness. We show that \obliv satisfies~\nameref{thm:obliv-pmto}, a probabilistic variant of obliviousness.
+We also show that \obliv's type system is expressive enough to typecheck an asymptotically optimal client-server ORAM implementation.
+
+\section{Overview}
+\label{sec:lam-obliv-overview}
+
+The syntax of \obliv is presented in \Cref{fig:obliv-syntax}. \obliv types comprise a
+series of standard types---integers, booleans, functions, and pair types---as well as
+a special type for secret, uniform distributions of booleans.
+
+F⁅
+\begingroup
+\setlength\arraycolsep{0pt} % default is 6pt
+\smaller
+D⁅
+M⁅
+Aːrcrcl@{␠}l
+A⁅ b     ⧼∈⧽ 𝔹           ⧼ ⧽                               & ⟪booleans⟫
+A⁃ i     ⧼∈⧽ ℤ           ⧼ ⧽                               & ⟪integers⟫
+A⁃ ℓ     ⧼∈⧽ ‹label›     ⧼⩴⧽ ‹P› ¦ ‹S›                    & ⟪public and secret⟫
+A⁃       ⧼ ⧽ 𝑚𝑐3c{⟪(«where» ⸨‹P›⊏‹S›⸩)⟫}                   & ⟪security labels⟫
+A⁃ ρ     ⧼∈⧽ R           ⧼ ⧽                               & ⟪probability region⟫
+A⁃ μ     ⧼∈⧽ ‹base-type› ⧼⩴⧽ ⦑int⦒                        & ⟪integer type⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ ⦑bool⦒                        & ⟪boolean type⟫
+A⁃ τ     ⧼∈⧽ ‹type›      ⧼⩴⧽ μ⸤ℓ⸥⸢ρ⸣                       & ⟪non-random base type⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ ⦑½⦒μ⸤‹S›⸥⸢ρ⸣                  & ⟪secret uniform bool⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ τ × τ                          & ⟪tuple⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ τ → τ                          & ⟪function⟫
+A⁃ x,y,z ⧼∈⧽ ‹var›       ⧼ ⧽                                & ⟪variables⟫
+A⁃ ⊙     ⧼∈⧽ ‹binop›     ⧼ ⧽                                & ⟪binary operations (e.g., plus, times)⟫
+A⁃ e     ⧼∈⧽ ‹expr›      ⧼⩴⧽ x                             & ⟪variable reference⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ i⸤ℓ⸥                           & ⟪integer literal⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ b⸤ℓ⸥                           & ⟪boolean literal⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ e ⊙ e                          & ⟪binary operation⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ ⦑if⦒␣e␣⦑then⦒␣e␣⦑else⦒␣e       & ⟪conditional⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ e ¿ e ◇ e                      & ⟪multiplexor⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ ⟨e,e⟩                          & ⟪pair creation⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ πᵢ␣e                           & ⟪pair projection (⸨i ∈ ❴1,2❵⸩)⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ λ⸤z⸥x⍪ e                       & ⟪(recursive) function creation⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ e␣e                            & ⟪function elimination⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ ⦑let⦒␣x = e␣⦑in⦒␣e             & ⟪variable binding⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ ⦑unif⦒⸢ρ⸣␣μ                    & ⟪uniform, random sample in region⟫
+A⁃       ⧼ ⧽             ⧼¦⧽ ⦑cast⦒⸤l⸥␣e                    & ⟪cast from uniform⟫
+A⁆
+M⁆
+D⁆
+\endgroup
+\caption{\obliv Syntax}
+\label{fig:obliv-syntax}
+F⁆
+
+The only exotic feature of \obliv is the inclusion of \emph{uniform types}. A
+value of uniform type ⸨⦑½⦒ μ⸤‹S›⸥⸢ρ⸣⸩ is always labeled secret (⸨‹S›⸩), and represents
+a uniform distribution over the base type ⸨μ⸩. The \emph{probability region}, ⸨ρ⸩, is
+a static name for a collection of uniform values, and the base values that may be derived
+from them. Uniform values are associated with a region ⸨ρ⸩ when they are created with
+⸨⦑unif⦒⸢ρ⸣␣μ⸩. The probability region annotation is propagated from the uniform type
+⸨⦑½⦒μ⸤‹S›⸥⸢ρ⸣⸩ to base type ⸨μ⸤‹S›⸥⸢ρ⸣⸩ when typing a secret cast, ⸨⦑cast⦒⸤‹S›⸥␣e⸩.
+Both literals ⸨b⸤ℓ⸥⸩ and public casts, ⸨⦑cast⦒⸤‹P›⸥␣e⸩, are assigned the probability
+region ⸨⊥⸩. We say that a value is ``in region ⸨ρ⸩'' if it has type ⸨⦑½⦒μ⸤‹S›⸥⸢ρ⸣⸩
+or ⸨μ⸤ℓ⸥⸢ρ⸣⸩.
+
+Probability regions form a join semi-lattice. The type system maintains the invariant that
+values of in region ⸨ρ⸩ are probabilistically independent of values in region ⸨ρ'⸩, provided
+that ⸨ρ' ⊏ ρ⸩. For example, the typing rule for
+multiplexors says that if ⸨e₁ : μ⸤ℓ⸥⸢ρ₁⸣⸩, ⸨e₂ : ⦑½⦒μ⸤‹S›⸥⸢ρ₂⸣⸩, and ⸨e₃ : ⦑½⦒μ⸤‹S›⸥⸢ρ₃⸣⸩,
+then we must check ⸨ρ₁ ⊏ ρ₂⸩ and ⸨ρ₁ ⊏ ρ₃⸩ to ensure that the result of the multiplexor
+is also uniform. Intuitively, we are saying that if the guard of the multiplexor is probabilistically
+independent of each of the branches, and the branches are uniform, then the result
+of the multiplexor is also uniform.
+
+\section{Obliviousness}
+\label{sec:lam-obliv-obliviousness}
+
+The semantics of \obliv are defined by a judgement ⸨ς —→ ⇡~{ς}⸩ which says that
+configuration ⸨ς ⩴ γ,κ,e⸩, takes a step to the distribution of configurations ⸨⇡~{ς}⸩.
+All the expressions which are deterministic (i.e. all expressions except ⸨⦑unif⦒⸢ρ⸣␣μ⸩)
+produce a point distribution over the appropriate resulting configuration. For example,
+the expression ⸨10⸤‹P›⸥ + 20⸤‹P›⸥⸩ evaluates to the point distribution of ⸨30⸤‹P›⸥⸩.
+The uniform expression, ⸨⦑unif⦒⸢ρ⸣␣μ⸩, simply lifts the appropriate uniform distribution
+over values of base type ⸨μ⸩ to configurations.
+
+The evaluation relation ⸨e —→⋆ ⇡~{t}⸩ is defined by first inserting ⸨e⸩ into the initial
+configuration, ⸨ø,⊥,e⸩, and then lifting the single-step judgement ⸨—→⸩ to distributions
+of traces. This is done by standard monadic composition in the Giry monad. A trace ⸨t⸩
+is a list of configurations encountered during execution.
+
+Lastly, we must define a notion of label-equivalence over expressions and distributions
+of traces. The definition of label-equivalence over expressions, ⸨e₁ ≈⸤ℓ⸥ e₂⸩, is standard.
+We can define label-equivalence of trace distributions ⸨⇡~{t₁} ⇡~≈⸤l⸥ ⇡~{t₂}⸩, as follows.
+We say that two trace distributions are label-equivalent if the distributions are probabilistically
+after projecting according to label-equivalence on traces. The definition of label-equivalence on traces
+is standard: their contents must be point-wise label-equivalent. Finally, two configurations are label-equivalent
+if all their componenets are, where the low-equivalence of the environment and stack are defined recursively.
+
+The key property of the type system which ensures that programs are oblivious is that only (conditionally) uniform
+values are ever casted to public. Since uniform distributions carry no information, they are guaranteed not to leak
+any information about secrets in the program. The challenge is establishing that a value is uniform, even when it may
+have been duplicated (using ⸨⦑cast⦒⸤‹S›⸥⸩) and correlated with other distributions (using a multiplexor).
+
+We formally define an oblivious language as one that satisfies~\nameref{thm:obliv-pmto}. This theorem says that two label-equivalent,
+well-typed expressions, ⸨e₁⸩ and ⸨e₂⸩ evaluate to distributions of traces ⸨⇡~{t₁}⸩ and ⸨⇡~{t₂}⸩ which are also label-equivalent.
+The proof is complex, involving a simulation argument with an alternative ``mixed'' semantics, and then a separate proof that
+individual steps in the mixed semantics are also probabilistically oblivious.
+
+\begin{theorem}[PMTO] \label{thm:obliv-pmto}
+  If ⸨e₁ : τ⸩, ⸨e₂ : τ⸩, ⸨e₁ ≈⸤l⸥ e₂⸩, ⸨e₁ —→⋆ ⇡~{t₁}⸩, and ⸨e₂ —→⋆ ⇡~{t₂}⸩, then ⸨⇡~{t₁} ⇡~≈⸤l⸥ ⇡~{t₂}⸩.
+\end{theorem}

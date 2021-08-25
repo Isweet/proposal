@@ -8,9 +8,11 @@
 
 \input{darais-latex-imports}
 \input{darais-latex-macros}
+\input{figures}
 
 \newcommand{\lang}{Allyn\xspace}
 \newcommand{\mpc}{\ensuremath{\lambda_{\mathrm{MPC}}}\xspace}
+\newcommand{\system}{\textsc{Symphony}\xspace}
 \newcommand{\obliv}{\ensuremath{\lambda_{\mathrm{Obliv}}}\xspace}
 
 \newcommand{\ins}[1]{\textcolor{red}{Ian: #1}}
@@ -38,6 +40,8 @@
 \definecolor{implColor}{HTML}{EA9999}
 \definecolor{theoryColor}{HTML}{A4C2F4}
 
+%\input{figures}
+
 \begin{document}
 
 \title{\lang: A Probabilistically Oblivious Language for Secure Multiparty Computation}
@@ -55,14 +59,15 @@
 \tableofcontents
 
 \input{01-intro.tex}
-\input{02-lam-mpc.tex}
-\input{03-lam-obliv.tex}
-\input{04-proposal.tex}
-\input{05-open-problems.tex}
+\input{02-overview.tex}
+\input{03-mpc.tex}
+\input{04-obliv.tex}
+\input{05-proposal.tex}
+\input{06-open-problems.tex}
 
 \appendix
 
-\input{06-gmw.tex}
-\input{07-oram.tex}
+\input{07-gmw.tex}
+\input{08-oram.tex}
 
 \end{document}
