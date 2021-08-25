@@ -316,3 +316,339 @@ D⁆
 \vspace*{-2ex}
 \end{figure*}
 }
+
+\newcommand\FigureMPCSemanticsDistributedSubset[2]{
+\begin{figure*}
+\begingroup
+\def\MathparLineskip{\lineskip=2pt}
+\setlength\arraycolsep{0pt} % default is 6pt
+\small
+D⁅
+\vspace*{-2ex}
+M⁅
+X⁅ ⇡.v ∈ ‹lval› ⩴ i⸢ψ⸣ ¦ p ¦ ℓ⸢⋕m⸣
+               ¦ ιᵢ␣⇡.v ¦ ⟨⇡.v,⇡.v⟩
+               ¦ ⟨λ⸤z⸥x⍪ e, ⇡.γ⟩
+               ¦ ★
+  ⩊
+  ⇡.ς ∈ ‹lconfig›  ⩴ m, ⇡.γ, ⇡.δ, ⇡.κ, e
+  ⩊
+    C ∈ ‹dconfig›  ≜ ‹party› ⇀ ‹lconfig›
+X⁆
+M⁆
+\hrule
+\vspace*{0.5ex}
+M⁅
+X⁅⩊
+   Rː⦗DS-Var⦘
+   R⁅ -------------------------------------------
+      ⇡.γ ⊢ₘ ⇡.δ,x ↪ ⇡.δ, ⇡.γ(x)
+   R⁆
+   ⩊
+   Rː⦗DS-Int-Binop⦘
+   R⁅ i₁⸢ψ⸣ = ⇡.γ(x₁)
+   R⁃ i₂⸢ψ⸣ = ⇡.γ(x₂)
+   R⁃ ⊢ₘ ψ
+      -------------------------------------------
+      ⇡.γ ⊢ₘ ⇡.δ,x₁⊙x₂ ↪ ⇡.δ,⟦⊙⟧(i₁,i₂)⸢ψ⸣
+   R⁆
+   ⩊
+   AːcA⁅ B⁅ ⇡.γ ⊢ₘ ⇡.δ,a ↪ ⇡.δ, ⇡.v B⁆ A⁃ ␣ A⁃ ␣ A⁃ ␣ A⁆
+X⁆
+M⁆
+\vspace*{-4ex}
+M⁅
+X⁅ ⩊
+   Rː⦗DS-Par⦘
+   R⁅ p = ⇡.γ(x)
+   R⁃ A ∈ p
+      -------------------------------------------
+      m,⇡.γ,⇡.δ,⇡.κ,⦑par⦒[x]␣e —→⸤A⸥ m∩p,⇡.γ,⇡.δ,⇡.κ,e
+   R⁆
+   ⩊
+   Rː⦗DS-ParEmpty⦘
+   R⁅ p = ⇡.γ(x)
+   R⁃ A ∉ p
+   R⁃ ⇡.γ′ = ❴x′↦★❵⊎⇡.γ
+      -------------------------------------------
+      m,⇡.γ,⇡.δ,⇡.κ,⦑par⦒[x]␣e —→⸤A⸥ m,⇡.γ′,⇡.δ,⇡.κ,x′
+   R⁆
+   ⩊
+   AːcA⁅ B⁅ ⇡.ς —→⸤A⸥ ⇡.ς B⁆ A⁃ ␣ A⁃ ␣ A⁃ ␣ A⁆
+X⁆
+M⁆
+\vspace*{-4ex}
+M⁅
+X⁅⩊B⁅ C ↝ C B⁆X⁆
+M⁆
+\vspace*{-5.5ex}
+P⁅
+Rː⦗DS-Step⦘
+   R⁅ ⇡.ς —→⸤A⸥ ⇡.ς′
+      ----------------
+      ❴A ↦ ⇡.ς ❵ ⊎ C ↝ ❴A ↦ ⇡.ς′ ❵ ⊎ C
+   R⁆
+P⁃ Rː⦗DS-Share⦘
+   R⁅{Aː[b]rcl
+     A⁅ ⦑share⦒[x₁ → x₂]␣x₃ ⧼=⧽ C(m).e
+      A⁃ p   ⧼=⧽ C(m).⇡.γ(x₁)
+      A⁃ q   ⧼=⧽ C(m).⇡.γ(x₂)
+      A⁃ i   ⧼=⧽ C(p).⇡.γ(x₃)
+      A⁆}
+   R⁃{Aː[b]rcl
+      A⁅ m     ⧼=⧽ C(m).m
+      A⁃ m     ⧼=⧽ p ∪ q
+      A⁃ q     ⧼≠⧽ ∅ ␠ |p| = 1
+      A⁃ p     ⧼⊆⧽ q
+      A⁆}
+    R⁃{Aː[b]rcl
+       A⁅ C′ = ⧼❴⧽ A ↦ (m,❴x↦⇡.v❵⊎⇡.γ,⇡.δ,⇡.κ,x)
+       A⁃      ⧼¦⧽ C(A) = (m,⇡.γ,⇡.δ,⇡.κ,e),
+       A⁃      ⧼ ⧽ A ∈ q ⟹ ⇡.v = i⸢⦑enc⦒⋕q⸣,
+       A⁃      ⧼ ⧽ A ∈ p ∧ A ∉ q ⟹ ⇡.v = ★ ❵
+       A⁆}
+      -------------------------------------------
+      C⸤0⸥ ⊎ C ↝ C⸤0⸥ ⊎ C′
+   R⁆
+P⁃ Rː⦗DS-Reveal⦘
+   R⁅{Aː[b]rcl
+     A⁅ ⦑reveal⦒[x₁ → x₂]␣x₃ ⧼=⧽ C(m).e
+      A⁃ p   ⧼=⧽ C(m).⇡.γ(x₁)
+      A⁃ q   ⧼=⧽ C(m).⇡.γ(x₂)
+      A⁃ i⸢⦑enc⦒⋕p⸣ ⧼=⧽ C(p).⇡.γ(x₃)
+      A⁆}
+   R⁃{Aː[b]rcl
+      A⁅ m ⧼=⧽ C(m).m
+      A⁃ q ⧼≠⧽ ∅
+      A⁃ m ⧼=⧽ p ∪ q
+      A⁆}
+    R⁃{Aː[b]rcl
+      A⁅ C′ = ⧼❴⧽ A ↦ (m,❴x↦⇡.v❵⊎⇡.γ,⇡.δ,⇡.κ,x)
+      A⁃      ⧼¦⧽ C(A) = (m,⇡.γ,⇡.δ,⇡.κ,e),
+      A⁃      ⧼ ⧽ A ∈ q ⟹ ⇡.v = i,
+      A⁃      ⧼ ⧽ A ∈ p ∧ A ∉ q ⟹ ⇡.v = ★ ❵
+      A⁆}
+      -------------------------------------------
+      C⸤0⸥ ⊎ C ↝ C⸤0⸥ ⊎ C′
+   R⁆
+P⁆
+\vspace*{-4ex}
+D⁆
+\endgroup
+\vspace*{-2ex}
+\caption{#2}
+\label{#1}
+\vspace*{-2ex}
+\end{figure*}
+}
+
+\newcommand\FigureMPCSemanticsDistributedAux[2]{
+\begin{figure*}
+\begingroup
+\setlength\arraycolsep{0pt} % default is 6pt
+\smaller
+ D⁅
+% M⁅
+% X⁅⩊
+%   Aːrclcl
+%   A⁅ ⇡.v ⧼∈⧽ ‹mtval› ⧼⩴⧽ i⸢ψ⸣ ¦ p ¦ ℓ⸢ω⸣
+%   A⁃   ⧼ ⧽           ⧼¦⧽ ιᵢ␣⇡.v ¦ ⟨⇡.v,⇡.v⟩
+%   A⁃   ⧼ ⧽           ⧼¦⧽ ⟨λ⸤z⸥x⍪ e, ⇡.γ⟩
+%   A⁃   ⧼ ⧽           ⧼¦⧽ ★
+%   A⁆
+%   ⩊
+%   Aːrclcl
+%   A⁅ ⇡.γ ⧼∈⧽ ‹mtenv›    ⧼≜⧽ ‹var› ⇀ ‹mtval›
+%   A⁃ ⇡.δ ⧼∈⧽ ‹mtstore›  ⧼≜⧽ ‹loc› ⇀ ‹mtval›
+%   A⁃ ⇡.κ ⧼∈⧽ ‹mtstack›  ⧼⩴⧽ ⊤ ¦ ⟨⦑let⦒␣x=□␣⦑in⦒␣e ¦ ⇡.γ⟩ ∷ ⇡.κ
+%   A⁃ C ⧼∈⧽ ‹mtconfig›   ⧼≜⧽ ‹party› ⇀ ‹mtenv› × ‹mtstore› × ‹mtstack› × ‹expr›
+%   A⁆
+%   ⩊
+% X⁆
+% M⁆
+M⁅X⁅⩊B⁅
+       ‗↯⸤A⸥ ∈ ‹loc-value› → ‹lvalue› ␣⨟␣ ‹value› → ‹lvalue›
+             ⨟ ‹env› → ‹lenv› ␣⨟␣ ‹store› → ‹lstore› ␣⨟␣ ‹stack› → ‹lstack›
+     B⁆X⁆M⁆
+%\vspace*{-1ex}
+M⁅
+X⁅⩊Aːrcl
+   A⁅ i⸢ψ⸣↯⸤A⸥         ⧼≜⧽ i⸢ψ⸣
+   A⁃ p↯⸤A⸥            ⧼≜⧽ p
+   A⁃ (ιᵢ␣v)↯⸤A⸥       ⧼≜⧽ ιᵢ␣v↯⸤A⸥
+   A⁆
+  ⩊Aːrcl
+   A⁅ ⟨v₂,v₂⟩↯⸤A⸥      ⧼≜⧽ ⟨v₁↯⸤A⸥,v₂↯⸤B⸥⟩
+   A⁃ ⟨λ⸤z⸥x⍪ e,γ⟩↯⸤A⸥ ⧼≜⧽ ⟨λ⸤z⸥x⍪ e,γ↯⸤A⸥⟩
+   A⁃ ℓ⸢⋕m⸣↯⸤A⸥         ⧼≜⧽ ℓ⸢⋕m⸣
+   A⁆
+  ⩊Aːrcl
+   A⁅ u@p↯⸤A⸥      ⧼≜⧽ ‘❴Aːl@{␠}l@{␠}l
+                         A⁅ u↯⸤A⸥ & «if» & A ∈ p
+                         A⁃ ★     & «if» & A ∉ p
+                         A⁆’.
+   A⁃ ★↯⸤A⸥        ⧼≜⧽ ★
+   A⁆
+  % ⩊Aːrcl
+  %  A⁅ (⦑RW⦒⋕m)↯⸤A⸥ ⧼≜⧽ ⦑RW⦒⋕(m∩❴A❵)
+  %  A⁃ ⦑RO⦒↯⸤A⸥     ⧼≜⧽ ⦑RO⦒
+  %  A⁆
+  ⩊Aːrcl
+   A⁅ γ↯⸤A⸥(x)     ⧼≜⧽ γ(x)↯⸤A⸥
+   A⁃ δ↯⸤A⸥(ℓ)     ⧼≜⧽ δ(ℓ)↯⸤A⸥
+   A⁆
+  ⩊
+X⁃
+X⁃⩊ ⊤↯⸤A⸥ ≜ ⊤
+  ⩊ (⟨⦑let⦒␣x=□␣⦑in⦒␣e ¦ m,γ⟩ ∷ κ)↯⸤A⸥ ≜ ⟨⦑let⦒␣x=□␣⦑in⦒␣e ¦ γ↯⸤A⸥⟩ ∷ κ↯⸤A⸥
+  ⩊
+X⁃
+X⁃⩊(m,γ,δ,κ,e)↯ ≜ ❴A ↦ m,γ↯⸤A⸥, δ↯⸤A⸥,κ↯⸤A⸥,e ¦ A ∈ m❵
+  ⩊B⁅‗↯ ∈ ‹config› → ‹mtconfig› B⁆
+% X⁃
+% X⁃ Rː⦗DS-Step⦘
+%    R⁅ ▷ ς
+%    R⁃ ς —→ ς′
+%       ----------------
+%       ς↯ ⊎ C ↝ ς′↯ ⊎ C
+%    R⁆
+%    ␣
+%    Aːl A⁅ B⁅ C ↝ C B⁆ A⁃ \vspace*{8ex} A⁆
+%    ⩊
+%    ⩊
+%    Rː⦗G-Atom⦘
+%    R⁅ γ ▷ₘ a
+%       -------------------
+%       ▷ m,γ,δ,κ,a
+%    R⁆
+%    ⩊
+%    Rː⦗G-NonAtom⦘
+%    R⁅ e ∉ ‹atom›
+%    R⁃ |m| = 1
+%       ---------------
+%       ▷ m,γ,δ,κ,e
+%    R⁆
+%    ␣
+%    Aːl A⁅ B⁅ ▷ ς B⁆ A⁃ \vspace*{8ex} A⁆
+%    ⩊
+%    ⩊
+%    Rː⦗G-Clear⦘
+%    R⁅ |m| = 1
+%       ---------------------
+%       ▷ₘ ⋅
+%    R⁆
+%    ⩊
+%    Rː⦗G-Enc⦘
+%    R⁅ ---------------
+%       ▷ₘ ⦑enc⦒⋕m
+%    R⁆
+%    ␣
+%    Aːl A⁅ B⁅▷ₘ ψ B⁆ A⁃ \vspace*{8ex} A⁆
+X⁆
+M⁆
+% \vspace*{-7ex}
+% M⁅X⁅⩊B⁅ γ ▷ₘ a B⁆X⁆M⁆
+% \vspace*{-5ex}
+% P⁅ Rː⦗G-Solo⦘
+%    R⁅ |m| = 1
+%       ----------------
+%      {Aː[t]rcl
+%       A⁅ γ ⧼▷ₘ⧽ x
+%       A⁃ γ ⧼▷ₘ⧽ i
+%       A⁆}
+%    R⁃{Aː[t]rcl
+%       A⁅ γ ⧼▷ₘ⧽ p
+%       A⁃ γ ⧼▷ₘ⧽ ιᵢ␣x
+%       A⁆}
+%    R⁃{Aː[t]rcl
+%       A⁅ γ ⧼▷ₘ⧽ ⟨x₁,x₂⟩
+%       A⁃ γ ⧼▷ₘ⧽ πᵢ␣x
+%       A⁆}
+%    R⁃{Aː[t]rcl
+%       A⁅ γ ⧼▷ₘ⧽ λ⸤z⸥x⍪ e
+%       A⁃ γ ⧼▷ₘ⧽ ⦑ref⦒␣x
+%       A⁆}
+%    R⁃{Aː[t]rcl
+%       A⁅ γ ⧼▷ₘ⧽ ¡x
+%       A⁃ γ ⧼▷ₘ⧽ x₁ ≔ x₂
+%       A⁆}
+%    R⁃{Aː[t]rcl
+%       A⁅ γ ⧼▷ₘ⧽ ⦑read⦒
+%       A⁃ γ ⧼▷ₘ⧽ ⦑write⦒␣x
+%       A⁆}
+%    R⁆
+% P⁃ Rː⦗G-Sync⦘
+%    R⁅ ---------------
+%       {Aːrcl
+%        A⁅ γ ⧼▷ₘ⧽ ⦑share⦒[x₁→x₂]␣x
+%        A⁃ γ ⧼▷ₘ⧽ ⦑reveal⦒[x₁→x₂]␣x
+%        A⁆}
+%    R⁆
+% P⁃ Rː⦗G-Binop⦘
+%    R⁅ γ(x₁)↙ₘ = i₁@⸢ψ⸣m
+%    R⁃ γ(x₂)↙ₘ = i₂@⸢ψ⸣m
+%    R⁃ ▷ₘ ψ
+%       ------------
+%       γ ▷ₘ x₁ ⊙ x₂
+%    R⁆
+% P⁃ Rː⦗G-Mux⦘
+%    R⁅ γ(x₁)↙ₘ = i₁⸢ψ⸣@m
+%    R⁃ γ(x₂)↙ₘ = i₂⸢ψ⸣@m
+%    R⁃ γ(x₃)↙ₘ = i₃⸢ψ⸣@m
+%    R⁃ ▷ₘ ψ
+%       ------------
+%       γ ▷ₘ x₁ ¿ x₂ ◇ x₃
+%    R⁆
+%P⁆
+%   \centering
+%   \begin{align*}
+%     % distributed values:
+%     v \in \mtvals ::= & i^{ \psi } \\
+%     |\ & \iota_i\ v \\
+%     |\ & \langle \eabs{z}{x}{e}, \gamma \rangle \\
+%     |\ & l^{ \omega } \\
+%     |\ & \efold{}{ v } \\
+%     |\ & \epair{ v }{ v } \\
+%     |\ & \vcrash \\
+%     % distributed environments:
+%     \gamma \in \mtenvs = & \mathrm{var} \rightharpoonup \mtvals \\
+%     % distributed stores:
+%     \delta \in \mtstores = & \mathrm{loc} \rightharpoonup \mtvals \\
+%     % distributed stacks:
+%     \kappa \in \mtstacks ::= & \top\ |\ \mtframe{x}{e_1}{\gamma} :: \kappa \\
+%     % distributed configurations:
+%     C \in \mtconfigs ::= & Parties \rightharpoonup %
+%                            \mtenvs \times \mtstores \times
+%                            \mtstacks \times \mathrm{expr} \\
+%     % slice values:
+%     \valslice{p}{ u @ m } ::= & \begin{cases}
+%       \locslice{p}{u} & \mathrm{if}\ p \in m \\
+%       \vcrash & \mathrm{if}\ p \notin m
+%     \end{cases} \\
+%     \valslice{p}{ \efold{}{v} } ::= & \efold{}{ (\valslice{p}{ v }) } \\
+%     \valslice{p}{ \epair{v_1}{v_2} } ::= & \epair{ \valslice{p}{ v_1 } }{ \valslice{p}{ v_2 } } \\
+%     \valslice{p}{ \vcrash } ::= & \vcrash \\
+%     % slice located values:
+%     \locslice{p}{ i^{\psi} } ::= & i^{\psi} \\
+%     \locslice{p}{ (\iota_i\ v) } ::= & \iota_i\ (\valslice{p}{ v }) \\
+%     \locslice{p}{ \langle \eabs{z}{x}{e}, \gamma \rangle } ::= & \langle \eabs{z}{x}{e}, \envslice{p}{\gamma} \rangle \\
+%     \locslice{p}{l} ::= & ... \\
+%     % slice environments:
+%     \envslice{p}{\gamma} ::= & \{ x \mapsto \valslice{p}{v}\ |\ x \mapsto v \in \gamma \} \\
+%     % slice stores:
+%     \storeslice{p}{\delta} ::= & \{ l \mapsto \valslice{p}{v}\ |\ l \mapsto v \in \delta \} \\
+%     % slice stacks:
+%     \stackslice{p}{ \top } ::= & \top \\
+%     \stackslice{p}{ (\stframe{x}{e_1}{m}{\gamma} :: \kappa) } ::= & \begin{cases}
+%       \mtframe{x}{e_1}{\envslice{p}{\gamma}} :: \stackslice{p}{ \kappa } & \mathrm{if}\ p \in m \\
+%       \stackslice{ p }{ \kappa } & \mathrm{if}\ p \notin m
+%     \end{cases}
+%   \end{align*}
+D⁆
+\endgroup
+\vspace*{-2ex}
+  \caption{#2}
+  \label{#1}
+\vspace*{-2ex}
+\end{figure*}
+}
