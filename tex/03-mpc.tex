@@ -485,7 +485,7 @@ call «stuck». Given this definition of terminal states, we are ready to
 state~\nameref{thm:mpc-simulation}:
 
 \begin{theorem}[Simulation (\mpc)]\label{thm:mpc-simulation}
-  If ⸨ς —→⋆ ς′⸩ then ⸨ς′⸩ is a terminal state and ⸨C = ς'↯⸩ ⸨⟺⸩ ⸨ς↯ ↝⋆ C ⸩ and ⸨ C ⸩ is a terminal state.
+  If ⸨ς —→⋆ ς'⸩ then ⸨ς′⸩ is a terminal state and ⸨C = ς'↯⸩ ⸨⟺⸩ ⸨ς↯ ↝⋆ C ⸩ and ⸨ C ⸩ is a terminal state.
 \end{theorem}
 
 A crucial aspect of the correspondence is that it only
@@ -497,4 +497,209 @@ holds for «successfully terminating» executions. This means the correspondence
 \section{Implementation}
 \label{sec:mpc-impl}
 
-\ins{TODO}
+The interpreter for \mpc, \system, was implemented in 4K lines of Haskell. The
+interpreter can run programs in sequential mode for prototyping and debugging,
+and distributed mode for actual MPC\@.
+%
+Full \system adds a number of features beyond \mpc, including booleans and a conditional
+expression; nested pattern-matching on pairs, sums, lists, principal
+sets and bundles;
+arrays (immutable vectors with O(1) lookup); and
+non-local control flow (e.g., early return).
+
+The \system interpreter provides a general interface for MPC
+protocols. The ⸨⦑share⦒⸩ primitive is extended thus:
+⸨⦑share⦒[φ,τ:P→Q]␣v⸩. Here, the metavariable ⸨φ⸩ denotes protocols
+(e.g., ⸨⦑yao⦒⸩) and the metavariable ⸨τ⸩ denotes types. A
+particular protocol implementation must provide operations for creating, combining,
+and revealing shares. Shares are an abstract data type, so each protocol is free to
+choose their own representation. So far we have only implemented
+two-party Yao's garbled circuits, linking to the EMP toolkit~\cite{emp-toolkit}.
+The share ADT for Yao the protocol is a foreign pointer to
+an EMP C++ object. All MPC operations on primitive types (i.e. booleans,
+naturals, integers, and floats) are implemented via FFI to their
+corresponding operations in C++. We are currently working on adding
+support for an N-party GMW backend.
+
+The interpreter also generalizes \mpc
+by allowing ⸨⦑mux⦒⸩, ⸨⦑case⦒⸩, ⸨⦑share⦒⸩ and ⸨⦑reveal⦒⸩ to operate
+recursively over on pairs, sums, and lists. It adds another expression,
+⸨⦑mux-case⦒⸩, for case analysis on encrypted sums, which are
+represented with pairs: \mpc value ⸨ι₀␣v⸩ is represented
+⸨⟨⦑true⦒,⟨v,⦑default⦒⟩⟩⸩ and value ⸨ι₁␣v⸩ is represented
+⸨⟨⦑false⦒,⟨⦑default⦒,v⟩⟩⸩, with each of the components encrypted. The value
+⸨⦑default⦒⸩ is to allow case analysis to proceed on \emph{both} branches of
+⸨⦑mux-case⦒⸩, as a kind of multiplexor. The precise value of ⸨⦑default⦒⸩ is
+determined when sharing, based on the type annotation on
+⸨⦑share⦒[φ{,}τ{:}P{→}Q]␣⦑default⦒⸩.
+
+The expressiveness of \system{} enables us to implement many convenient data structures
+and coordination patterns as libraries. We provide a standard library (about 800 LOC) for \system{}
+including (but not limited to) libraries for coordination (e.g., initializing a bundle from a principal
+set) and bounded recursion (for unrolling an MPC function).
+
+\subsection{Experimental Evaluation}
+\label{subsec:mpc-impl-eval}
+
+We evaluate \system for two reasons.
+The first is to demonstrate \system's expressivity.
+We do so by implementing interesting benchmark programs.
+The second is to demonstrate that Symphony does not introduce unreasonable performance overhead.
+We have argued that Symphony is highly expressive, but it is
+important that expressivity not come at significant performance cost.
+Our experiments show that Symphony, while slower than one state-of-the-art tool,
+is performant.
+
+\paragraph{Experimental Setup}
+
+To evaluate performance we compare \system with
+OblivC~\cite{cryptoeprint:2015:1153}.
+For fair comparison, both languages were configured to use EMP as their
+MPC backend; we extended OblivC to use EMP via its
+callback interface.
+
+We used both \system and OblivC to implement a benchmark suite of five
+programs:
+\begin{itemize}
+  \item \texttt{hamming} (from~\cite{10.1007/978-3-642-54807-9_15, CCS:ZhaSteBla13}, 12 LOC app, 0 LOC lib) finds the Hamming distance of two strings.
+  \item \texttt{bio-match} (from~\cite{CCS:BDKKS18}, 20
+LOC app, 16 LOC lib) finds the minimum Euclidean distance between a set of points
+(from ⸨ A ⸩) and a single point (from ⸨ B ⸩) in 2D space.
+  \item \texttt{db-analytics} (from~\cite{CCS:BDKKS18}, 35 LOC app, 8 LOC lib) computes the mean
+    and variance over the union and join of two databases.
+  \item \texttt{gcd-gc} (from~\cite{10.1145/3319535.3339818}, 11 LOC app, 11 LOC lib) determines the GCD of two numbers using Euclid's algorithm.
+  \item \texttt{edit-dist} (from~\cite{cryptoeprint:2015:1153}, 26 LOC app, 20 LOC lib) computes the edit distance, by dynamic
+    programming, between two strings.
+\end{itemize}
+We have also implemented trivial ORAM~\cite{10.1145/2810103.2813634}, insertion sort, and k-means~\cite{CCS:BDKKS18} in \system (but did not compare them against OblivC).
+
+Experiments were run on a 2019 MacBook Pro with a 2.8 GHz Quad-Core
+Intel Core i7 and 16GB of RAM (OSX 11.3.1).
+Experiments were run on two simulated networks:
+a LAN (1Gbps bandwidth, ⸨<⸩1ms RTT latency) and a WAN (100Mbps bandwidth, 50ms RTT latency).
+All experiments use 32-bit integers, except for \texttt{gcd-gc}
+which uses 64-bit integers.
+Reported execution times measure the end-to-end execution time of party ⸨ A ⸩ and were averaged over five samples.
+
+\begin{figure*}
+\includegraphics[width=.33\linewidth,align=t]{../figures/hamming.png}
+\includegraphics[width=.33\linewidth,align=t]{../figures/bio-matching.png}
+\includegraphics[width=.33\linewidth,align=t]{../figures/db-analytics.png}
+\includegraphics[width=.33\linewidth,align=t]{../figures/gcd-gc.png}
+\includegraphics[width=.33\linewidth,align=t]{../figures/edit-distance.png}
+\includegraphics[width=.265\linewidth,align=t]{../figures/legend.png}
+\caption{%
+  End-to-end execution time (in seconds) of benchmarks, averaged over five samples.
+  \textbf{LAN} is a simulated 1gbps connection with no delay. \textbf{WAN} is a simulated 100Mbps
+  connection with a 50ms RTT latency. \textbf{Yao} and \textbf{Plain} protocols use EMP's \texttt{sh2pc}
+  (semi-honest, two-party) and \texttt{plain} protocols respectively. \system{} uses EMP's Integer
+  interface. OblivC uses EMP's Bit interface (compiling integer operations to circuits).
+  Input sizes for all the benchmarks indicate the
+  length of the list(s) provided as input, except for \texttt{gcd-gc} where the input size indicates
+  the number of iterations of the GCD algorithm.
+}\label{fig:mpc-impl-eval-etoe}
+\end{figure*}
+
+\paragraph{Runtime Performance}
+
+Figure~\ref{fig:mpc-impl-eval-etoe} plots the end-to-end execution time of \system{}
+and OblivC on the benchmarks. These results suggest that, as compared to OblivC,
+\system imposes acceptable overhead. There are two primary sources for this overhead:
+
+First, \system supports arbitrary numbers of parties while OblivC supports only two.
+      This is significant because \system performs frequent runtime checks on the parties in scope.
+      Since \system supports an arbitrary number of possible parties, we
+      represent the parties in scope as a set (implemented by a balanced tree
+      data structure).
+      Thus checks on principals are implemented by set operations.
+      OblivC also performs certain checks on parties but, since only two
+      parties are supported, these are implemented as simple integer equality
+      checks.
+
+Second, our \system programs use linked lists and pattern matching while our
+OblivC programs use arrays.  We believe that this is the dominant source of
+overhead, and can be mitigated by rewriting \system programs to use arrays.
+
+Comparing the LAN and WAN benchmarks confirms that the language overhead imposed by \system{} is dominated by
+the time it takes to perform network communication during a WAN deployment of MPC. We believe \system{} is faster than OblivC in the WAN setting
+due to its use of the EMP Integer interface, which uses the network
+more efficiently than the Bit interface used by OblivC's callback
+mechanism, and consequently the EMP backend for OblivC.
+
+\paragraph{Generated Circuit Sizes}
+
+\begin{table*}
+  \centering
+  \smaller
+\begin{tabular}{ l l l l l l l l }
+\hline \hline
+& & \multicolumn{2}{c}{OblivC} & \multicolumn{2}{c}{\system{}} & \multicolumn{2}{c}{$\Delta$ (OblivC - \system{})} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(l){7-8}
+Benchmark & Input Size & AND Gates & XOR Gates & AND Gates & XOR Gates & AND Gates & XOR Gates \\
+\hline
+Hamming Dist. & 10000 & 1249875  & 3159595  & 950000   & 2550000  & 299875  & 609595   \\
+              & 20000 & 2499875  & 6319595  & 1900000  & 5100000  & 599875  & 1219595  \\
+              & 30000 & 3749875  & 9479595  & 2850000  & 7650000  & 899875  & 1829595  \\
+              & 40000 & 4999875  & 12639595 & 3800000  & 10200000 & 1199875 & 2439595  \\
+              & 50000 & 6249875  & 15799595 & 4750000  & 12750000 & 1499875 & 3049595  \\
+\hline
+Bio. Matching & 100   & 2617868  & 6353496  & 2675500  & 8007000  & -57632  & -1653504 \\
+              & 200   & 5235768  & 12706996 & 5351000  & 16014000 & -115232 & -3307004 \\
+              & 300   & 7853668  & 19060496 & 8026500  & 24021000 & -172832 & -4960504 \\
+              & 400   & 10471568 & 25413996 & 10702000 & 32028000 & -230432 & -6614004 \\
+              & 500   & 13089468 & 31767496 & 13377500 & 40035000 & -288032 & -8267504 \\
+\hline
+DB Analytics  & 60    & 4609304  & 9569553  & 4732457  & 10425422 & -123153 & -855869  \\
+              & 70    & 6246968  & 12970159 & 6413597  & 14128242 & -166629 & -1158083 \\
+              & 80    & 8133020  & 16886701 & 8349937  & 18393262 & -216917 & -1506561 \\
+              & 90    & 10268008 & 21320663 & 10541477 & 23220482 & -273469 & -1899819 \\
+              & 100   & 12651370 & 26270229 & 12988217 & 28609902 & -336847 & -2339673 \\
+\hline
+GCD           & 500   & 2360091  & 6735821  & 2302192  & 6910016  & 57899   & -174195  \\
+              & 600   & 2832991  & 8085621  & 2762592  & 8291916  & 70399   & -206295  \\
+              & 700   & 3305891  & 9435421  & 3222992  & 9673816  & 82899   & -238395  \\
+              & 800   & 3778791  & 10785221 & 3683392  & 11055716 & 95399   & -270495  \\
+              & 900   & 4251691  & 12135021 & 4143792  & 12437616 & 107899  & -302595  \\
+\hline
+Edit Dist.    & 50    & 780882   & 1704539  & 637372   & 1779607  & 143510  & -75068   \\
+              & 80    & 2003142  & 4378936  & 1631872  & 4556407  & 371270  & -177471  \\
+              & 110   & 3790602  & 8291824  & 3085372  & 8614807  & 705230  & -322983  \\
+              & 140   & 6143262  & 13443100 & 4997872  & 13954807 & 1145390 & -511707  \\
+              & 170   & 9061122  & 19832759 & 7369372  & 20576407 & 1691750 & -743648  \\
+\hline
+\end{tabular}
+\caption{%
+  \textnormal{
+  Gate counts (AND and XOR) of select benchmark programs. \textbf{Input Size} for Hamming Dist.,
+  Bio. Matching, DB Analytics, and Edit Dist. is the length of the input lists. For GCD, it is
+  the maximum number of GCD iterations. Gate counts were collected by modifying EMP to record
+  AND or XOR gate execution. \system{} uses EMP's Integer interface where applicable,
+  OblivC uses EMP's Bit interface (compiling integer operations to circuits).
+  }
+}
+\label{tab:mpc-impl-eval-gates}
+\end{table*}
+
+As a second experiment, we instrumented the EMP backend to count the number of utilized AND and XOR gates.
+Counting gates is primarily a sanity check that ensures \system is not
+erroneously introducing large numbers of unneeded gates.
+~\Cref{tab:mpc-impl-eval-gates} tabulates the number of
+AND and XOR gates generated by \system{} and by OblivC.
+The gate counts generated by \system{} and
+OblivC are very similar, with differences caused by using the EMP
+Integer interface vs OblivC compiling to the Bit interface (as
+required by its callback mechanism. The optimizations
+performed by EMP's circuit compiler and OblivC's circuit compiler are similar,
+but not identical.
+
+\paragraph{Experimental Conclusions}
+Overall, our experiments indicate that the langauge design itself does not
+impose significant overhead on either end-to-end execution time or generated
+circuit sizes.
+At the same time, \system{} is more expressive than frameworks like
+OblivC (e.g., by allowing $N$ parties interleave many secure and cleartext computations)
+and safer (e.g., by guaranteeing that the distributed deployment matches local
+development). We leave a more sophisticated implementation which leverages
+compilation, compiler optimizations, and mutable arrays, as future work. We
+conjecture that such an implementation would be quite competitive with existing
+state-of-the-art MPC languages.
