@@ -91,18 +91,20 @@ In summary, we would like a modern MPC language to satisfy the following propert
 \section{Proposed Work}
 \label{sec:intro-proposal}
 
+\mwh{You should be including Symphony as part of your contribution. You had a big part to play in this work. It will be in no one else's thesis but yours. You are going to make a static type system for it, so that's also part of your thesis and should be here.}
+
 \paragraph{Hypothesis.} It is possible to design and implement an efficient language for MPC which is \textbf{Abstractly Sequential},
 \textbf{Probabilistic}, and \textbf{High Assurance} (as defined above).
 
-\paragraph{Contribution: \obliv is PMTO.} In prior work, we show that ObliVM's~\cite{todo} type system is not oblivious,
+\paragraph{Contribution: \obliv is PMTO.} In prior work \mwh{This prior work is work that will be part of your thesis. So call it ``initial work'' or ``already completed work'' so we are clear that you including this as your contribution, which we are assessing}, we show that ObliVM's~\cite{todo} type system is not oblivious,
 and show how to fix it in such a way that is satisfies \emph{Probabilistic Memory Trace Obliviousness} (PMTO).
 We prove this property for \obliv, a non-MPC language for oblivious programming.
 
 \paragraph{Contribution: \mpc is MTO\%.} In ongoing work, we show that \mpc's type system guarantees that MPC programs are
 \emph{Memory Trace Oblivious Modulo Declassifications} (MTO\%). To our knowledge, this is the first time such a theorem has been
-proved for an MPC language. The SCVM language has a proof of a related property based on crypto-style ``simulation.''
+proved for an MPC language. The SCVM language \mwh{CITE} has a proof of a related property based on crypto-style ``simulation.''
 
-\paragraph{Contribution: Identifying PMTO\%.} We identify and define \emph{Probabilistic Memory Trace Oblivious Modulo Declassification}
+\paragraph{Contribution: Identifying PMTO\%.} We identify and define \emph{Probabilistic Memory Trace Obliviousness Modulo Declassification}
 (PMTO\%) as an appropriate definition of security for probabilistic MPC languages. We also investigate and explicate the connection between
 this property and other common security properties involving declassifications (such as Gradual Release~\cite{todo}).
 

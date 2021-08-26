@@ -106,6 +106,12 @@ the programmer does not need to perform commands conditionally on which party is
 Obliv-C implementation of the Millionaire's Problem in~\Cref{fig:millionaires-oblivc} with the \mpc implementation
 in~\Cref{fig:millionaires-symphony}.
 
+\mwh{But this program basically is abstractly sequential, because all
+  parties will run literally the same code, which is doing the same
+  thing. You need something like MMM to point out Obliv-C's
+  failings. In sum: This example shows that Obliv-C is ugly, but
+  doesn't make your case about abstract sequentiality.}
+
 \begin{figure}[h]
 \begin{lstlisting}[language=c,basicstyle=\footnotesize\ttfamily,numbers=left,stepnumber=1]
   // File: million.h
