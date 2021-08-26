@@ -510,7 +510,7 @@ M⁅X⁅⩊ Aːrcrcl@{␠}l
       A⁃     ⧼ ⧽           ⧼¦⧽ τ → τ                           & ⟪function⟫
       A⁆
     ⩊ Aːrcl@{␠}l
-      A⁅ e ∈ ‹exp›  ⧼⩴⧽ v                               & ⟪value expressions⟫
+      A⁅ e ∈ ‹exp›  ⧼⩴⧽ v                       & ⟪value expressions⟫
       A⁃     ⧼¦⧽ b⸤ℓ⸥                            & ⟪bit literal⟫
       A⁃     ⧼¦⧽ ⦑flip⦒⸢ρ⸣()                     & ⟪coin flip in region⟫
       A⁃     ⧼¦⧽ ⦑cast⦒⸤l⸥(v)                    & ⟪cast flip to bit⟫
@@ -833,4 +833,63 @@ M⁆
 \caption{#2}
 \label{#1}
 \end{figure*} % }}}
+}
+
+
+\newcommand\FigureLangSyntax[2]{
+\begin{figure*} % {{{ Adversary
+\small
+D⁅
+M⁅
+Aːrcrcl@{␠}l
+A⁅ b     ⧼∈⧽ 𝔹            ⧼ ⧽                                & ⟪booleans⟫
+A⁃ i     ⧼∈⧽ ℤ            ⧼ ⧽                                & ⟪integers⟫
+A⁃ A,B,C ⧼∈⧽ ‹party›      ⧼ ⧽                                & ⟪parties⟫
+A⁃ m,p,q ⧼∈⧽ ‹party-set›  ⧼≜⧽ ℘(‹party›) ⩴ ❴A,…,A❵          & ⟪sets of parties⟫
+A⁃ ρ     ⧼∈⧽ R            ⧼ ⧽                                & ⟪probability region⟫
+A⁃ φ     ⧼∈⧽ ‹prob›       ⧼⩴⧽ ⦑\faThumbsDown⦒               & ⟪non-uniform⟫
+A⁃       ⧼ ⧽              ⧼¦⧽  ⦑\faThumbsUp⦒                 & ⟪uniform⟫
+A⁃ ψ     ⧼∈⧽ ‹prot›       ⧼⩴⧽ ⋅                             & ⟪cleartext⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑enc⦒⋕m                        & ⟪encrypted⟫
+A⁃ μ     ⧼∈⧽ ‹base-type›  ⧼⩴⧽ ⦑int⦒                         & ⟪integer type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑bool⦒                         & ⟪boolean type⟫
+A⁃ σ     ⧼∈⧽ ‹loc-type›   ⧼⩴⧽ μ⸢φ ; ρ ; ψ⸣                  & ⟪protocol type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑prins⦒                        & ⟪principal set type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ τ + τ                          & ⟪sum type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ τ × τ                          & ⟪pair type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑ref⦒ τ                        & ⟪reference type⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ τ ᵐ→ τ                         & ⟪function type⟫
+A⁃ τ     ⧼∈⧽ ‹type›       ⧼⩴⧽ σ@m                           & ⟪located type⟫
+A⁃ x,y,z ⧼∈⧽ ‹var›        ⧼ ⧽                                & ⟪variables⟫
+A⁃ ⊙     ⧼∈⧽ ‹binop›      ⧼ ⧽                                & ⟪binary operations (e.g., plus, times)⟫
+A⁃ e     ⧼∈⧽ ‹expr›       ⧼⩴⧽ x                             & ⟪variable reference⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ i                              & ⟪integer literal⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ b                              & ⟪boolean literal⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ p                              & ⟪party set literal⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ e ⊙ e                          & ⟪binary operation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑if⦒␣e␣⦑then⦒␣e␣⦑else⦒␣e       & ⟪branch conditional⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ e ¿ e ◇ e                      & ⟪atomic conditional⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ιᵢ␣e                           & ⟪sum injection⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑case⦒␣e␣❴⇡-x.e❵❴⇡-x.e❵        & ⟪elim for sums, psets⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⟨e,e⟩                          & ⟪pair creation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ πᵢ␣e                           & ⟪pair projection⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑ref⦒␣x                        & ⟪reference creation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ¡x                             & ⟪dereference⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ x ≔ x                          & ⟪reference assignment⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ λ⸤z⸥(x:τ)⍪ e                   & ⟪(recursive) function creation⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ e␣e                            & ⟪function elimination⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑let⦒␣x=e␣⦑in⦒␣e               & ⟪let binding⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑par⦒[e]␣e                     & ⟪parallel execution⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑read⦒␣μ                       & ⟪read int input⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑write⦒␣e                      & ⟪write output⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑share⦒[e→e]␣e                 & ⟪share encrypted value⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑reveal⦒⸤b⸥[e→e]␣e             & ⟪reveal encrypted value⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑unif⦒⸢ρ⸣␣μ                    & ⟪uniform, random sample in region⟫
+A⁃       ⧼ ⧽              ⧼¦⧽ ⦑observe⦒␣e                    & ⟪cast distribution to base value⟫
+A⁆
+M⁆
+D⁆
+\caption{#2}
+\label{#1}
+\end{figure*}
 }

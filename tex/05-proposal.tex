@@ -1,110 +1,142 @@
 \chapter{Proposal: \lang, A Secure MPC Language With User-Defined ORAM}
 \label{ch:proposal}
 
-\ins{Just describe the language as best you can, and then imagine doing the actual work and anticipate, write down issues.
-  For example, when describing re-establishing simulation, describe issue w/ making sequential interpretation probabilistic.
-  Should we allow uniform, random stuff which is not secret shared? Arguments for yes: labels are a combination of locatedness
-  and protocol. Arguments for no: involves communicating between parties w/o secret sharing, also may not be useful.
-  How do we establish PMTO\% when we are allowed to cast uniform values to public? It was important in lam-obliv that when you
-  casted to secret that implied the value wouldn't be revealed.}
-
-
-
-We will construct the \lang language by adding two features from the \obliv language to \mpc. In particular, \mpc lacks
-the ability to draw uniform, random samples and to mark a revelation (declassification) as oblivious.
-
-Having seen \mpc and \obliv formally, we are now in a position to explain how the MPC language, \lang, will be constructed.
-We will start by making \lang \textbf{probabilistic} by extending \mpc with a feature for uniform, random sampling. This new
-feature will be analogous to the ⸨⦑unif⦒⸩ feature of \obliv. By extending \mpc we expect that the language will already be ``mostly''
-\textbf{abstractly centralized}. However, we will need to establish this formally by proving that \lang satisfies an appropriate
-version of the~\nameref{thm:mpc-simulation} theorem from~\cref{sec:lam-mpc-simulation}. Finally, \lang will be made
-\textbf{high assurance} by extending \lang with a feature for zero-information declassification of random values. This feature
-is analogous to the ⸨⦑cast⦒⸩ feature of \obliv. We intend for the type system to ensure that uses of ⸨⦑cast⦒⸩ are appropriate
---- i.e. that they really don't reveal any information to other parties. Achieving this will require updating the type system
-of \lang with the affinity and probability region features of the \obliv language. Again, we will need to establish that the
-type system achieves its goal by proving~\nameref{thm:lang-pmto}.
-
-As a means of confirming that \lang is useful, we will build on the existing Haskell implementation of \mpc. That implementation
-includes only a centralized interpreter which does not actually perform any MPC. Adding on to this centralized interpreter, we will
-add a distributed interpreter which uses the EMP MPC framework as the MPC backend. Finally, we will implement a type checker based
-on the formal type system. Having done this, we will implement a number of case studies in \lang. At a minimum, we will implement
-the ORAM schemes described in~\cref{ch:oram} --- Trivial ORAM, Circuit ORAM, and Recursive (Circuit) ORAM. Having done so, we will
-have confirmed our type system is expressive enough to type check state of the art ORAM protocols. Finally, using our distributed
-interpreter we will confirm that the ORAM schemes have the expected asymptotic complexity (and should therefore be competitive with
-the ORAM protocols in existing languages like Obliv-C and SCALE-MAMBA).
+Up to this point, we have seen two languages (\mpc and \obliv) which, individually, have all the language
+features that we are interested in. \obliv is \textbf{Probabilistic} and \textbf{High Assurance} while \mpc
+is designed for MPC and \textbf{Abstractly Sequential}. The purpose of \lang is to unify these two languages
+into a single MPC language satisfying all three properties. In this chapter, we formally propose \lang and
+provide sketch of how it could be designed and implemented. Along the way, we point out potential difficulties
+and hypothesize about how to overcome them.
 
 \section{Design}
+\label{sec:proposal-design}
 
-The syntax of \lang is shown in~\cref{fig:lang-syntax}. The security label lattice is the same as
-the \mpc language. Labels are a combination of location and protocol. As such, we no longer need the ⸨‹P›⸩ and ⸨‹S›⸩ labels
-of \obliv. \lang takes the uniform type of \obliv and adds a protocol to it, ⸨⦑½⦒ μ⸢ρ ; ψ⸣⸩, indicating that random values
-can be shared. The atomic conditional works as described in \obliv, returning a tuple of its arguments in-order if the guard
-is true, and permuted otherwise. As in \obliv, this is necessary in an affine type system. Tuple elimination is now by
-pattern-matching instead of projection, again for compatibility with affinity. The only non-trivial change is the additon of
-uniform sampling, ⸨⦑unif⦒⸢ρ⸣␣μ⸩, and casting, ⸨⦑cast⦒⸤ψ⸥[p]␣x⸩.
+The formal language design for \lang consists of the syntax (\Cref{fig:lang-syntax}), type system (\Cref{fig:lang-types}),
+a probabilistic sequential semantics (\Cref{fig:lang-seq}), and a probabilistic distributed semantics (\Cref{fig:lang-dist}).
+The type system should be sound, and additionally it should enforce~\nameref{thm:lang-pmto}. We claim that~\nameref{thm:lang-pmto}
+is the appropriate extension of \obliv's~\nameref{thm:obliv-pmto} to the MPC setting. The ``\%" should be read as ``modulo'' and refers
+to the PMTO proerty being generalized to handle declassifications. The last theorem we expect \lang to satisfy is~\nameref{thm:lang-simulation}
+which is the appropriate extension of \mpc's~\nameref{thm:mpc-simulation} to the probabilistic setting.
 
-\ins{observation: pmto is hard when you are allowed to declassify b/c casting to secret doesn't imply that value will never be revealed.} \\
+\FigureLangSyntax{fig:lang-syntax}{\lang formal syntax.}
 
-\ins{The goal is to sufficiently explain~\nameref{thm:lang-simulation} and~\nameref{thm:lang-pmto}.}
+\subsection{Syntax}
+\label{subsec:proposal-design-syntax}
 
-\begin{theorem}[Simulation (\lang)]\label{thm:lang-simulation}
-    If ⸨ς : τ⸩ then ⸨ς —→⋆ ⇡~{ς'}⸩ and ⸨⇡~{ς'}⸩ is terminal ⸨⟺⸩ ⸨ς↯ ↝⋆ ⇡~{ς'}↯⸩ and ⸨⇡~{ς'}↯⸩ is terminal.
-\end{theorem}
+The proposed syntax of \lang is in~\Cref{fig:lang-syntax}. The syntax of \lang builds primarily
+on that of \mpc (\Cref{fig:mpc-syntax}), with the addition of some features from \obliv (\Cref{fig:obliv-syntax}).
+The syntax is not presented in ANF (as \mpc was) for clarity. In the future, we will likely transition
+to ANF to simplify the metatheory.
 
-\begin{theorem}[PMTO\%] \label{thm:lang-pmto}
-  If ⸨ς₁ : τ⸩, ⸨ς₂ : τ⸩, ⸨ς₁ ≈⸤l⸥ ς₂⸩, ⸨ς₁ —→⋆ ⇡~{t₁}⸩, ⸨ς₂ —→⋆ ⇡~{t₂}⸩, and ⸨R⸤l⸥(⇡~{t₁}) = R⸤l⸥(⇡~{t₂})⸩, then ⸨⇡~{t₁} ⇡~≈⸤l⸥ ⇡~{t₂}⸩.
-\end{theorem}
+Most of \lang's expressions are standard and work identically to \mpc and \obliv.
+We have variables ⸨x⸩; integers ⸨i⸩; booleans ⸨b⸩; party sets ⸨p⸩;
+binary operations ⸨e ⊙ e⸩;
+conditionals ⸨⦑if⦒␣e␣⦑then⦒␣e␣⦑else⦒␣e⸩; multiplexors ⸨e ¿ e ◇ e⸩;
+sum creation ⸨ιᵢ␣e⸩ and elimination ⸨⦑case⦒␣x␣❴y⍪e⸤1⸥❵␣❴y⍪e⸤2⸥❵⸩;
+pair creation ⸨⟨e,e⟩⸩ and elimination ⸨πᵢ␣e⸩;
+reference creation ⸨⦑ref⦒␣e⸩, dereference ⸨¡x⸩, and assignment ⸨x ≔ y⸩;
+function creation ⸨λ⸤z⸥x⍪ e⸩ and application ⸨x␣y⸩;
+local variable binding ⸨⦑let⦒␣x=e⸤1⸥␣⦑in⦒␣e⸤2⸥⸩;
+par(allel) execution ⸨⦑par⦒[e]␣e⸩;
+local read ⸨⦑read⦒␣μ⸩ and write ⸨⦑write⦒␣e⸩;
+MPC share ⸨⦑share⦒[e→e]␣e⸩ and reveal ⸨⦑reveal⦒⸤b⸥[e]␣e⸩;
+uniform distributions ⸨⦑unif⦒⸢ρ⸣␣μ⸩;
+and observation of distributions ⸨⦑observe⦒␣e⸩.
 
-F⁅
-\begingroup
-\setlength\arraycolsep{0pt} % default is 6pt
-\smaller
-D⁅
-M⁅
-Aːrcrcl@{␠}l
-A⁅ b     ⧼∈⧽ 𝔹            ⧼ ⧽                                & ⟪booleans⟫
-A⁃ i     ⧼∈⧽ ℤ            ⧼ ⧽                                & ⟪integers⟫
-A⁃ A,B,C ⧼∈⧽ ‹party›      ⧼ ⧽                                & ⟪parties⟫
-A⁃ m,p,q ⧼∈⧽ ‹party-set›  ⧼≜⧽ ℘(‹party›) ⩴ ❴A,…,A❵          & ⟪sets of parties⟫
-A⁃ ρ     ⧼∈⧽ R           ⧼ ⧽                                 & ⟪probability region⟫
-A⁃ ψ     ⧼∈⧽ ‹prot›       ⧼⩴⧽ ⋅                             & ⟪cleartext⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑enc⦒⋕m                        & ⟪encrypted⟫
-A⁃ μ     ⧼∈⧽ ‹base-type›  ⧼⩴⧽ ⦑int⦒                         & ⟪integer type⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑bool⦒                         & ⟪boolean type⟫
-A⁃ σ     ⧼∈⧽ ‹loc-type›   ⧼⩴⧽ μ⸢ρ ; ψ⸣                      & ⟪protocol type⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑½⦒ μ⸢ρ ; ψ⸣                   & ⟪uniform type⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ τ ᵐ→ τ                         & ⟪function type⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ τ × τ                          & ⟪pair type⟫
-A⁃ τ     ⧼∈⧽ ‹type›       ⧼⩴⧽ σ@m                           & ⟪located type⟫
-A⁃ x,y,z ⧼∈⧽ ‹var›        ⧼ ⧽                                & ⟪variables⟫
-A⁃ ⊙     ⧼∈⧽ ‹binop›      ⧼ ⧽                                & ⟪binary operations (e.g., plus, times)⟫
-A⁃ e     ⧼∈⧽ ‹expr›       ⧼⩴⧽ x                             & ⟪variable reference⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ i                              & ⟪integer literal⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ b                              & ⟪boolean literal⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ e ⊙ e                          & ⟪binary operation⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ e ¿ e ◇ e                      & ⟪atomic conditional⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⟨e,e⟩                          & ⟪pair creation⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑let⦒␣x,y = e␣⦑in⦒␣e           & ⟪tuple elimination⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑par⦒[p]␣e                     & ⟪parallel execution⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑read⦒␣μ                       & ⟪read int input⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑write⦒␣e                      & ⟪write output⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑embed⦒[p]␣e                   & ⟪encrypted a known constant⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑share⦒[p→p]␣e                 & ⟪share encrypted value⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑declassify⦒[p]␣e              & ⟪declassify encrypted value⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑unif⦒⸢ρ⸣␣μ                    & ⟪uniform, random sample in region⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑cast⦒⸤ψ⸥[p]␣x                 & ⟪cast from uniform⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ λ⸤z⸥x⍪ e                       & ⟪(recursive) function creation⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ e␣e                            & ⟪function elimination⟫
-A⁃       ⧼ ⧽              ⧼¦⧽ ⦑let⦒␣x=e␣⦑in⦒␣e               & ⟪let binding⟫
-A⁆
-M⁆
-D⁆
-\endgroup
-\caption{\mpc Syntax}
-\label{fig:lang-syntax}
-F⁆
+Literals no longer have a label ⸨l⸩ attached to them. Instead, we use
+the combination of the location annotation ⸨@m⸩ and protocol annotation
+⸨ψ⸩ as the information flow label.
+The multiplexor, ⸨e₁ ¿ e₂ ◇ e₃⸩, works as in \mpc evaluating to either
+⸨v₂⸩ or ⸨v₃⸩. The \obliv multiplexor can be encoded as
+⸨e₁ ¿ e₂ ◇ e₃ ⩴ e₁ ¿ ⟨e₂,e₃⟩ ◇ ⟨e₃,e₂⟩⸩. Pairs are eliminated using
+projection ⸨πᵢ⸩ as in \mpc rather than with pattern matching ⸨⦑let⦒␣x,y = e␣⦑in⦒␣e⸩
+as in \obliv. The local read operation ⸨⦑read⦒␣μ⸩ takes a base type ⸨μ⸩ which is
+type we expect to read. The reveal expression ⸨⦑reveal⦒⸤b⸥[e]␣e⸩ takes a boolean
+⸨b⸩ indicating if the revelation is expected to be benign (zero-leakage). When
+⸨b = ⦑true⦒⸩, we can think of this as acting like ⸨⦑cast⦒⸤‹P›⸥⸩ in \obliv. We rename
+the ⸨⦑flip⦒⸢ρ⸣()⸩ expression from \obliv to ⸨⦑unif⦒⸢ρ⸣␣μ⸩ because we may generate
+uniform booleans or integers. Finally, the ⸨⦑observe⦒␣e⸩ expression acts like ⸨⦑cast⦒⸤‹S›⸥⸩
+from \obliv taking a uniform value and ``observing'' the underlying sample.
+
+Types ⸨τ⸩ have location annotations, just like the values in the sequential semantics of \mpc (\Cref{fig:mpc-seq-aux}).
+The located types ⸨σ⸩ refer recursively to types ⸨τ⸩. ⸨⦑prins⦒⸩ is the type of principal sets. The mode annotation ⸨m⸩ on function types ⸨τ ᵐ→ τ⸩ is the static
+analog of the mode captured by closures in \mpc. Finally, our base types ⸨μ⸩ are augmented with three annotations. The probability
+annotation, ⸨φ⸩, indicates whether this type is uniform or not. ⸨⦑\faThumbsUp⦒⸩ indicates a uniform type (⸨⦑flip⦒⸩ in
+\obliv) and ⸨⦑\faThumbsDown⦒⸩ indicates a non-uniform type (⸨⦑bit⦒⸩ in \obliv). The probability region annotation, ⸨ρ⸩,
+serves the same purpose as the annotation on the ⸨⦑flip⦒⸩ and ⸨⦑bit⦒⸩ types in \obliv. The protocol annotation, ⸨ψ⸩,
+serves the same purpose as the protocol annotation in \mpc. So, for example, the ⸨⦑flip⦒⸢ρ⸣⸩ type from \obliv can be
+represented as ⸨⦑bool⦒⸢⦑\faThumbsUp⦒ ; ρ ; ⋅⸣⸩ in \lang. This also allows us to represent, for example, the type
+of encrypted uniform distributions of type ⸨μ⸩ among parties ⸨m⸩: ⸨μ⸢⦑\faThumbsUp⦒ ; ρ ; ⦑enc⦒⋕m⸣⸩. We can
+also encode types representable in \mpc. For example, ⸨⦑int⦒⸢⦑\faThumbsDown⦒ ; ⊥ ; ⦑enc⦒⋕m⸣⸩, the type of non-random
+(⸨⊥⸩) integers encrypted among parties ⸨m⸩.
+
+\subsection{Sequential Semantics}
+\label{subsec:proposal-design-seq}
+
+We expect the sequential semantics of \lang to be a standard combination of the sequential
+semantics of \mpc (\Cref{fig:mpc-seq}) and \obliv (\Cref{fig:obliv-sem}). In particular, we
+expect to be able to take the sequential semantics of \mpc suitably extended and lift them
+to the probabilistic setting by defining a monadic semantics in the style of \obliv in which
+each \mpc rule corresponds to a \lang rule that produces a point distribution (⸨‹return›⸩ in
+the Giry monad). For example, here's two candidate rules for introducing pairs and performing
+a zero-information revelation.
+
+P⁅ Rː⦗Allyn-Pair⦘
+   R⁅{Aːrcl
+      A⁅ v₁ ⧼=⧽ γ(x₁)↙⸤m⸥
+      A⁃ v₂ ⧼=⧽ γ(x₂)↙⸤m⸥
+      A⁆}
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,⟨x₁,x₂⟩ ↪ ‹return›(δ,⟨v₁,v₂⟩@m)
+      R⁆
+P⁃ Rː⦗Allyn-Reveal-True⦘
+   R⁅{Aː[b]rcl
+      A⁅ p@m          ⧼=⧽ γ(x₁)↙⸤m⸥
+      A⁃ q@m          ⧼=⧽ γ(x₂)↙⸤m⸥
+      A⁃ i⸢⦑\faThumbsUp⦒ ; ⦑enc⦒⋕p⸣@p ⧼=⧽ γ(x₃)↙⸤p⸥
+      A⁆}
+   R⁃{Aː[b]rcl
+      A⁅ q ⧼≠⧽ ∅
+      A⁃ m ⧼=⧽ p ∪ q
+      A⁆}
+      -------------------------------------------
+      γ ⊢⸤m⸥ δ,⦑reveal⦒⸤⦑true⦒⸥[x₁→x₂]␣x₃ ↪ ‹return›(δ,i⸢⦑\faThumbsDown⦒⸣@q)
+   R⁆
+P⁆
+
+We expect most rules to follow this adaptation pattern. However, one design decision
+that must be made is whether or not to constrain the mode when evaluating a uniform
+expression, ⸨⦑unif⦒⸢ρ⸣␣μ⸩. The simplest design is to force the mode to be a singleton.
+If we want multiple parties to agree on a uniform value, it must be explicitly sent (shared)
+with those parties. Alternatively, we could allow ⸨⦑unif⦒⸢ρ⸣␣μ⸩ to be evaluated in an arbitrary
+mode ⸨m⸩. However, this is more challenging to realize in a distributed implementation since the
+entropy on all parties has to be identical throughout execution to ensure that the uniform values
+they generate are also identical. The advantage of this approach is that it is (potentially) faster
+since there is no communication needed among the parties.
+
+As we will see, most of the complexity of \lang crops up in the design of the type system, and the
+proof techniques required to prove~\nameref{thm:lang-pmto} and~\nameref{thm:lang-simulation}.
+
+\subsection{Type System}
+\label{subsec:propsal-design-types}
+
+\ins{TODO}
+% Doesn't address types for first-class principals a la Wysteria
+% What should labels be?
+% Type Soundness
+% PMTO%
+
+\subsection{Distributed Semantics}
+\label{subsec:proposal-design-dist}
+
+\ins{TODO}
+
+% Simulation
 
 \section{Implementation}
+\label{sec:proposal-impl}
+
+\ins{TODO: revise ... super stale}
 
 We must now consider if the formal language we have designed is useful. Can we write interesting programs in the language?
 Will those programs be efficient? Questions such as these must be answered empirically. We will address both of these questions
@@ -131,7 +163,6 @@ that they type check (and are therefore oblivious). Second, with our distributed
 expected asymptotic behavior. We will perform a series of experiments in which \ins{todo: similar to experiments in FLORAM paper}
 This will confirm that our language can support RAM-model computation which is competitive with existing languages that offer ORAM support
 (e.g. Obliv-C, SCALE-MAMBA).
-
 
 \ins{mention somewhere that these ORAM implementations are different from the ones in \obliv -- these are not client-server but instead in
   the ORAM-SC model in which neither party knows the position tag of inserted elements.}
