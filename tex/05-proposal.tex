@@ -1,4 +1,4 @@
-\chapter{Proposal: \lang, A Secure MPC Language With User-Defined ORAM}
+\chapter{Proposal: \lang, A Probabilistically Oblivious Language for Secure Multiparty Computation}
 \label{ch:proposal}
 
 Up to this point, we have seen two languages (\mpc and \obliv) which, individually, have all the language
@@ -11,8 +11,8 @@ and hypothesize about how to overcome them.
 \section{Design}
 \label{sec:proposal-design}
 
-The formal language design for \lang consists of the syntax (\Cref{fig:lang-syntax}), type system (\Cref{fig:lang-types}),
-a probabilistic sequential semantics (\Cref{fig:lang-seq}), and a probabilistic distributed semantics (\Cref{fig:lang-dist}).
+The formal language design for \lang consists of the syntax (\Cref{fig:lang-syntax}), type system,
+a probabilistic sequential semantics, and a probabilistic distributed semantics.
 The type system should be sound, and additionally it should enforce~\nameref{thm:lang-pmto}. We claim that~\nameref{thm:lang-pmto}
 is the appropriate extension of \obliv's~\nameref{thm:obliv-pmto} to the MPC setting. The ``\%" should be read as ``modulo'' and refers
 to the PMTO proerty being generalized to handle declassifications. The last theorem we expect \lang to satisfy is~\nameref{thm:lang-simulation}
@@ -115,23 +115,45 @@ they generate are also identical. The advantage of this approach is that it is (
 since there is no communication needed among the parties.
 
 As we will see, most of the complexity of \lang crops up in the design of the type system, and the
-proof techniques required to prove~\nameref{thm:lang-pmto} and~\nameref{thm:lang-simulation}.
+proof strategies required for~\nameref{thm:lang-pmto} and~\nameref{thm:lang-simulation}.
 
 \subsection{Type System}
-\label{subsec:propsal-design-types}
+\label{subsec:proposal-design-types}
 
-\ins{TODO}
-% Doesn't address types for first-class principals a la Wysteria
-% What should labels be?
-% Type Soundness
-% PMTO%
+\ins{TODO: What should the information flow labels be?} \\
+
+\ins{TODO: What does the type system look like? Sketch it.} \\
+
+\ins{TODO: Don't forget to mention that the syntax doesn't account for
+  additional types that will be necessary for handling refinement
+  types over principal sets and probability regions.} \\
+
+\ins{TODO: Given a rough candidate for Soundness and PMTO\%, where does the proof strategy need adapting?} \\
+\begin{theorem}[Type Soundness]\label{thm:lang-sound}
+\end{theorem}
+
+\begin{theorem}[PMTO\%]\label{thm:lang-pmto}
+\end{theorem}
+
+\ins{TODO: Discuss connection between PMTO\% and gradual release.} \\
+
+\ins{TODO: Make sure to mention SCVM as prior work that establishes something like MTO\%. Also
+  mention that it is much less useful as a theorem having proved Simulation.} \\
 
 \subsection{Distributed Semantics}
 \label{subsec:proposal-design-dist}
 
-\ins{TODO}
+\ins{TODO: What does distributed semantics look like? Sketch it.} \\
 
-% Simulation
+\ins{TODO: Is the statement of Simulation ``obvious''? If so, explain. If not, why not?} \\
+
+\ins{TODO: Given a rough candidate for Simulation, where does the proof strategy need adapting?} \\
+\begin{theorem}[Simulation (\lang)]\label{thm:lang-simulation}
+\end{theorem}
+
+\ins{A: The proof is at least complicated by the fact that the sequential semantics is no-longer determinstic.} \\
+
+\ins{IDEA: The mixed semantics of \obliv is more deterministic, shoving distributions into values. Maybe that helps?} \\
 
 \section{Implementation}
 \label{sec:proposal-impl}

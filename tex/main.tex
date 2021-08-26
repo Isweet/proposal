@@ -22,7 +22,7 @@
 
 \newcommand{\underbracketarg}[2]{\underbracket[0.5pt]{#2}_{#1}}
 \newcommand{\code}[1]{\lstinline{#1}}
-\newcommand{\mfootnotesize}[1]{\ifmmode\textnormal{\smaller\(#1\)}\else{\smaller #1}\fi}
+\newcommand{\mfootnotesize}[1]{\ifmmode\textnormal{\(#1\)}\else{#1}\fi}
 
 \lstdefinestyle{customcaml}{
 	numbers=left,
@@ -84,6 +84,10 @@
 \maketitle
 
 \begin{abstract} \input{00-abstract.tex} \end{abstract}
+
+\ins{TODO: Ensure consistency, eliminate staleness.} \\
+\ins{TODO: Add all the citations, hunt for broken refs.} \\
+\ins{TODO: Make sure code examples are consistent with langauges --- Figure 2.3 isn't, for example.}
 
 \tableofcontents
 
