@@ -136,33 +136,28 @@ proof techniques required to prove~\nameref{thm:lang-pmto} and~\nameref{thm:lang
 \section{Implementation}
 \label{sec:proposal-impl}
 
-\ins{TODO: revise ... super stale}
+Our implementation of \lang will build on the existing Haskell interpreter for \mpc, \system, described in~\Cref{sec:mpc-impl}.
+The interpreter will need to be extended with support for a cryptographically secure PRNG. This will serve as a secure foundations for
+generating uniform, random distributions which are suitable for use in cryptographic protocols. One possibility is to link the interpreter
+against OpenSSL and use AES in CTR mode.
 
-We must now consider if the formal language we have designed is useful. Can we write interesting programs in the language?
-Will those programs be efficient? Questions such as these must be answered empirically. We will address both of these questions
-using the ORAM protocols described in~\cref{ch:oram}. In particular, since we are claiming that our type system has a very powerful
-property ---~\cref{thm:lang-pmto} --- we might also expect it to be very restrictive. How do we know it actually accepts the ORAM
-protocols we would like to prove are oblivious? For this reason, we take ORAM protcols to be representative ``interesting programs.''
+Perhaps the biggest implementation effort will be adding a sufficiently expressive type checker to the interpreter. As discussed
+in~\Cref{subsec:proposal-design-types}, the type system will require polymorphism over probability regions and party sets. To
+type check interesting programs, we will also need to support constraints over regions and party sets, likely in the form of
+refinement types. To implement such a type system will require linking against an SMT solver like Z3~\cite{} to check that
+constraints are satisfiable. All that being said, we have implemented a type checker for \obliv as part of the \textsc{OblivML}
+interpreter so we anticipate that consulting this code will make the implementation effort much easier.
 
-The \mpc language has an existing Haskell interpreter. However, this interpreter only implements the centralized semantics of \mpc.
-In particular, it doesn't actually perform any MPC and doesn't run as multiple communicating processes. Our first implementation
-goal will be to extend the existing interpreter to also support a distribued mode. We have already partially completed this task
-by implementing a Haskell FFI to the C++ bindings for EMP. The prototype distributed mode is capable of sharing integers, performing
-primitive operations (e.g. addition, comparison), and revealing the result. For example, we have successfully implemented the Millionaire's Problem
-from~\ref{sec:background-symphony}. There is more work to support ORAM -- we will need to handle random numbers, references, and
-more primitive operations at a minimum. Furthermore, since EMP is limited to two parties, so too is our distributed mode.
+As discussed in~\Cref{sec:mpc-impl}, the \system interpreter already has an extensive standard library, test suite, and benchmark
+suite. We will evaluate how much of this existing \system code can be made to typecheck (i.e. by adding type annotations where necessary).
+However, none of this existing code uses randomness. So, we anticipate that this will primarily evaluate the expressiveness of our
+typing rule for party set polymorphism and associated constraints. To evaluate the expressiveness of code which uses randomness,
+we'll implement a new set of benchmark programs. Our hope is to implement and type check One-Time Pad, Circuit ORAM,
+Binary Search (on top of Circuit ORAM), and an optimized QuickSort using permutation~\cite{hamada}. All four of these programs
+will rely on the type system to ensure that certain revelations leak zero information. The inclusion of One-Time
+Pad and optimized QuickSort will provide evidence that our type system generalizes to programs beyond ORAM.
 
-The existing \mpc implementation does not have a type checker. We will first add the type checker of \mpc to the implementation without
-the additional features (affinity, probability regions) required for \lang. This type system should be sufficient for checking, for example,
-that Trivial ORAM\footnote{Interestingly, this will already confirm that Trivial ORAM in the MPC model is~\ref{thm:mpc-mto}.}. Then, we will
-add the challenging features of affinity and probability regions. In prior work, we implemented the type system of \obliv and used it to
-type check various ORAM case studies. We expect that we will be able to use our experience from that artifact here.
-
-Finally, we can address the two empirical questions mentioned above. First, we will implement the ORAM protocols in our language and confirm
-that they type check (and are therefore oblivious). Second, with our distributed mode, we will confirm that the ORAM protocols have the
-expected asymptotic behavior. We will perform a series of experiments in which \ins{todo: similar to experiments in FLORAM paper}
-This will confirm that our language can support RAM-model computation which is competitive with existing languages that offer ORAM support
-(e.g. Obliv-C, SCALE-MAMBA).
-
-\ins{mention somewhere that these ORAM implementations are different from the ones in \obliv -- these are not client-server but instead in
-  the ORAM-SC model in which neither party knows the position tag of inserted elements.}
+We will evaluate the efficiency of \lang using a methodology identical to the one described in \Cref{sec:mpc-impl} on the
+benchmark programs described above (OTP, Circuit ORAM, Binary Search, and optimized QuickSort). We will also repeat the MPC
+benchmarks to see how much performance improvement we achieve through static typing. We expect at least a modest improvement,
+since we can omit all runtime checks for well-typed programs.

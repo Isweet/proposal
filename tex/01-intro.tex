@@ -115,8 +115,9 @@ language with primitives for drawing uniform, random samples and declassifying t
 Property~\ref{itm:probabilistic} above. Next, we will prove that \lang satisfies type safety, simulation, and obliviousness theorems.
 The type safety and simulation theorems will establish that \lang satisfies Property~\ref{itm:sequential}. The type safety and obliviousness
 theorems will establish that \lang satisfies Property~\ref{itm:assurance}. We will provide evidence that \lang is expressive and efficient
-by implementing modern ORAM protocols (Trivial ORAM, Circuit ORAM, and Recursive (Circuit) ORAM), and empirically evaluating them to ensure
-that they have the appropriate asymptotic behavior. Having accomplished all this, we will have confirmed our hypothesis.
+by evaluating \lang against four benchmarks: One-Time Pad, Circuit ORAM, Binary Search (on Circuit ORAM), and Optimized QuickSort~\cite{}.
+Expressiveness of \lang is established by type checking the benchmarks, while efficiency is measured by measuring the execution time and
+gate counts. Having accomplished all this, we will have confirmed our hypothesis.
 
 \Cref{tab:timeline} describes the remaining tasks and gives a rough estimate for their time to completion. Tasks
 in \colorbox{implColor}{red} require adding features to the existing Haskell interpreter for \mpc. Tasks in
@@ -144,9 +145,10 @@ in \colorbox{implColor}{red} require adding features to the existing Haskell int
   \rowcolor{implColor}
   Case Studies:
   \begin{itemize}
-  \item Trivial ORAM
+  \item One-Time Pad
   \item Circuit ORAM
-  \item Recursive (Circuit) ORAM
+  \item Binary Search
+  \item Optimized QuickSort
   \end{itemize} &
   Implement the ORAM case studies in \lang and benchmark their performance. &
   \ins{TODO} \\ \hline

@@ -9,22 +9,29 @@ required. For example in GMW, an AND gate requires a round of communication and 
 Programmers who are not experts in MPC will require information about the cost of the programs they are writing. This could be
 handled elegantly by the language. There is ample research in type-based resource analysis~\cite{}, for example. \ins{TODO: this is rough}
 
+\paragraph{\lang Compiler}
+Evaluating a sophisticated compiler for \lang against other MPC frameworks such as Obliv-C and ABY is left to future work. We conjecture
+that such an implementation would be competitive with state-of-the-art MPC languages, while also providing strong safety and security
+guarantees.
+
 \paragraph{Oblivious Data Structures}
-Our prior work has shown that Oblivious Data Structures (ODS's), proposed by Wang et al., do not satisfy PMTO.\ins{replace with ref. to theorem} Even though ODS's are safe due to negligibl overflow probability, we are unable to verify that fact in \lang. We would like to find some
-way to support ODS's within the language while retaining the security guarantees provided by the tyep system.
+Our prior work has shown that Oblivious Data Structures (ODS's), proposed by Wang et al., do not satisfy PMTO.\ins{replace with ref. to theorem}
+Even though ODS's are safe due to negligible overflow probability, we are unable to verify that fact in \lang. We would like to find some
+way to support ODS's within the language while retaining the security guarantees provided by the type system.
 
 \paragraph{Other Security Policies}
 PMTO\% is perhaps the most obvious security policy one could prove about MPC programs which admit ORAM. However, it is not the only property
 one could prove. There is a rich literature of different declassification policies, as well as weaker variants of (P)MTO like Differential
 MTO~\cite{} and manual computational proofs of securit with explicit complexity-theoretic reductions~\cite{easycrypt}.
 
-\paragraph{Usability of Abstractly Centralized Languages}
-We make claims in this proposal that abstractly centralized languages are a good choice for MPC. We justify this claim by arguing that
-programmers need not think about the distributed deployment of their program. Furthermore, the type safety theorem for the centralized
+\paragraph{Usability of Abstractly Sequential Languages}
+We claim in this proposal that abstractly sequential languages are a good choice for MPC. We justify that claim by arguing that
+programmers need not think about the distributed deployment of their program. Furthermore, the type safety theorem for the sequential
 semantics implies safety of the distributed semantics. However, a more empirical approach to the question of usability is warranted.
 A user study comparing two languages, one of which exposes more of the distributed computation, would lend more credibility to our claim
-that abstractly centralized languages are preferable.
+that abstractly sequential languages are preferable.
 
 \paragraph{Support for PIR-based ORAM}
 The most efficient modern ORAM schemes in the MPC context use Private Information Retrieval (PIR) protocols. These protocols rely on
-features such as function secret sharing and cryptographic pseudo-random functions.
+features such as function secret sharing and cryptographic pseudo-random functions. These more sophisticated cryptographic protocols
+are not in the current scope of \lang.
