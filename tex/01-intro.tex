@@ -91,8 +91,6 @@ In summary, we would like a modern MPC language to satisfy the following propert
 \section{Proposed Work}
 \label{sec:intro-proposal}
 
-\mwh{You should be including Symphony as part of your contribution. You had a big part to play in this work. It will be in no one else's thesis but yours. You are going to make a static type system for it, so that's also part of your thesis and should be here.} \ins{Updated, see what you think. Added contributions for \system interpreter, and a contribution for \mpc type system.}
-
 \paragraph{Hypothesis.} It is possible to design and implement an efficient language for MPC which is \textbf{Abstractly Sequential},
 \textbf{Probabilistic}, and \textbf{High Assurance} (as defined above).
 
@@ -121,7 +119,7 @@ The case studies were Non-Recursive Tree ORAM, Recursive Tree ORAM, and Obliviou
 sufficiently expressive, successfully type-checking both ORAM examples. Oblivious Stacks were rejected by our type-checker, but
 it turns out the rejection is warranted because Oblivious Stacks do not satisfy obliviousness (as we have defined it)~\cite{todo}.
 
-\paragraph{Contribution: Identifying PMTO\%.} We identify and define \emph{Probabilistic Memory Trace Obliviousness Modulo Declassification}
+\paragraph{Contribution: Identifying PMTO\%.} In ongoing work, we identify and define \emph{Probabilistic Memory Trace Obliviousness Modulo Declassification}
 (PMTO\%) as an appropriate definition of security for probabilistic MPC languages. We also investigate and explicate the connection between
 this property and other common security properties involving declassifications (such as Gradual Release~\cite{todo}).
 

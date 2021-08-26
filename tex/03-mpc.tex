@@ -1,21 +1,11 @@
 \chapter{\mpc, A Language for Concise MPC}
 \label{ch:mpc}
 
-\mwh{Your prior chapter gave us an idea of what this was about. Can you
-  suggest that readers could skip over these formal details if they
-  like? What are critical things they need to know from this chapter?
-  I don't think anyone will be remiss if they skip all of the
-  formalization and instead cut to the chase: You have a formalized
-  language, which you implemented, and which you have a proved
-  property for. Also: Make clear what parts here you are claiming for your thesis,
-  and what is just background (recall my earlier comment about ``prior
-  work'' vs. ``already completed work'')} \ins{Look good?}
-
 Busy readers can skip this chapter, returning for details as necessary. The key points from this chapter are
 \textbf{(1)} that the informal description of \textbf{Abstractly Sequential} languages in~\Cref{intro-mpc-obliv} is captured
-by the~\nameref{thm:mpc-simulation} theorem, and \textbf{(2)} that there is empirical evidence suggesting that
-the efficiency of such languages can be competitive with traditional MPC languages (e.g. Obliv-C). The implementation
-of \system, a Haskell interpreter for \mpc and \textbf{(2)} is a completed contribution of this proposal.
+by the~\nameref{thm:mpc-simulation} theorem, and \textbf{(2)} that empirical evidence suggests that
+the efficiency of \mpc can be made competitive with traditional MPC languages (e.g. Obliv-C). The implementation
+of \system, a Haskell interpreter for \mpc, and \textbf{(2)} is a completed contribution of this proposal.
 
 The purpose of this chapter is to provide a formal description of \mpc and describe our already completed work
 on the Haskell implementation, \system.~\Cref{sec:mpc-theory} describes \mpc formally, defining the syntax,
