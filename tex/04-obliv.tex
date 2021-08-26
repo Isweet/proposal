@@ -4,12 +4,19 @@
 \mwh{Same point here as the last chapter: What's the high-level
   takeaway for a committee member that just wants to see the dots and
   assess the big picture, rather than see the detailed connections
-  between the dots?}
+  between the dots?} \ins{Look good?}
+
+Busy readers can skip this chapter, returning for the details as necessary. The key points from this chapter are \textbf{(1)}
+that our informal description of \textbf{Probabilistic} languages in~\Cref{intro-mpc-obliv} is captured formally by a (Giry-)monadic semantics
+(\ref{subsec:obliv-design-sem}), \textbf{(2)} that obliviousness is captured by the~\nameref{thm:obliv-pmto} theorem, and \textbf{(3)} that
+the type system (\ref{subsec:obliv-design-types}) is expressive enough to type check asymptotically optimal client-server ORAM implementations.
+The proof of~\nameref{thm:obliv-pmto}, and the empirical evidence for \textbf{(3)} above are completed contributions of this proposal.
 
 An oblivious computation is one that is free of direct and indirect information leaks, e.g., due to observable differences
 in timing and memory access patterns. In this chapter, we'll give a formal description of \obliv, a core language whose
-type system enforces obliviousness. We show that \obliv satisfies~\nameref{thm:obliv-pmto}, a probabilistic variant of obliviousness.
-We also show that \obliv's type system is expressive enough to typecheck an asymptotically optimal client-server ORAM implementation.
+type system enforces obliviousness. A contribution of this proposal is the proof that \obliv satisfies~\nameref{thm:obliv-pmto},
+a probabilistic variant of obliviousness. We also show that \obliv's type system is expressive enough to typecheck an asymptotically
+optimal client-server ORAM implementation. Interested readers can consult the full paper~\cite{}.
 
 \section{Design}
 \label{sec:obliv-design}
@@ -17,7 +24,7 @@ We also show that \obliv's type system is expressive enough to typecheck an asym
 The formal language design consists of the syntax (\Cref{fig:obliv-syntax}), type system (\Cref{fig:obliv-types},
 and a small-step, probabilistic operational semantics (\Cref{fig:obliv-sem}. The type system is sound, and designed to additionally
 enforce that well-typed programs satisfy~\nameref{thm:obliv-pmto}. In other words, they are (probabilistically) oblivious.
-The proof of~\nameref{thm:obliv-pmto} is complex and we elide the full details here. Interested readers can consult the full paper~\cite{}.
+The proof of~\nameref{thm:obliv-pmto} is complex and we elide the full details here for brevity.
 
 \FigureOblivSyntax{fig:obliv-syntax}{\obliv formal syntax.}
 
@@ -264,6 +271,9 @@ constrains the order in which mux operations can occur subsequently in the
 program.
 Let's look at how the type checker uses strict region ordering to accept and reject a safe and unsafe
 multiplexor. The following code uses regions ⸨ρ₁ ⊏ ρ₂⸩.
+
+\lstset{language=Caml,style=customcaml}
+
 \begin{center}
 \begin{tabular}{cc}
 \begin{minipage}{0.35\textwidth}

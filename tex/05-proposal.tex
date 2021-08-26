@@ -1,9 +1,6 @@
 \chapter{\lang, A Probabilistically Oblivious Language for Secure Multiparty Computation}
 \label{ch:proposal}
 
-\mwh{This is not the ``proposal'' -- rather, it is the work still to
-  be done. The whole thing is the proposal. So I just deleted that prefix.}
-
 \mwh{For the parts not yet done, here: Don't formalize these. Instead,
   describe the properties/ideas you imagine you will implement. This
   is research so you don't have to know the result. But you can have
@@ -90,7 +87,7 @@ each \mpc rule corresponds to a \lang rule that produces a point distribution (�
 the Giry monad). For example, here's two candidate rules for introducing pairs and performing
 a zero-information revelation.
 
-P⁅ Rː⦗Allyn-Pair⦘
+P⁅ Rː⦗Allyn-ST-Pair⦘
    R⁅{Aːrcl
       A⁅ v₁ ⧼=⧽ γ(x₁)↙⸤m⸥
       A⁃ v₂ ⧼=⧽ γ(x₂)↙⸤m⸥
@@ -98,7 +95,7 @@ P⁅ Rː⦗Allyn-Pair⦘
       -------------------------------------------
       γ ⊢⸤m⸥ δ,⟨x₁,x₂⟩ ↪ ‹return›(δ,⟨v₁,v₂⟩@m)
       R⁆
-P⁃ Rː⦗Allyn-Reveal-True⦘
+P⁃ Rː⦗Allyn-ST-Reveal-True⦘
    R⁅{Aː[b]rcl
       A⁅ p@m          ⧼=⧽ γ(x₁)↙⸤m⸥
       A⁃ q@m          ⧼=⧽ γ(x₂)↙⸤m⸥
@@ -129,6 +126,8 @@ proof strategies required for~\nameref{thm:lang-pmto} and~\nameref{thm:lang-simu
 \subsection{Type System}
 \label{subsec:proposal-design-types}
 
+
+
 \ins{TODO: What should the information flow labels be?} \\
 
 \ins{TODO: What does the type system look like? Sketch it.} \\
@@ -152,7 +151,35 @@ proof strategies required for~\nameref{thm:lang-pmto} and~\nameref{thm:lang-simu
 \subsection{Distributed Semantics}
 \label{subsec:proposal-design-dist}
 
-\ins{TODO: What does distributed semantics look like? Sketch it.} \\
+We expect the distributed semantics of \lang to be a straight-forward combination of the
+distributed semantics of \mpc and \obliv. Since none of the expression forms added to
+\lang require synchronization, we anticipate that these will be handled by \lang's version
+of the *⦗DS-Step⦘ rule in~\Cref{fig:mpc-dist}. A \lang distributed configuration, ⸨ ⇡~*C ⸩,
+will be a finite map from parties to \emph{distributions} of local configurations ⸨⇡.ς⸩.
+We need not lift the distribution over the entire finite map, since there are no expressions
+which are both probabilistic and synchronizing.
+
+Here's an candidate adaptation of the *⦗DS-Step⦘ rule, according to the description above. As
+a notational convenience, we notate distributions of local configurations as ⸨⇡^ς⸩.
+
+P⁅ Rː⦗Allyn-DS-Step⦘
+   R⁅ ⇡^ς —→⸤A⸥ ⇡^{ς'}
+      ----------------
+      ❴A ↦ ⇡^ς ❵ ⊎ ⇡~*C ↝ ❴A ↦ ⇡^{ς′} ❵ ⊎ ⇡~*C
+   R⁆
+P⁆
+
+The local step relation from \mpc, ⸨⇡^ς —→⸤A⸥ ⇡^ς⸩, is adapted in the same way as described
+in~\Cref{para:mpc-design-dist-sem-nonsync}, and then the relation is lifted monadically.
+
+% Given a relation ⸨a R m b⸩ where ⸨m⸩ is a monad, we can define the monadic lifting
+% of the relation, ⸨m a mR m b⸩, as follows.
+
+% ∀ mb' . do a <- ma ; a r mb
+% ---------------
+% ma mR mb'
+
+% Is this right...?
 
 \ins{TODO: Is the statement of Simulation ``obvious''? If so, explain. If not, why not?} \\
 
@@ -160,7 +187,7 @@ proof strategies required for~\nameref{thm:lang-pmto} and~\nameref{thm:lang-simu
 \begin{theorem}[Simulation (\lang)]\label{thm:lang-simulation}
 \end{theorem}
 
-\ins{A: The proof is at least complicated by the fact that the sequential semantics is no-longer determinstic.} \\
+\ins{A: The proof is at least complicated by the fact that the sequential semantics is no-longer deterministic.} \\
 
 \ins{IDEA: The mixed semantics of \obliv is more deterministic, shoving distributions into values. Maybe that helps?} \\
 

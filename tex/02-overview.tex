@@ -43,6 +43,7 @@ body of the expression and generate an \emph{opaque value}, denoted \opaque, ins
 \opaque because he is not included in principals declared by the ⸨⦑par⦒[\alice]⸩ expression. On line 2, \bob reads his wealth,
 ⸨\bobs{⋖wealth⋗}⸩, and binds it to ⸨y⸩ while \alice binds \opaque to ⸨y⸩. In summary, after line 2, the local environemnts are:
 
+\vspace*{-1.5ex}
 M⁅
   Aːcc
   A⁅ \alice & \bob
@@ -55,6 +56,7 @@ notation for shares which appears in \Cref{ch:gmw} to emphasize the connection b
 of \mpc. On line 4, \bob splits his ⸨\bobs{⋖wealth⋗}⸩ into two shares. He keeps his share and send's \alice's share to her. So, after
 line 4 the local environments are:
 
+\vspace*{-1.5ex}
 M⁅
   Aːllll
   A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob}
@@ -67,6 +69,7 @@ On line 5, \alice and \bob compute over their shares to produce a share indicati
 how to compute ⸨<⸩ over shares. For example, if the underlying MPC protocol were GMW then we would encode ⸨<⸩ as a magnitude circuit made
 up of XOR and AND gates.
 
+\vspace*{-1.5ex}
 M⁅
   Aːcc
   A⁅ \alice & \bob
@@ -77,6 +80,7 @@ M⁆
 Finally, on line 6, the shares of ⸨\alices{⋖wealth⋗} < \bobs{⋖wealth⋗}⸩ among \alice and \bob are combined and the
 result is revealed to both parties. The XOR operator, ⸨⊕⸩, is used to combine shares implicitly as part of the ⸨⦑reveal⦒⸩.
 
+\vspace*{-1.5ex}
 M⁅
   Aːllll
   A⁅ 𝑚𝑐2c{\alice} & 𝑚𝑐2c{\bob}
@@ -102,73 +106,99 @@ and \textbf{High Assurance}. But, what are these properties and why do we care a
 \label{subsec:background-properties-centralized}
 
 A language which is abstractly sequential liberates the programmer from managing a distributed computation. In the context of MPC,
-the programmer does not need to perform commands conditionally on which party is executing. To see the difference, contrast the
-Obliv-C implementation of the Millionaire's Problem in~\Cref{fig:millionaires-oblivc} with the \mpc implementation
-in~\Cref{fig:millionaires-symphony}.
+the programmer does not need to perform commands conditionally on which party is executing. For example, suppose we wish to implement
+``March Madness Millionaires'' (MMM) where ⸨N = 2ᴷ⸩ parties take part in a ⸨K⸩ pairwise competition to see who is wealthiest. Each
+round, the winners of the previous round are paired up in the next round until there is a final winner; all ⸨N - 1⸩ contest winners
+are made public.\footnote{In this exact
+  case, it suffices to compute the maximum of all of the inputs.
+  Imagine a more interesting situation in which each competition
+  depletes the competitors input, or some joint computation is
+  required.}
+Unfortunately, $N$-party languages, such as
+PICCO~\cite{CCS:ZhaSteBla13},
+Sharemind~\cite{ESORICS:BogLauWil08},
+Frigate~\cite{Frigate},
+and SCALE-MAMBA~\cite{SCALEMAMBA},
+provide no help in coordinating this sort of task; like
+Obliv-C, they take the default view that all parties perform
+the same synchronized activity.
+Non-synchrony is handled by exception.
+For MMM, parties are pairwise (not $N$-way) synchronized to
+start, and require coordination after each round.
+This logic must be coded up in a separate language, and call the MPC
+code by FFI, making the aggregate harder to
+reason about.
 
-\mwh{But this program basically is abstractly sequential, because all
-  parties will run literally the same code, which is doing the same
-  thing. You need something like MMM to point out Obliv-C's
-  failings. In sum: This example shows that Obliv-C is ugly, but
-  doesn't make your case about abstract sequentiality.}
+\lstset{language=psl}
 
-\begin{figure}[h]
-\begin{lstlisting}[language=c,basicstyle=\footnotesize\ttfamily,numbers=left,stepnumber=1]
-  // File: million.h
-  typedef struct {
-    int in;
-    bool out;
-  } ProtocolIO;
+\begin{figure}[H]
+{\lstset{language=psl, basicstyle=\footnotesize\ttfamily}
+\begin{lstlisting}
+principal A[N] -- A is the set of all participants.
 
-  void millionaire (void *args);
+-- Compare wealth of p1 and p2; broadcast the result.
+def compete wealth p1 p2 =
+  let res = par [ p1, p2 ]
+    let x = share [ yao, int : p1 -> p1, p2 ] wealth.p1 in
+    let y = share [ yao, int : p2 -> p1, p2 ] wealth.p2 in
+    x > y in
+  if (reveal [yao,int : p1, p2 -> A] res) then p1 else p2
 
-  // File: million.oc
-  #include <million.h>
-  #include <obliv.oh>
+def round P wealth =
+  case P
+  -- If there are at least two parties, match them
+  -- up and recursively match up rest.
+  { { p1 } \/ { p2 } \/ P' ->
+      let p'  = compete wealth p1 p2 in
+      let P'' = round P' wealth in
+      { p' , P'' }
+  -- Otherwise propagate P. If one party remains,
+  -- she gets a bye.
+  ; _ -> P }
 
-  void millionaire (void *args) {
-    ProtocolIO *io = args;
-    obliv int a, b;
-    obliv bool res = false;
-    a = feedOblivInt (io->in, 1);
-    b = feedOblivInt (io->in, 2);
-    obliv if (a < b) res = true;
-    revealOblivBool(&io->out, res, 0);
-  }
+def tournament Remaining wealth =
+  case Remaining
+  -- If only one player remains, that player wins
+  { { winner } ++ {} -> winner
+  ; _ ->
+      let RoundWinners = round Remaining wealth in
+      tournament RoundWinners wealth }
 
-  // File: million.c
-  #include <million.h>
+-- Each party reads its input from its local device;
+-- inputs are collected into a bundle.
+def bundleInputs P = solo-f P (fun _ -> read int)
 
-  int main (int argc, char *argv[]) {
-    ProtocolDesc pd;
-    ProtocolIO io;
-    int p = (argv[1] == '1' ? 1 : 2);
-    sscanf(argv[2], "%d", &io.in);
-    // ... set up TCP connections
-
-    setCurrentParty(&pd, p);
-    execYaoProtocol(&pd, millionaire, &io);
-    printf ("%d\n", io.out);
-    // ... cleanup
-  }
+-- After reading in inputs, kick off the tournament
+def main () =
+  par [ A.* ]
+    let wealth = bundleInputs [ A.* ] in
+    tournament [ A.* ] wealth
 \end{lstlisting}
-\caption{Obliv-C code for the Millionaire's Problem}
-\label{fig:millionaires-oblivc}
+}
+\vspace*{-2ex}
+  \caption{%
+    ``March Madness Millionaires'' (MMM) written in \system.
+    The $N$ parties participate in a single-elimination tournament to decide
+    who is wealthiest.
+    Each competition winner is revealed, but each party's wealth is kept secret.
+    %\dcd{what does “she gets a bye” mean in the comment for
+      %\lstinline|round|?} \mwh{No competition}
+  }\label{fig:symphony-mmm}
+  \vspace*{-2ex}
 \end{figure}
 
-Hopefully it is clear that many of the details of the distributed deployment have leaked into the application code.
-The \lstinline[language=c,basicstyle=\ttfamily]{main} function is responsible for scaffolding such as establishing TCP connections (line 31),
-explicitly executing the protocol (line 34), and populating the \lstinline[language=c,basicstyle=\ttfamily]{io} variable with party inputs (line 30). As
-a point of comparison, take a look back at~\Cref{fig:millionaires-symphony}. Notice that this code makes no mention of TCP connections,
-explicit execution of any protocol, or eagerly reading and caching secret inputs. Dealing with such infrastructure can be annoying, but
-is it safe? By allowing the programmer to execute code conditionally based on which party is executing, languages like Obliv-C allow code
-which has all the usual pitfalls of distributed programming. For example, deadlock caused by both parties attempting to receive values
-from each other before they have performed a send.
+Forcing the programmer to execute code conditionally based on the party
+that is executing, as all these languages do, opens the door to the
+pitfalls of distributed programming. Hanging, deadlock, and non-determinism
+introduced by asynchronous message-passing are all now major concerns.
+In contrast, \mpc and \system guarantee that if an execution successfully
+terminates using the sequential semantics (which cannot hang, deadlock, etc.)
+then it will also successfully terminate when run in a distributed deployment,
+using real MPC.
 
-In Chapter~\ref{ch:lam-mpc} we formally define \textbf{Abstractly Sequential} MPC languages as those which satisfy~\nameref{thm:mpc-safety} and~\nameref{thm:mpc-simulation}.
-~\nameref{thm:mpc-safety} guarantees that well-typed \mpc programs don't get stuck (encounter a runtime error).~\nameref{thm:mpc-simulation} guarantees
-that the sequential interpretation of a program terminates successfully if and only if the distributed interpretation terminates successfully (with the same
-result). These two theorems work together to guarantee that well-typed programs can't encounter liveness errors.
+In Chapter~\ref{ch:lam-mpc} we formally define \textbf{Abstractly Sequential} MPC languages as those which satisfy~\nameref{thm:mpc-simulation}.
+This guarantees that the sequential interpretation of a program terminates successfully if and only if the distributed interpretation terminates successfully (with the same
+result). This theorem states formally what we previously claimed only informally, that successful termination of sequential programs and distributed programs coincide.
 
 \subsection{Probabilistic}
 \label{subsec:background-properties-probabilistic}
@@ -195,7 +225,7 @@ This code illustrates the importance of random sampling for efficient RAM access
 a Trivial ORAM then the lookup on line 8 would require 2 accesses (one for each element in the ORAM). This may not seem so bad, but consider
 the overhead if \bob wanted to choose from an array of length ⸨n⸩. In that case, the lookup would incur an $O(n)$ overhead!
 
-\begin{figure}[h]
+\begin{figure}[H]
 M⁅
 \begin{array}{r@{␠}lcl}
    «0:» & 𝑚𝑐3l{ ⦑par⦒[\alice,\bob] }
@@ -255,6 +285,3 @@ respectively. In the former, we discuss \obliv which is not an MPC language and 
 as benign exposure. In the latter, we discuss \lang which is an MPC language and therefore has declassifications. As such, we must generalize~\nameref{thm:obliv-pmto}
 to~\nameref{thm:lang-pmto} to take declassifications into account. In both languages, a sound static type system is used as the enforcement mechanism. Only well-typed
 programs are guaranteed to be oblivious.
-
-\ins{IDEA: In future paper, implement quicksort (1) on top of ORAM and then (2) using permutation optimization. Show that (2) is much
-  faster, which suggests that building ORAM into the language and using it everywhere is not a good solution.}

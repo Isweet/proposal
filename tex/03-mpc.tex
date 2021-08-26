@@ -9,15 +9,22 @@
   language, which you implemented, and which you have a proved
   property for. Also: Make clear what parts here you are claiming for your thesis,
   and what is just background (recall my earlier comment about ``prior
-  work'' vs. ``already completed work'')}
+  work'' vs. ``already completed work'')} \ins{Look good?}
 
-The purpose of this chapter is to provide a summary of prior work on \mpc.~\Cref{sec:mpc-theory} describes \mpc
-formally, defining the syntax, sequential semantics, and distributed semantics. These definitions are used to
-prove~\nameref{thm:mpc-simulation}.~\Cref{sec:mpc-impl} describes \system, a Haskell interpreter for \mpc.
+Busy readers can skip this chapter, returning for details as necessary. The key points from this chapter are
+\textbf{(1)} that the informal description of \textbf{Abstractly Sequential} languages in~\Cref{intro-mpc-obliv} is captured
+by the~\nameref{thm:mpc-simulation} theorem, and \textbf{(2)} that there is empirical evidence suggesting that
+the efficiency of such languages can be competitive with traditional MPC languages (e.g. Obliv-C). The implementation
+of \system, a Haskell interpreter for \mpc and \textbf{(2)} is a completed contribution of this proposal.
+
+The purpose of this chapter is to provide a formal description of \mpc and describe our already completed work
+on the Haskell implementation, \system.~\Cref{sec:mpc-theory} describes \mpc formally, defining the syntax,
+sequential semantics, and distributed semantics. These definitions are used to prove~\nameref{thm:mpc-simulation}.
+~\Cref{sec:mpc-impl} describes \system, a Haskell interpreter for \mpc. This is a contribution of the proposal.
 \system includes both the sequential and distributed semantics, as well as an MPC backend based on EMP~\cite{}.
 It also has additional features not included in the formal model of \mpc. Finally, a set of experiments on a
-benchmark suite suggest that performance of \system is similar to Obliv-C. Interested readers can find
-additional information on \mpc and \system in~\citet{todo}.
+benchmark suite suggest that performance of \system is similar to Obliv-C. Interested readers can find additional
+information on \mpc and \system in~\citet{todo}.
 
 \section{Design}
 \label{sec:mpc-design}
@@ -378,7 +385,7 @@ whenever $A$'s active expression $e$ is anything other than ⸨⦑share⦒⸩ or
 Those two cases use the rules~*⦗DS-Share⦘ and~*⦗DS-Reveal⦘,
 respectively, discussed below.
 
-\paragraph*{Non-Synchronizing Expressions}
+\paragraph*{Non-Synchronizing Expressions} \label{para:mpc-design-dist-sem-nonsync}
 %
 The rules for ⸨⇡.γ ⊢ₘ ⇡.δ,a ↪ ⇡.δ, ⇡.v⸩ are essentially the same as
 those for the single-threaded semantics, except that they operate on
