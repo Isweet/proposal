@@ -202,41 +202,51 @@ is often responsible for proving to the type-checker that a term has the appropr
 For example, if a given term ⸨e₂⸩ must be in mode ⸨m'⸩ in order to type-check, then the
 programmer must prove that ⸨m ⊓ p = m'⸩ where ⸨p⸩ is the value of ⸨e₂⸩ at runtime.
 
-A more ergonomic approach is to instead use Liquid types, which are refinement types
-where the refinments fall into a decidable theory. This approach is very expressive,
+A more ergonomic approach is to instead use refinement types. This approach is very expressive,
 while eliminating the burden on the language designer and the programmer. The language
-designer can reuse the metatheory of the decidable fragment (e.g. Presburger arithmetic)
-and defer to a decision procedure in typing rules. Likewise, the programmer does not receive
-any proof obligations from the type-checker. This same approach was taken by Wysteria~\cite{todo},
-where refinements are singletons sets, subsets, or equality.
+designer can offload reasoning about refinements to an auxiliary judgement which defers to
+a decidable logical theory. Likewise, the programmer does not receive any proof obligations from
+the type-checker. This same approach was taken by Wysteria~\cite{todo},
+where refinements are singletons sets, subsets, or equality. Since \lang's ⸨⦑par⦒⸩ expressions
+check non-empty intersection, we will likely also need to intersection as a value form.
 
-The value typing judgement and refinement system of \lang will likely differ from Wysteria's
-due to it's semantics for parallel execution (\lang checks for non-empty intersection, Wysteria
-checks for subset) and expression forms on party sets (\lang supports case analysis of party sets,
-Wysteria does not). For example, case analysis will likely
+\paragraph*{Adapting Obliviousness}
 
-udgement for typing values, and our refinement system, will likely differ from Wysteria's
-because of
+The definition of obliviousness for \lang must be adapted from the~\nameref{thm:obliv-pmto} theorem
+to account for declassifications. In \mpc and \lang, revealing the result of an MPC computation
+(potentially) leaks information about the secret inputs. There is a rich history of literature
+on information-flow type systems which capture various security properties in the presence of
+declassification. \citet{sabelfeldsandsjcs07} provides a comprehensive overview of these properties.
+Our proposed definition of obliviousness is sketched in~\Cref{thm:lang-pmto}. Premise (1) says that
+the closed programs ⸨e₁⸩ and ⸨e₂⸩ must be well-typed. Premise (2) says that ⸨e₁⸩ and ⸨e₂⸩ must be
+indistinguishable to ⸨l⸩-observers. Premise (3) says that ⸨e₁⸩ and ⸨e₂⸩ both terminate, producing trace
+distributions ⸨⇡~*{t₁}⸩ and ⸨⇡~*{t₂}⸩. Premise (4) says that the distribution of declassifications
+in ⸨⇡~*{t₁}⸩ must be equivalent to the distribution of declassifications in ⸨⇡~*{t₂}⸩. If all of
+these hold, then we may conclude that the trace distributions are indistinguishable to ⸨l⸩-observers.
 
+\nameref{thm:lang-pmto} does not attempt to limit \emph{what} information may be released through a declassification.
+Instead, it attempts to limit \emph{when} information may be released. In particular, it enforces that information may
+only be released at declassifications (i.e. ⸨⦑reveal⦒⸤⦑false⦒⸥⸩). The ⸨ℛ⸩ metafunction achieves this by restricting
+its view of the trace to only those configurations that contain a ⸨⦑reveal⦒⸤⦑false⦒⸥⸩ reducible expression. This means
+that any reduction which is not a declassification will be ignored by ⸨ℛ⸩. If information is released somewhere else,
+then premise (4) can still be satisfied, but the conclusion does not hold. We believe that this security theorem is
+similar to Gradual Release~\cite{todo}. We believe that the primary difference between the two is that the presentation
+of Gradual Release is epistemic, dealing with information release and attacker knowledge, whereas~\nameref{thm:lang-pmto}
+is more syntactic, dealing with observable differences between pairs of traces.
 
-We will need a different set of refinements, for two reasons. First, \lang's version of parallel
-execution uses intersection when checking the mode, rather than subset as in Wysteria. This means
-that the type system will likely need refinements for
-
-\ins{TODO: say what will be different from Wysteria ... I imagine the differences will crop up
-  due to us using intersection rather than subset, and allowing case analysis on party sets (which
-  Wysteria doesn't) ... can Wysteria ever shrink a party set value? Or are they always monotonically
-  increasing?}
-
-\ins{TODO: Give a rough candidate for PMTO\%, where does the proof strategy need adapting?} \\
+The SCVM language~\cite{todo} proves a similar property, called ⸨Γ-simulatabilty⸩. This property is very similar to MTO\%
+(non-probabilistic \nameref{thm:lang-pmto}), and to Gradual Release. The primary novelty in \lang is the generalization to
+arbitrary parties (SCVM only supports two), and the generalization to the probabilistic setting.
 
 \begin{theorem}[PMTO\%]\label{thm:lang-pmto}
+  J⁅
+  J⁃ If:  (1) ⸨e₁ : τ⸩, ⸨e₂ : τ⸩
+  J⁃ And: (2) ⸨e₁ ≈⸤l⸥ e₂⸩
+  J⁃ And: (3) ⸨e₁ ⇓ ⇡~*{t₁}⸩, ⸨e₂ ⇓ ⇡~*{t₂}⸩
+  J⁃ And: (4) ⸨⇡~*ℛ⸤l⸥(⇡~*{t₁}) ≈ ⇡~*ℛ⸤l⸥(⇡~*{t₂})⸩
+  J⁃ Then: ⸨⇡~*{t₁} ≈⸤l⸥ ⇡~*{t₂}⸩.
+  J⁆
 \end{theorem}
-
-\ins{TODO: Discuss connection between PMTO\% and gradual release.} \\
-
-\ins{TODO: Make sure to mention SCVM as prior work that establishes something like MTO\%. Also
-  mention that it is much less useful as a theorem having proved Simulation.} \\
 
 \subsection{Distributed Semantics}
 \label{subsec:proposal-design-dist}
