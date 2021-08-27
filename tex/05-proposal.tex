@@ -193,16 +193,16 @@ many programs can be made to type-check. The disadvantages are that it significa
 increases the burden on the language designer and the programmer. The language designer
 must deal with issues such as normalization of open (symbolic) terms. The programmer
 is often responsible for proving to the type-checker that a term has the appropriate type.
-For example, if a given term ⸨e₂⸩ must be in mode ⸨m'⸩ in order to type-check, then the
-programmer must prove that ⸨m ⊓ p = m'⸩ where ⸨p⸩ is the value of ⸨e₂⸩ at runtime.
+For example, to type check ⸨⦑par⦒[e₁]␣e₂⸩, where ⸨e₂⸩ type checks in mode ⸨m'⸩, the
+programmer must prove that ⸨m ⊓ p = m'⸩ where ⸨p⸩ is the value of ⸨e₁⸩ at runtime.
 
 A more ergonomic approach is to instead use refinement types. This approach is very expressive,
 while eliminating the burden on the language designer and the programmer. The language
 designer can offload reasoning about refinements to an auxiliary judgement which defers to
 a decidable logical theory. Likewise, the programmer does not receive any proof obligations from
 the type-checker. This same approach was taken by Wysteria~\cite{rastogi14wysteria},
-where refinements are singletons sets, subsets, or equality. Since \lang's ⸨⦑par⦒⸩ expressions
-check non-empty intersection, we will likely also need to intersection as a value form.
+where refinements are singleton sets, subsets, or equality. Since \lang's ⸨⦑par⦒⸩ expressions
+check non-empty intersection, we will likely also need to add intersection as a value form.
 
 \paragraph*{Adapting Obliviousness}
 
@@ -210,7 +210,7 @@ The definition of obliviousness for \lang must be adapted from the~\nameref{thm:
 to account for declassifications. In \mpc and \lang, revealing the result of an MPC computation
 (potentially) leaks information about the secret inputs. There is a rich history of literature
 on information-flow type systems which capture various security properties in the presence of
-declassification. \citet{Sabelfeld2009DeclassificationDA} provides a comprehensive overview of these properties.
+declassification. \citet{Sabelfeld2009DeclassificationDA} provide a comprehensive overview of these properties.
 Our proposed definition of obliviousness is sketched in~\Cref{thm:lang-pmto}. Premise (1) says that
 the closed programs ⸨e₁⸩ and ⸨e₂⸩ must be well-typed. Premise (2) says that ⸨e₁⸩ and ⸨e₂⸩ must be
 indistinguishable to ⸨l⸩-observers. Premise (3) says that ⸨e₁⸩ and ⸨e₂⸩ both terminate, producing trace
@@ -221,15 +221,15 @@ these hold, then we may conclude that the trace distributions are indistinguisha
 \nameref{thm:lang-pmto} does not attempt to limit \emph{what} information may be released through a declassification.
 Instead, it attempts to limit \emph{when} information may be released. In particular, it enforces that information may
 only be released at declassifications (i.e. ⸨⦑reveal⦒⸤⦑false⦒⸥⸩). The ⸨ℛ⸩ metafunction achieves this by restricting
-its view of the trace to only those configurations that contain a ⸨⦑reveal⦒⸤⦑false⦒⸥⸩ reducible expression. This means
-that any reduction which is not a declassification will be ignored by ⸨ℛ⸩. If information is released somewhere else,
-then premise (4) can still be satisfied, but the conclusion does not hold. We believe that this security theorem is
-similar to Gradual Release~\cite{gradual-release}. We believe that the primary difference between the two is that the presentation
-of Gradual Release is epistemic, dealing with information release and attacker knowledge, whereas~\nameref{thm:lang-pmto}
-is more syntactic, dealing with observable differences between pairs of traces.
+its view of the trace to only those configurations that contain ⸨⦑reveal⦒⸤⦑false⦒⸥⸩ in reduction position. Any reduction
+which is not a declassification will be ignored by ⸨ℛ⸩. If information is released somewhere else,
+then premise (4) can still be satisfied, but the conclusion will not hold. We believe that this security theorem is
+similar to Gradual Release~\cite{gradual-release}, another \emph{when}-policy. We believe that the primary difference
+between the two is that the presentation of Gradual Release is epistemic, dealing with information release and attacker knowledge,
+whereas~\nameref{thm:lang-pmto} is syntactic, dealing with observable differences between pairs of traces.
 
-The SCVM language~\cite{liu14scram} proves a similar property, called ⸨Γ⸩-simulatability. This property is very similar to MTO\%
-(non-probabilistic \nameref{thm:lang-pmto}), and to Gradual Release. The primary novelty in \lang is the generalization to
+The SCVM language~\cite{liu14scram} proves a similar property, called ⸨Γ⸩-simulatability. This property is very to MTO\%
+(non-probabilistic \nameref{thm:lang-pmto}), and to Gradual Release. The novelty of \lang is the generalization to
 arbitrary parties (SCVM only supports two), and the generalization to the probabilistic setting.
 
 \begin{theorem}[PMTO\%]\label{thm:lang-pmto}
@@ -246,10 +246,10 @@ arbitrary parties (SCVM only supports two), and the generalization to the probab
 \label{subsec:proposal-design-dist}
 
 We expect the distributed semantics of \lang to be a straight-forward combination of the
-distributed semantics of \mpc and \obliv. Since none of the expression forms added to
-\lang require synchronization, we anticipate that these will be handled by \lang's version
+distributed semantics of \mpc and \obliv. Since creation of uniform distributions in \lang doesn't
+\lang require synchronization, we anticipate that it will be handled by \lang's version
 of the *⦗DS-Step⦘ rule in~\Cref{fig:mpc-dist}. A \lang distributed configuration, ⸨ ⇡~*C ⸩,
-will be a finite map from parties to \emph{distributions} of local configurations ⸨⇡.ς⸩.
+should be a finite map from parties to \emph{distributions} of local configurations ⸨⇡.ς⸩.
 We need not lift the distribution over the entire finite map, since there are no expressions
 which are both probabilistic and synchronizing.
 
@@ -267,7 +267,7 @@ The local step relation, ⸨⇡^ς —→⸤A⸥ ⇡^ς⸩, is adapted in the sa
 in~\Cref{para:mpc-design-dist-sem-nonsync}, and then the relation is lifted monadically.
 
 We give a sketch of~\Cref{thm:lang-simulation} below, but the notation is intended to be evocative rather
-than precise. We denote distributions using~⸨⇡~*{}⸩. Generally, we expect to have to lift most definitions from~\Cref{subsec:mpc-design-sim}
+than precise. We denote distributions using ⸨⇡~*{‗}⸩. Generally, we expect to have to lift most definitions from~\Cref{subsec:mpc-design-sim}
 to a probabilistic variant. What does it mean for a distribution of configurations to be terminal? What is the definition of slicing, ⸨‗↯⸩,
 over distributions of configurations? Does the natural lifting relate sequential and distribution configurations appropriately? These
 are all questions we will investigate.
@@ -292,23 +292,22 @@ The interpreter will need to be extended with support for a cryptographically se
 generating uniform, random distributions which are suitable for use in cryptographic protocols. One possibility is to link the interpreter
 against OpenSSL and use AES in CTR mode.
 
-Perhaps the biggest implementation effort will be adding a sufficiently expressive type checker to the interpreter. As discussed
-in~\Cref{subsec:proposal-design-types}, the type system will require polymorphism over probability regions and party sets. To
-type check interesting programs, we will also need to support constraints over regions and party sets. To implement such a type system
-will require linking against an SMT solver like Z3~\cite{10.5555/1792734.1792766} to check that constraints are satisfiable. All that being said, we have
-implemented a type checker for \obliv as part of the \textsc{OblivML} interpreter so we anticipate that consulting this code
-will make the implementation effort much easier.
+Perhaps the biggest implementation effort will be adding an expressive type checker to the interpreter. As discussed
+in~\Cref{subsec:proposal-design-types}, the type system will require refinements and polymorphism over probability regions and party sets.
+To implement such a type system will require linking against an SMT solver like Z3~\cite{10.5555/1792734.1792766} to check that
+refinements are satisfiable. All that being said, we have implemented a type checker for \obliv as part of the \textsc{OblivML} interpreter
+so we anticipate that consulting this code will make the implementation effort much easier.
 
 As discussed in~\Cref{sec:mpc-impl}, the \system interpreter already has an extensive standard library, test suite, and benchmark
 suite. We will evaluate how much of this existing \system code can be made to typecheck (i.e. by adding type annotations where necessary).
 However, none of this existing code uses randomness. So, we anticipate that this will primarily evaluate the expressiveness of our
-typing rule for party set polymorphism and associated constraints. To evaluate the expressiveness of code which uses randomness,
+typing rules for party set polymorphism and associated constraints. To evaluate the expressiveness of code which uses randomness,
 we'll implement a new set of benchmark programs. Our hope is to implement and type check One-Time Pad, Circuit ORAM,
 Binary Search (on top of Circuit ORAM), and an optimized QuickSort using permutation~\cite{obliv-quicksort}. All four of these programs
-will rely on the type system to ensure that certain revelations leak zero information. The inclusion of One-Time
-Pad and optimized QuickSort will provide evidence that our type system generalizes to programs beyond ORAM.
+will rely on the type system to verify benign exposures (zero-information revelations). The inclusion of One-Time Pad and
+optimized QuickSort will provide some evidence that our type system generalizes to applications beyond ORAM.
 
-We will evaluate the efficiency of \lang using a methodology identical to the one described in \Cref{sec:mpc-impl} on the
+We will evaluate the efficiency of \lang using a methodology identical to the one described in \Cref{sec:mpc-impl}, using the
 benchmark programs described above (OTP, Circuit ORAM, Binary Search, and optimized QuickSort). We will also repeat the MPC
 benchmarks to see how much performance improvement we achieve through static typing. We expect at least a modest improvement,
 since we can omit all runtime checks for well-typed programs.

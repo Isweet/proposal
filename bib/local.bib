@@ -191,3 +191,104 @@ numpages = {4},
 location = {Budapest, Hungary},
 series = {TACAS'08/ETAPS'08}
 }
+
+@InProceedings{10.1007/978-3-642-31424-7_64,
+author="Hoffmann, Jan
+and Aehlig, Klaus
+and Hofmann, Martin",
+editor="Madhusudan, P.
+and Seshia, Sanjit A.",
+title="Resource Aware ML",
+booktitle="Computer Aided Verification",
+year="2012",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="781--786",
+abstract="The automatic determination of the quantitative resource consumption of programs is a classic research topic which has many applications in software development. Recently, we developed a novel multivariate amortized resource analysis that automatically computes polynomial resource bounds for first-order functional programs.",
+isbn="978-3-642-31424-7"
+}
+
+@inproceedings{10.5555/3310435.3310585,
+author = {Chan, T-H. Hubert and Chung, Kai-Min and Maggs, Bruce M. and Shi, Elaine},
+title = {Foundations of Differentially Oblivious Algorithms},
+year = {2019},
+publisher = {Society for Industrial and Applied Mathematics},
+address = {USA},
+abstract = {It is well-known that a program's memory access pattern can leak information about
+its input. To thwart such leakage, most existing works adopt the technique of oblivious
+RAM (ORAM) simulation. Such an obliviousness notion has stimulated much debate. Although
+ORAM techniques have significantly improved over the past few years, the concrete
+overheads are arguably still undesirable for real-world systems --- part of this overhead
+is in fact inherent due to a well-known logarithmic ORAM lower bound by Goldreich
+and Ostrovsky. To make matters worse, when the program's runtime or output length
+depend on secret inputs, it may be necessary to perform worst-case padding to achieve
+full obliviousness and thus incur possibly super-linear overheads.Inspired by the
+elegant notion of differential privacy, we initiate the study of a new notion of access
+pattern privacy, which we call "(ϵ, δ)-differential obliviousness". We separate the
+notion of (ϵ, δ)-differential obliviousness from classical obliviousness by considering
+several fundamental algorithmic abstractions including sorting small-length keys,
+merging two sorted lists, and range query data structures (akin to binary search trees).
+We show that by adopting differential obliviousness with reasonable choices of ϵ and
+δ, not only can one circumvent several impossibilities pertaining to full obliviousness,
+one can also, in several cases, obtain meaningful privacy with little overhead relative
+to the non-private baselines (i.e., having privacy "almost for free"). On the other
+hand, we show that for very demanding choices of ϵ and δ, the same lower bounds for
+oblivious algorithms would be preserved for (ϵ, δ)-differential obliviousness.},
+booktitle = {Proceedings of the Thirtieth Annual ACM-SIAM Symposium on Discrete Algorithms},
+pages = {2448–2467},
+numpages = {20},
+location = {San Diego, California},
+series = {SODA '19}
+}
+
+@inbook{10.1145/3133956.3133967,
+author = {Doerner, Jack and Shelat, Abhi},
+title = {Scaling ORAM for Secure Computation},
+year = {2017},
+isbn = {9781450349468},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3133956.3133967},
+abstract = {We design and implement a Distributed Oblivious Random Access Memory (DORAM) data
+structure that is optimized for use in two-party secure computation protocols. We
+improve upon the access time of previous constructions by a factor of up to ten, their
+memory overhead by a factor of one hundred or more, and their initialization time
+by a factor of thousands. We are able to instantiate ORAMs that hold 234 bytes, and
+perform operations on them in seconds, which was not previously feasible with any
+implemented scheme.Unlike prior ORAM constructions based on hierarchical hashing,
+permutation, or trees, our Distributed ORAM is derived from the new Function Secret
+Sharing scheme introduced by Boyle, Gilboa and Ishai. This significantly reduces the
+amount of secure computation required to implement an ORAM access, albeit at the cost
+of O(n) efficient local memory operations.We implement our construction and find that,
+despite its poor O(n) asymptotic complexity, it still outperforms the fastest previously
+known constructions, Circuit ORAM and Square-root ORAM, for datasets that are 32 KiB
+or larger, and outperforms prior work on applications such as stable matching or binary
+search by factors of two to ten.},
+booktitle = {Proceedings of the 2017 ACM SIGSAC Conference on Computer and Communications Security},
+pages = {523–535},
+numpages = {13}
+}
+
+@inproceedings{10.1145/28395.28420,
+author = {Goldreich, O. and Micali, S. and Wigderson, A.},
+title = {How to Play ANY Mental Game},
+year = {1987},
+isbn = {0897912217},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/28395.28420},
+doi = {10.1145/28395.28420},
+abstract = {We present a polynomial-time algorithm that, given as a input the description of a
+game with incomplete information and any number of players, produces a protocol for
+playing the game that leaks no partial information, provided the majority of the players
+is honest.Our algorithm automatically solves all the multi-party protocol problems
+addressed in complexity-based cryptography during the last 10 years. It actually is
+a completeness theorem for the class of distributed protocols with honest majority.
+Such completeness theorem is optimal in the sense that, if the majority of the players
+is not honest, some protocol problems have no efficient solution [C].},
+booktitle = {Proceedings of the Nineteenth Annual ACM Symposium on Theory of Computing},
+pages = {218–229},
+numpages = {12},
+location = {New York, New York, USA},
+series = {STOC '87}
+}

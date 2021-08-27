@@ -2,7 +2,7 @@
 \label{ch:obliv}
 
 Busy readers can skip this chapter, returning for the details as necessary. The key points from this chapter are \textbf{(1)}
-that our informal description of \textbf{Probabilistic} languages in~\Cref{intro-mpc-obliv} is captured formally by a (Giry-)monadic semantics
+that our informal description of \textbf{Probabilistic} languages in~\Cref{sec:intro-mpc-obliv} is captured formally by a (Giry-)monadic semantics
 (\ref{subsec:obliv-design-sem}), \textbf{(2)} that obliviousness is captured by the~\nameref{thm:obliv-pmto} theorem, and \textbf{(3)} that
 the type system (\ref{subsec:obliv-design-types}) is expressive enough to type check asymptotically optimal client-server ORAM implementations.
 The proof of~\nameref{thm:obliv-pmto}, and the empirical evidence for \textbf{(3)} above are completed contributions of this proposal.
@@ -16,8 +16,8 @@ optimal client-server ORAM implementation. Interested readers can consult the fu
 \section{Design}
 \label{sec:obliv-design}
 
-The formal language design consists of the syntax (\Cref{fig:obliv-syntax}), type system (\Cref{fig:obliv-types},
-and a small-step, probabilistic operational semantics (\Cref{fig:obliv-sem}. The type system is sound, and designed to additionally
+The formal language design consists of the syntax (\Cref{fig:obliv-syntax}), type system (\Cref{fig:obliv-types}),
+and a small-step, probabilistic operational semantics (\Cref{fig:obliv-sem}). The type system is sound, and designed to additionally
 enforce that well-typed programs satisfy~\nameref{thm:obliv-pmto}. In other words, they are (probabilistically) oblivious.
 The proof of~\nameref{thm:obliv-pmto} is complex and we elide the full details here for brevity.
 
@@ -117,7 +117,7 @@ The ⸨⦑cast⦒⸤ℓ⸥⸩ case converts a flip to a similarly-labeled bit va
 The next few cases use the three-argument metafunction ⸨‹cond›(b,X,Y)⸩, which
 returns ⸨X⸩ if ⸨b⸩ is ⸨⦑I⦒⸩, and ⸨Y⸩ otherwise.
 %
-The two ⸨⦑bitv⦒⸤𝓁⸥(b) ¿ v₂ ◇ v₃⸩ cases operate in a similar way: they return the
+The two ⸨⦑bitv⦒⸤ℓ⸥(b) ¿ v₂ ◇ v₃⸩ cases operate in a similar way: they return the
 second two arguments of the multiplexor in order when the first
 argument is ⸨⦑bitv⦒⸤ℓ⸥(⦑I⦒)⸩, and in reverse order when it is
 ⸨⦑bitv⦒⸤ℓ⸥(⦑O⦒)⸩. The security label of the result is the join of the labels of

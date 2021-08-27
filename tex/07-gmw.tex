@@ -12,7 +12,7 @@ and therefore may be safely distributed to other parties and recombined later. M
 \end{enumerate}
 
 The languages discussed in this proposal are agnostic to the underlying MPC protocol. We only require that the underlying MPC protocol
-have the properties listed above. For the purposes of exposition, however, we choose to use the GMW protocol [cite] as a
+have the properties listed above. For the purposes of exposition, however, we choose to use the GMW protocol~\cite{10.1145/28395.28420} as a
 representative for MPC protocols in general.
 
 In GMW, the secrets being shared are booleans. To represent integers with arithmetic, comparison, etc. we use a two's
@@ -35,6 +35,11 @@ At this point, there are a few important things to notice. First, \bob's share i
 As long as he never sees \aliceSh{\aliceSec} he can't distinguish his share \bobSh{\aliceSec} from a fresh, uniform
 boolean value. This establishes property (2) of MPC above. Second, XOR has the following properties:
 
+\begin{fact}[⸨⊕⸩-Assoc]
+\label{fact:xor-assoc}
+  ⸨∀ b₁,b₂,b₃ ∈ 𝔹␣.␣(b₁ ⊕ b₂) ⊕ b₃ = b₁ ⊕ (b₂ ⊕ b₃)⸩
+\end{fact}
+
 \begin{fact}[⸨⊕⸩-Inverse]
 \label{fact:xor-inverse}
   ⸨∀ b ∈ 𝔹␣.␣b ⊕ b = 0⸩
@@ -49,9 +54,9 @@ These two properties ensure that the original secret, \aliceSec, can be recovere
 
 M⁅
   Aːllll
-  A⁅ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ⧼=⧽ \aliceSh{\aliceSec} ⊕ \aliceSh{\aliceSec} ⊕ \aliceSec & ␠⟅ by \bobSh{\aliceSec} ⟆
-  A⁃                                         ⧼=⧽ 0 ⊕ \aliceSec & ␠⟅ by \nameref{fact:xor-inverse} ⟆
-  A⁃                                         ⧼=⧽ \aliceSec & ␠⟅ by \nameref{fact:xor-identity} ⟆
+  A⁅ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ⧼=⧽ \aliceSh{\aliceSec} ⊕ \aliceSh{\aliceSec} ⊕ \aliceSec & ␠⟅ Definition of \bobSh{\aliceSec} ⟆
+  A⁃                                         ⧼=⧽ 0 ⊕ \aliceSec & ␠⟅ \nameref{fact:xor-inverse} ⟆
+  A⁃                                         ⧼=⧽ \aliceSec & ␠⟅ \nameref{fact:xor-identity} ⟆
   A⁆
 M⁆
 
@@ -72,11 +77,11 @@ Why does this work? Well, it's because XOR is associative:
 M⁅
   Aːllll
   A⁅ \aliceSh{\aliceSec ⊕ \bobSec} ⊕ \bobSh{\aliceSec ⊕ \bobSec} ⧼=⧽
-      (\aliceSh{\aliceSec} ⊕ \aliceSh{\bobSec}) ⊕ (\bobSh{\aliceSec} ⊕ \bobSh{\bobSec}) & ␠⟪[Definition of XOR of shares]⟫
+    (\aliceSh{\aliceSec} ⊕ \aliceSh{\bobSec}) ⊕ (\bobSh{\aliceSec} ⊕ \bobSh{\bobSec}) & ␠⟅ Definition of \aliceSh{A⸨ \aliceSec ⊕ \bobSec A⸩} and \bobSh{A⸨ \aliceSec   ⊕ \bobSec A⸩} ⟆
   A⁃ ⧼=⧽
-      (\aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec}) ⊕ (\aliceSh{\bobSec} ⊕ \bobSh{\bobSec}) & ␠⟪[Associativity of XOR]⟫
+  (\aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec}) ⊕ (\aliceSh{\bobSec} ⊕ \bobSh{\bobSec}) & ␠⟅ \nameref{fact:xor-assoc} ⟆
   A⁃ ⧼=⧽
-      \aliceSec ⊕ \bobSec & ␠⟪[Share Recovery]⟫
+      \aliceSec ⊕ \bobSec & ␠⟅ Share Recovery ⟆
   A⁆
 M⁆
 
@@ -107,7 +112,6 @@ outcomes for \bob's shares, \bobSh{\aliceSec} and \bobSh{\bobSec}.
     ⸨1⸩ & ⸨0⸩ & A⸨ α⸤1,0⸥ = \aliceSh{\aliceSec} ⊕ 1 ∧ \aliceSh{\bobSec} ⊕ 0 A⸩ & A⸨ r⸤1,0⸥ = \alices{σ} ⊕ α⸤1,0⸥ A⸩ \\ \hline
     ⸨1⸩ & ⸨1⸩ & A⸨ α⸤1,1⸥ = \aliceSh{\aliceSec} ⊕ 1 ∧ \aliceSh{\bobSec} ⊕ 1 A⸩ & A⸨ r⸤1,1⸥ = \alices{σ} ⊕ α⸤1,1⸥ A⸩ \\ \hline
   \end{tabular}
-  \caption{B⸨testingB⸩\ins{TODO: couldn't figure out how to use colored math in here without an error.}}
   \label{tab:and-ot}
 \end{table}
 
@@ -128,11 +132,11 @@ Finally, let's check that this is correct and secure. First, correctness:
 
 M⁅
   Aːllll
-  A⁅ \aliceSh{\aliceSec ∧ \bobSec} ⊕ \bobSh{\aliceSec ∧ \bobSec} ⧼=⧽ \alices{σ} ⊕ (\alices{σ} ⊕ α⸤i,j⸥) & ␠⟪[Definition of ⸨∧⸩]⟫
+  A⁅ \aliceSh{\aliceSec ∧ \bobSec} ⊕ \bobSh{\aliceSec ∧ \bobSec} ⧼=⧽ \alices{σ} ⊕ (\alices{σ} ⊕ α⸤i,j⸥) & ␠⟅ Definition of ⸨∧⸩ ⟆
   A⁃ & & ‹where›␣i = \bobSh{\aliceSec}␣‹and›␣j = \bobSh{\bobSec}
-  A⁃ ⧼=⧽ α⸤i,j⸥ & ␠⟪[Fact~\ref{xor-inverse}]⟫
-  A⁃ ⧼=⧽ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ∧ \aliceSh{\bobSec} ⊕ \bobSh{\bobSec} & ␠⟪[Definition (by OT on Table~\ref{tab:and-ot})]⟫
-  A⁃ ⧼=⧽ \aliceSec ∧ \bobSec & ␠⟪[Share Recovery]⟫
+  A⁃ ⧼=⧽ α⸤i,j⸥ & ␠⟅ \nameref{fact:xor-assoc},~\nameref{fact:xor-inverse},~\nameref{fact:xor-identity} ⟆
+  A⁃ ⧼=⧽ \aliceSh{\aliceSec} ⊕ \bobSh{\aliceSec} ∧ \aliceSh{\bobSec} ⊕ \bobSh{\bobSec} & ␠⟅ Definition of OT (Table~\ref{tab:and-ot}) ⟆
+  A⁃ ⧼=⧽ \aliceSec ∧ \bobSec & ␠⟅ Share Recovery ⟆
   A⁆
 M⁆
 
