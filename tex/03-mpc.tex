@@ -8,19 +8,19 @@ the efficiency of \mpc can be made competitive with traditional MPC languages (e
 of \system, a Haskell interpreter for \mpc, and \textbf{(2)} is a completed contribution of this proposal.
 
 The purpose of this chapter is to provide a formal description of \mpc and describe our already completed work
-on the Haskell implementation, \system.~\Cref{sec:mpc-theory} describes \mpc formally, defining the syntax,
+on the Haskell implementation, \system.~\Cref{sec:mpc-design} describes \mpc formally, defining the syntax,
 sequential semantics, and distributed semantics. These definitions are used to prove~\nameref{thm:mpc-simulation}.
 ~\Cref{sec:mpc-impl} describes \system, a Haskell interpreter for \mpc. This is a contribution of the proposal.
-\system includes both the sequential and distributed semantics, as well as an MPC backend based on EMP~\cite{}.
+\system includes both the sequential and distributed semantics, as well as an MPC backend based on EMP~\cite{emp-toolkit}.
 It also has additional features not included in the formal model of \mpc. Finally, a set of experiments on a
 benchmark suite suggest that performance of \system is similar to Obliv-C. Interested readers can find additional
-information on \mpc and \system in~\citet{todo}.
+information on \mpc and \system in~\citet{symphony22}.
 
 \section{Design}
 \label{sec:mpc-design}
 
 In addition to the definition of the syntax (\Cref{fig:mpc-syntax}), the formal definition of \mpc
-includes two dynamic semantics --- sequential (\Cref{fig:mpc-seq-defs,fig:mpc-seq-sem}) and distributed (\Cref{fig:mpc-dist-sem}).
+includes two dynamic semantics --- sequential (\Cref{fig:mpc-seq-aux,fig:mpc-seq}) and distributed (\Cref{fig:mpc-dist}).
 The sequential semantics represents the local execution of the program, requiring no communication
 and no MPC. The distributed semantics represents the distributed execution, requiring communication
 between principals performing MPC. The~\nameref{thm:mpc-simulation} theorem ensures that successfully
@@ -31,8 +31,7 @@ The syntax of \mpc is in \Cref{fig:mpc-syntax}. To simplify the formal semantics
 \mpc is defined using a kind of \emph{administrative normal form} (ANF), meaning
 that most expression forms operate directly on variables $x$, rather than subexpressions $e$,
 as is the case in the actual implementation.
-\footnote{ This restriction does not harm expressiveness. Direct-style syntax like ⸨⦑ref⦒␣(1+⦑read⦒)⸩
-can be encoded in \mpc's formal syntax as ⸨⦑let⦒␣x = ⦑read⦒␣⦑in⦒␣⦑let⦒␣y = 1␣⦑in⦒␣⦑let⦒␣z = y+x␣⦑in⦒␣⦑ref⦒␣z⸩. }
+\footnote{ This restriction does not harm expressiveness. Direct-style syntax like ⸨⦑ref⦒␣(1+⦑read⦒)⸩ can be encoded in \mpc's formal syntax as ⸨⦑let⦒␣x = ⦑read⦒␣⦑in⦒␣⦑let⦒␣y = 1␣⦑in⦒␣⦑let⦒␣z = y+x␣⦑in⦒␣⦑ref⦒␣z⸩. }
 
 \FigureMPCSyntax{fig:mpc-syntax}{\mpc formal syntax.}
 

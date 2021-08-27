@@ -1,11 +1,6 @@
 \chapter{Introduction}
 \label{ch:intro}
 
-\epigraph{It seems like everywhere I go \\
-          The more I see, the less I know}{
-            Michael Franti \& Spearhead \\
-            \emph{Say Hey I Love You}}
-
 Programming languages have a duty of \emph{confidentiality}. They are responsible for protecting the
 data that we designate as sensitive or private. Most modern computation is \emph{mutual} --- computation
 is performed over the private information of many parties --- which means that programming languages
@@ -22,26 +17,26 @@ except the function output. That is, MPC allows parties to work together to run 
 
 % Problem: MPC programs are hard to write and read for novices.
 % Solution: Abstract Sequentiality.
-Approaches to MPC have improved significantly over the years. The first full implementation, FairPlay~\cite{todo}, could evaluate
+Approaches to MPC have improved significantly over the years. The first full implementation, FairPlay~\cite{USENIX:MNPS04}, could evaluate
 only a few hundred Boolean gates per second. Modern implementations with custom deployments evaluate \emph{billions} of Boolean gates per
-second~\cite{todo}, and cryptographers continue to reduce the cost of MPC. Despite increasing efficiency and compelling applications
+second~\cite{CCS:AFLNO16}, and cryptographers continue to reduce the cost of MPC. Despite increasing efficiency and compelling applications
 (secure auctions, secure databases, collaborative machine learning, and any other imaginable application with security concerns),
 MPC has not been widely adopted. One significant barrier to adoption is a lack of appropriate infrastructure. Today, it is difficult
 for non-experts to understand and work in the complex distributed model that MPC requires. To assuage this difficulty, some recent
-MPC lanuages (e.g. SCVM, Wysteria, and Symphony) are \textbf{abstractly sequential}. An \textbf{abstractly sequential} language hides
-the parallel deployment of the MPC program from the programmer. This proposal builds heavily on one such language, Symphony, which is
-discussed formally in~\cref{sec:lam-mpc}.
+MPC lanuages (e.g. SCVM~\cite{liu14scram}, Wysteria~\cite{rastogi14wysteria}, and \system~\cite{symphony22}) are
+\textbf{Abstractly Sequential}. An \textbf{Abstractly Sequential} language hides the parallel deployment of the MPC
+program from the programmer. This proposal builds heavily on \system, which is discussed formally in~\Cref{ch:mpc}.
 
 % Problem: MPC programs are slow, linear ORAM is intractable.
 % Solution: Uniform, random sampling => logarithmic ORAM.
 
 In addition to a lack of infrastructure, MPC languages also fail to provide adequate support for RAM-model programming.
 The standard means by which RAM-model computation is supported in MPC languages is using \emph{Oblivious RAM} (ORAM). To date, most MPC languages
-simply do not provide any access to ORAM. In their 2019 SoK,~\citet{todo} observe that only a ``few frameworks have ORAM support, either
-natively (ObliVM and SCALE-MAMBA) or via a library (Obliv-C).'' The three languages mentioned, ObliVM~\cite{todo}, SCALE-MAMBA~\cite{todo}, and
-Obliv-C~\cite{todo}, are \emph{probabilistic} MPC languages. According to~\citet{todo}, a language must have support for uniform, random sampling
+simply do not provide any access to ORAM. In their 2019 SoK,~\citet{HastingsHNZ19} observe that only a ``few frameworks have ORAM support, either
+natively (ObliVM and SCALE-MAMBA) or via a library (Obliv-C).'' The three languages mentioned, ObliVM~\cite{oblivm}, SCALE-MAMBA~\cite{SCALEMAMBA}, and
+Obliv-C~\cite{cryptoeprint:2015:1153}, are \emph{probabilistic} MPC languages. According to~\citet{G87}, a language must have support for uniform, random sampling
 to implement asymptotically optimal ORAM. Indeed, each of these languages provides a highly optimized implementation of
-Circuit ORAM~\cite{todo}, which is known to be asymptotically optimal (i.e. $O(\log{n})$).
+Circuit ORAM~\cite{10.1145/2810103.2813634}, which is known to be asymptotically optimal (i.e. $O(\log{n})$).
 
 % Problem: MPC programs that use uniform, random sampling for efficiency are not guaranteed to be safe (confidential).
 % Solution: High assurance programs via an oblivious or leak-free declassification which is checked for confidentiality.
@@ -64,7 +59,8 @@ M⁆
 
 Line 0 indicates that this is a joint computation among \alice and \bob. On line 1, \alice generates a uniform, random bit which will serve
 as her encryption key. On line 2, she reads a secret bit from local storage. Finally, on line 3, she encrypts her secret, ⸨s⸩, by XORing it
-with the key ⸨k⸩ and then sends the result to \bob. Does \bob learn any information about \alice's secret? He doesn't, because it has been encrypted
+with the key ⸨k⸩ and then sends the result to \bob.~\footnote{We write ⸨⦑send⦒⸩ as syntactic sugar for a ⸨⦑share⦒⸩ followed immediately by
+a ⸨⦑reveal⦒⸤⦑true⦒⸥⸩.} Does \bob learn any information about \alice's secret? He doesn't, because it has been encrypted
 by the random bit ⸨k⸩ which he doesn't know. As long as ⸨k⸩ is never revealed to \bob, \alice's secret is safe.
 However, in existing MPC languages, there is no way to specify that the ⸨⦑send⦒⸩ on line 3 reveals no information about ⸨s⸩.
 A \emph{high assurance} language ensures that programs are probabilistically oblivious. Such languages give programmers the ability to specify
@@ -83,7 +79,7 @@ In summary, we would like a modern MPC language to satisfy the following propert
 \item \label{itm:assurance} \textbf{\underline{High Assurance}} -- A high assurance language, which guarantees that all programs are oblivious, is necessary
   for certifying that programs do not leak information through side channels. Without certification of obliviousness, a domain expert
   would need to manually audit the declassifications in the program which are expected to reveal no information. Such declassifications
-  are common in, for example, tree-based ORAM constructions.
+  are common, for example, in tree-based ORAM constructions.
 \end{enumerate}
 
 \paragraph{Problem.} No existing MPC language is (all together) \textbf{Abstractly Sequential}, \textbf{Probabilistic}, and \textbf{High Assurance}.
@@ -96,41 +92,40 @@ In summary, we would like a modern MPC language to satisfy the following propert
 
 \paragraph{Contribution: \mpc is MTO\%.} In ongoing work, we show that \mpc's type system guarantees that MPC programs are
 \emph{Memory Trace Oblivious Modulo Declassifications} (MTO\%). To our knowledge, this is the first time such a theorem has been
-proved for an MPC language. The SCVM language \mwh{CITE} has a proof of a related property based on crypto-style ``simulation.''
+proved for an MPC language. The SCVM language~\cite{liu14scram} has a proof of a related property based on crypto-style ``simulation.''
 
 \paragraph{Contribution: \mpc Performance Measurement.} In already completed work, we implemented \system, a Haskell
-interpreter for \mpc. \system supports both the sequential and distributed semantics with an MPC backend based on EMP~\cite{todo}.
+interpreter for \mpc. \system supports both the sequential and distributed semantics with an MPC backend based on EMP~\cite{emp-toolkit}.
 We performed an empirical evaluation of the runtime performance of \system by comparing to Obliv-C on five standard MPC benchmarks. We concluded
 that \system is slower than Obliv-C, but in the same ballpark. Our results strongly suggest that \system could be made competitive with Obliv-C
 with standard optimizations (e.g. compiling rather than interpreting).
 
-\paragraph{Contribution: A Type System for \mpc.} We will extend \mpc (and \system) with a static type system, satisfying type soundness.
-Terminating, well-typed programs are then guaranteed to evaluate to the same result in both the sequential and distributed semantics.
-This also implies that well-typed programs can't enounter nasty distributed programming errors such as hanging and deadlock.
+\paragraph{Contribution: A Type System for \mpc.} We will extend \mpc (and \system) with a sound static type system. With Simulation,
+type soundness guarantees that well-typed programs evaluate to the same result in both the sequential and distributed semantics.
+This also implies that well-typed programs can't enounter distributed programming errors such as hanging and deadlock.
 
-\paragraph{Contribution: \obliv is PMTO.} In already completed work, we show that ObliVM's~\cite{todo} type system is not oblivious,
-and show how to fix it in such a way that is satisfies \emph{Probabilistic Memory Trace Obliviousness} (PMTO).
-We prove this property for \obliv, a non-MPC language for oblivious programming.
+\paragraph{Contribution: \obliv is PMTO.} In already completed work, we show that ObliVM's~\cite{oblivm} type system is not oblivious,
+and show how to fix it so that it satisfies \emph{Probabilistic Memory Trace Obliviousness} (PMTO). We prove this property for \obliv,
+a non-MPC language for oblivious programming.
 
 \paragraph{Contribution: \obliv Expressiveness Measurement.} In already completed work, we implemented \textsc{OblivML}, an OCaml
 interpreter for \obliv. \textsc{OblivML} supports type-checking and interpretation of \obliv programs. We performed an empirical
-evaluation of the expressiveness of \textsc{OblivML} by implementing three case studies and seeing if they type-check.
-The case studies were Non-Recursive Tree ORAM, Recursive Tree ORAM, and Oblivious Stacks. We concluded that the type system is
-sufficiently expressive, successfully type-checking both ORAM examples. Oblivious Stacks were rejected by our type-checker, but
-it turns out the rejection is warranted because Oblivious Stacks do not satisfy obliviousness (as we have defined it)~\cite{todo}.
+evaluation of \textsc{OblivML}, showing that it is adequately expressive by type-checking oblivious algorithms such as Tree ORAM.
+We also discovered that Oblivius Stacks are not PMTO~\cite{sweet20odsnotpmto}.
 
 \paragraph{Contribution: Identifying PMTO\%.} In ongoing work, we identify and define \emph{Probabilistic Memory Trace Obliviousness Modulo Declassification}
 (PMTO\%) as an appropriate definition of security for probabilistic MPC languages. We also investigate and explicate the connection between
-this property and other common security properties involving declassifications (such as Gradual Release~\cite{todo}).
+this property and other common security properties involving declassifications (such as Gradual Release~\cite{gradual-release}).
 
 \paragraph{Contribution: \lang, an \textbf{Abstractly Sequential}, \textbf{Probabilistic}, \textbf{High Assurance} MPC language.}
-We will design, implement, and evaluate the expressiveness and efficiency of \lang, an MPC language satisfying our three desirable
-properties. To do so, we will extend \mpc with expressions for uniform, random sampling and declassification. This satisfies
-Property~\ref{itm:probabilistic} above. Next, we will prove that \lang satisfies type safety, simulation, and obliviousness theorems.
+We will design, implement, and evaluate the expressiveness and efficiency of \lang, an MPC language satisfying the three desirable
+properties above. To do so, we will extend \mpc with expressions for uniform, random sampling and declassification. This satisfies
+Property~\ref{itm:probabilistic} above. Next we will design the type system, drawing from previous work on Wysteria~\cite{rastogi14wysteria}
+and \obliv~\cite{darais20obliv}, and prove that \lang satisfies type safety, simulation, and obliviousness theorems.
 The type safety and simulation theorems establish that \lang satisfies Property~\ref{itm:sequential}. The type safety and obliviousness
 theorems establish that \lang satisfies Property~\ref{itm:assurance}. We will provide evidence that \lang is expressive and efficient
-by evaluating \lang against four benchmarks: One-Time Pad, Circuit ORAM, Binary Search (on Circuit ORAM), and Optimized QuickSort~\cite{}.
-Expressiveness of \lang is established by type checking the benchmarks, while efficiency is measured by measuring execution time and
+by evaluating \lang against four benchmarks: One-Time Pad, Circuit ORAM, Binary Search (on Circuit ORAM), and Optimized QuickSort~\cite{obliv-quicksort}.
+Expressiveness of \lang is established by type checking the benchmarks, while efficiency is evaluated by measuring execution time and
 gate counts and comparing against Obliv-C. Having accomplished all this, we will have confirmed our hypothesis.
 
 \Cref{tab:timeline} describes the remaining tasks and gives a rough estimate for their time to completion. Tasks

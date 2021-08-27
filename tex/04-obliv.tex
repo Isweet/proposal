@@ -11,7 +11,7 @@ An oblivious computation is one that is free of direct and indirect information 
 in timing and memory access patterns. In this chapter, we'll give a formal description of \obliv, a core language whose
 type system enforces obliviousness. A contribution of this proposal is the proof that \obliv satisfies~\nameref{thm:obliv-pmto},
 a probabilistic variant of obliviousness. We also show that \obliv's type system is expressive enough to typecheck an asymptotically
-optimal client-server ORAM implementation. Interested readers can consult the full paper~\cite{}.
+optimal client-server ORAM implementation. Interested readers can consult the full paper~\cite{darais20obliv}.
 
 \section{Design}
 \label{sec:obliv-design}
@@ -410,7 +410,7 @@ Type checking it requires some advanced (but standard) language features we
 have not implemented, including region polymorphism, recursive and variant
 types, and existential quantification. Finally, we have implemented \emph{oblivious stacks}
 (ostacks), a kind of oblivious data structure~\cite{ods} that builds on top of NORAM.
-In doing so, we discovered that oblivious stacks are cryptographically secure, but merely
-statistically secure~\cite{sweet-plas21}. They actually do leak information, but the security claim is the
-amount of leakage is negligible. Our implementation and all the examples discussed can be
+In doing so, we discovered that oblivious stacks are not PMTO~\cite{sweet20odsnotpmto}.
+They actually do have the potential to leak information when the ORAM overflows. The security claim is
+the that the probability of overflow is negligible. Our implementation and all the examples discussed can be
 found online at \url{https://github.com/plum-umd/oblivml}.

@@ -1,12 +1,6 @@
 \chapter{\lang, A Probabilistically Oblivious Language for Secure Multiparty Computation}
 \label{ch:proposal}
 
-\mwh{For the parts not yet done, here: Don't formalize these. Instead,
-  describe the properties/ideas you imagine you will implement. This
-  is research so you don't have to know the result. But you can have
-  ideas for the direction, and ideas on the problems you'll have to
-  solve. It's worth writing those down.}
-
 Up to this point, we have seen two languages (\mpc and \obliv) which, individually, have all the language
 features that we are interested in. \obliv is \textbf{Probabilistic} and \textbf{High Assurance} while \mpc
 is designed for MPC and \textbf{Abstractly Sequential}. The purpose of \lang is to unify these two languages
@@ -206,7 +200,7 @@ A more ergonomic approach is to instead use refinement types. This approach is v
 while eliminating the burden on the language designer and the programmer. The language
 designer can offload reasoning about refinements to an auxiliary judgement which defers to
 a decidable logical theory. Likewise, the programmer does not receive any proof obligations from
-the type-checker. This same approach was taken by Wysteria~\cite{todo},
+the type-checker. This same approach was taken by Wysteria~\cite{rastogi14wysteria},
 where refinements are singletons sets, subsets, or equality. Since \lang's ⸨⦑par⦒⸩ expressions
 check non-empty intersection, we will likely also need to intersection as a value form.
 
@@ -216,7 +210,7 @@ The definition of obliviousness for \lang must be adapted from the~\nameref{thm:
 to account for declassifications. In \mpc and \lang, revealing the result of an MPC computation
 (potentially) leaks information about the secret inputs. There is a rich history of literature
 on information-flow type systems which capture various security properties in the presence of
-declassification. \citet{sabelfeldsandsjcs07} provides a comprehensive overview of these properties.
+declassification. \citet{Sabelfeld2009DeclassificationDA} provides a comprehensive overview of these properties.
 Our proposed definition of obliviousness is sketched in~\Cref{thm:lang-pmto}. Premise (1) says that
 the closed programs ⸨e₁⸩ and ⸨e₂⸩ must be well-typed. Premise (2) says that ⸨e₁⸩ and ⸨e₂⸩ must be
 indistinguishable to ⸨l⸩-observers. Premise (3) says that ⸨e₁⸩ and ⸨e₂⸩ both terminate, producing trace
@@ -230,11 +224,11 @@ only be released at declassifications (i.e. ⸨⦑reveal⦒⸤⦑false⦒⸥⸩)
 its view of the trace to only those configurations that contain a ⸨⦑reveal⦒⸤⦑false⦒⸥⸩ reducible expression. This means
 that any reduction which is not a declassification will be ignored by ⸨ℛ⸩. If information is released somewhere else,
 then premise (4) can still be satisfied, but the conclusion does not hold. We believe that this security theorem is
-similar to Gradual Release~\cite{todo}. We believe that the primary difference between the two is that the presentation
+similar to Gradual Release~\cite{gradual-release}. We believe that the primary difference between the two is that the presentation
 of Gradual Release is epistemic, dealing with information release and attacker knowledge, whereas~\nameref{thm:lang-pmto}
 is more syntactic, dealing with observable differences between pairs of traces.
 
-The SCVM language~\cite{todo} proves a similar property, called ⸨Γ-simulatabilty⸩. This property is very similar to MTO\%
+The SCVM language~\cite{liu14scram} proves a similar property, called ⸨Γ⸩-simulatability. This property is very similar to MTO\%
 (non-probabilistic \nameref{thm:lang-pmto}), and to Gradual Release. The primary novelty in \lang is the generalization to
 arbitrary parties (SCVM only supports two), and the generalization to the probabilistic setting.
 
@@ -301,7 +295,7 @@ against OpenSSL and use AES in CTR mode.
 Perhaps the biggest implementation effort will be adding a sufficiently expressive type checker to the interpreter. As discussed
 in~\Cref{subsec:proposal-design-types}, the type system will require polymorphism over probability regions and party sets. To
 type check interesting programs, we will also need to support constraints over regions and party sets. To implement such a type system
-will require linking against an SMT solver like Z3~\cite{} to check that constraints are satisfiable. All that being said, we have
+will require linking against an SMT solver like Z3~\cite{10.5555/1792734.1792766} to check that constraints are satisfiable. All that being said, we have
 implemented a type checker for \obliv as part of the \textsc{OblivML} interpreter so we anticipate that consulting this code
 will make the implementation effort much easier.
 
@@ -310,7 +304,7 @@ suite. We will evaluate how much of this existing \system code can be made to ty
 However, none of this existing code uses randomness. So, we anticipate that this will primarily evaluate the expressiveness of our
 typing rule for party set polymorphism and associated constraints. To evaluate the expressiveness of code which uses randomness,
 we'll implement a new set of benchmark programs. Our hope is to implement and type check One-Time Pad, Circuit ORAM,
-Binary Search (on top of Circuit ORAM), and an optimized QuickSort using permutation~\cite{hamada}. All four of these programs
+Binary Search (on top of Circuit ORAM), and an optimized QuickSort using permutation~\cite{obliv-quicksort}. All four of these programs
 will rely on the type system to ensure that certain revelations leak zero information. The inclusion of One-Time
 Pad and optimized QuickSort will provide evidence that our type system generalizes to programs beyond ORAM.
 
