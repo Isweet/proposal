@@ -136,58 +136,59 @@ in \colorbox{implColor}{red} require adding features to the existing Haskell int
   \centering
   \small
 
-\begin{tabular}{|p{.33\textwidth}|p{.33\textwidth}|p{.33\textwidth}|}
+\begin{tabular}{|p{.4\textwidth}|p{.4\textwidth}|p{.2\textwidth}|}
   \hline
-  \textbf{Task} & \textbf{Description} & \textbf{Estimated Time of Completion} \\
+  \textbf{Task} & \textbf{Description} & \textbf{Estimated Time} \\
   \hline
 
   \rowcolor{implColor}
-  Probabilistic Choice &
-  Implement probabilistic choice and declassification for \lang. &
-  \ins{TODO} \\ \hline
+  Cryptographically Secure PRNG &
+  Implement uniform, random disributions for \lang using a CSPRNG (e.g. AES-CTR). &
+  $\sim$ 2 weeks \\ \hline
 
   \rowcolor{implColor}
   Type Checker &
   Implement the type checker for \lang. &
-  \ins{TODO} \\ \hline
+  $\sim$ 2 months \\ \hline
 
   \rowcolor{implColor}
-  Case Studies:
-  \begin{itemize}
-  \item One-Time Pad
-  \item Circuit ORAM
-  \item Binary Search
-  \item Optimized QuickSort
-  \end{itemize} &
+  Case Studies: One-Time Pad, Circuit ORAM, Binary Search, Optimized QuickSort &
   Implement the ORAM case studies in \lang and benchmark their performance. &
-  \ins{TODO} \\ \hline
+  $\sim$ 3 weeks \\ \hline
 
   \rowcolor{theoryColor}
   Static Semantics &
   Design the type system of \lang. &
-  \ins{TODO} \\ \hline
+  $\sim$ 1 months \\ \hline
 
   \rowcolor{theoryColor}
   Type Soundness Proof &
   Prove \lang satisfies Type Soundness. &
-  \ins{TODO} \\ \hline
+  $\sim$ 2-3 weeks \\ \hline
 
   \rowcolor{theoryColor}
   Simulation Proof &
   Prove \lang satisfies Simulation. &
-  \ins{TODO} \\ \hline
+  $\sim$ 1 month \\ \hline
 
   \rowcolor{theoryColor}
   PMTO\% Proof &
   Prove \lang satisfies PMTO\%. &
-  \ins{TODO} \\ \hline
+  $\sim$ 2 months \\ \hline
 
   Thesis Writing &
   Write and defend the dissertation. &
-  \ins{TODO} \\ \hline
+  $\sim$ 1 month \\ \hline
+
+  \textbf{ALL} &
+  \textbf{Completion of all tasks above.} &
+  \textbf{$\sim$ 8-9 months} \\ \hline
 \end{tabular}
   \caption{
     Description of remaining tasks and an estimate of their time to completion.
+    Rough estimates, some tasks are usually done in parallel (e.g. development of
+    static semantics and implementation of type checker). Last row is an estimate
+    for total time to completion, based on sum of estimated time for each task.
     }
 \label{tab:timeline}
 \end{table*}
