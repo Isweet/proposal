@@ -126,19 +126,97 @@ proof strategies required for~\nameref{thm:lang-pmto} and~\nameref{thm:lang-simu
 \subsection{Type System}
 \label{subsec:proposal-design-types}
 
+There are three questions which must be addressed to effectively
+design \lang's type system. First, what should the information-flow
+labels be? Second, how do we type-check code which uses party sets as values?
+Third, how do we type-check code which uses probability regions as values?
 
+The information-flow labels have to be determined before obliviousness
+can be enforced. The traditional public and secret labels don't make
+sense in the MPC setting. A clear notion of the information-flow
+lattice and labels is necessary because it is the foundational
+definition of trust. If this is wrong, then security
+theorems like non-interference and obliviousness are meaningless.
 
-\ins{TODO: What should the information flow labels be?} \\
+What should the typing rule for parallel execution ⸨⦑par⦒[e₁]␣e₂⸩ be?
+To determine how the mode should be modified, we need to know the value
+of the party set ⸨p⸩ which results from evaluating ⸨e₁⸩. This is what
+makes type-checking code which uses party sets as values difficult.
 
-\ins{TODO: What does the type system look like? Sketch it.} \\
+Although not as clearly necessary, we also anticipate that we will
+need to type-check code which uses probability regions as values.
+For example, expressions like ⸨⦑unif⦒⸢e⸣␣μ⸩ where ⸨e⸩ evaluates
+to a probability region ⸨ρ⸩.
 
-\ins{TODO: Don't forget to mention that the syntax doesn't account for
-  additional types that will be necessary for handling refinement
-  types over principal sets and probability regions.} \\
+\paragraph*{Information Flow Labels}
 
-\ins{TODO: Given a rough candidate for Soundness and PMTO\%, where does the proof strategy need adapting?} \\
-\begin{theorem}[Type Soundness]\label{thm:lang-sound}
-\end{theorem}
+The traditional information-flow lattice for confidentiality is
+typically the simple lattice denoting privileged (secret) and
+unprivileged (public) entities. In this lattice, public is
+ordered lower than secret. This lattice works well for traditional
+information flow research in which there is a conceptual untrusted
+client and trusted server. However, in MPC we typically think of
+the various parties who are jointly computing as each having their
+own secrets which they want to keep private from each other. In
+that sense, it makes sense for the information-flow lattice to
+be the (dual) powerset lattice over the universe of parties. The
+bottom of the lattice is the universe of all parties, analogous
+to ``public.'' The top of the lattice is the empty set, analogous
+to ``secret.''
+
+If we ignore MPC for a moment, then we can see that the location
+annotations on types and values serve as static and dynamic information
+flow labels. When a value is introduced, the mode determines its location (label).
+When a value is eliminated, the mode is checked against its location (label).
+We can view the location checks as pulling ``double-duty'' as information-flow
+checks.
+
+However, we must decide how MPC and secret-share types should be integrated into
+the information-flow lattice. Our first attempt at such a lattice was to ``stack''
+two powerset lattices, one for cleartext values and one for encryted values. We
+use the location annotation as the label for cleartext values, and we use the
+encryption annotation ⸨⦑enc⦒⋕m⸩ as the label for encrypted values. We then
+sum these two lattices by asserting that top in the cleartext lattice ⸨⊤⸢‹c›⸣⸩
+(cleartext values with empty location) are ordered below the bottom of the
+encryption lattice ⸨⊥⸢‹e›⸣⸩ (encrypted values among all parties in the universe).
+This approach breaks down when considering the least upper bound of a cleartext
+label ⸨p⸢‹c›⸣⸩ and an encrypted label ⸨q⸢‹e›⸣⸩ where ⸨q ⊂ p⸩. The least upper
+bound of two such labels is ⸨p⸢‹e›⸣⸩ according to the candidate lattice. However,
+this doesn't match our intuition. A cleartext value known to ⸨p = \{A,B,C\}⸩ cannot
+be used in a context that expects a value encrypted amongst ⸨q = \{A,B\}⸩.
+
+We are confident that the location and encryption tags can be used to derive an appropriate
+information-flow label, but it is ongoing work to figure out what the labels should be. Doing
+so is a pre-requisite for the design of our type system.
+
+\paragraph*{Polymorphic Types (Party Sets and Probability Regions)}
+
+The most expressive type system design which handles first-class party sets
+and probability regions is a dependent type system. Types would be allowed to
+depend fully on party sets and probability regions (but not other kinds of values).
+The advantage of this approach is that it is maximally expressive, meaning that
+many programs can be made to type-check. The disadvantages are that it significantly
+increases the burden on the language designer and the programmer. The language designer
+must deal with issues such as normalization of open (symbolic) terms. The programmer
+is often responsible for proving to the type-checker that a term has the appropriate type.
+For example, if a given term ⸨e₂⸩ must be in mode ⸨m'⸩ in order to type-check, then the
+programmer must prove that ⸨m ⊓ p = m'⸩ where ⸨p⸩ is the value of ⸨e₂⸩ at runtime.
+
+A more ergonomic approach is to instead use Liquid types, which are refinement types
+where the refinments fall into a decidable theory. This approach is very expressive,
+while eliminating the burden on the language designer and the programmer. The language
+designer can reuse the metatheory of the decidable fragment (e.g. Presburger arithmetic)
+and defer to a decision procedure in typing rules. Likewise, the programmer does not receive
+any proof obligations from the type-checker. This same approach was taken by Wysteria~\cite{todo},
+where refinements are singletons (a reflection of a party set literal to the type level),
+subsets, or equality.
+
+\ins{TODO: say what will be different from Wysteria ... I imagine the differences will crop up
+  due to us using intersection rather than subset, and allowing case analysis on party sets (which
+  Wysteria doesn't) ... can Wysteria ever shrink a party set value? Or are they always monotonically
+  increasing?}
+
+\ins{TODO: Give a rough candidate for PMTO\%, where does the proof strategy need adapting?} \\
 
 \begin{theorem}[PMTO\%]\label{thm:lang-pmto}
 \end{theorem}
@@ -172,24 +250,23 @@ P⁆
 The local step relation from \mpc, ⸨⇡^ς —→⸤A⸥ ⇡^ς⸩, is adapted in the same way as described
 in~\Cref{para:mpc-design-dist-sem-nonsync}, and then the relation is lifted monadically.
 
-% Given a relation ⸨a R m b⸩ where ⸨m⸩ is a monad, we can define the monadic lifting
-% of the relation, ⸨m a mR m b⸩, as follows.
+We give a sketch of~\Cref{thm:lang-simulation} below, but the notation is intended to be evocative rather
+than precise. We denote distributions using~⸨⇡~*{}⸩. Generally, we expect to have to lift most definitions from~\Cref{subsec:mpc-design-sim}
+to a probabilistic variant. What does it mean for a distribution of configurations to be terminal? What is the definition of slicing, ⸨‗↯⸩,
+over distributions of configurations? Does the natural lifting relate sequential and distribution configurations appropriately? These
+are all questions we will investigate.
 
-% ∀ mb' . do a <- ma ; a r mb
-% ---------------
-% ma mR mb'
-
-% Is this right...?
-
-\ins{TODO: Is the statement of Simulation ``obvious''? If so, explain. If not, why not?} \\
-
-\ins{TODO: Given a rough candidate for Simulation, where does the proof strategy need adapting?} \\
 \begin{theorem}[Simulation (\lang)]\label{thm:lang-simulation}
+    If ⸨ς ⇡~*{—→}⋆ ⇡~*{ς'}⸩ then ⸨⇡~*{ς'}⸩ is a terminal configuration and ⸨⇡~*C = ⇡~*{ς'}↯⸩ ⸨⟺⸩ ⸨ς↯ ⇡~*{↝}⋆ ⇡~*C ⸩ and ⸨ ⇡~*C ⸩ is a terminal configuration.
 \end{theorem}
 
-\ins{A: The proof is at least complicated by the fact that the sequential semantics is no-longer deterministic.} \\
-
-\ins{IDEA: The mixed semantics of \obliv is more deterministic, shoving distributions into values. Maybe that helps?} \\
+If we phrase the sequential semantics as a \emph{deterministic} semantics over \emph{distributions} of configurations
+(rather than a \emph{probabilistic} semantics over \emph{individual} configurations) we may be able to recover much
+of the proof strategy used in the proof of~\nameref{thm:mpc-simulation}. Since the distributions in the distributed
+semantics are over local configurations, we anticipate that the semantics will still satisfy confluence up to equivalence
+of distributions. Since the sequential semantics will still be deterministic (over distributions), we anticipate that the
+proof of~\nameref{thm:lang-simulation} will also be easily adapted. The bulk of the work, then, will go to proving that
+\lang satisfies Forward Simulation (appropriately adapted to distributions).
 
 \section{Implementation}
 \label{sec:proposal-impl}
@@ -201,10 +278,10 @@ against OpenSSL and use AES in CTR mode.
 
 Perhaps the biggest implementation effort will be adding a sufficiently expressive type checker to the interpreter. As discussed
 in~\Cref{subsec:proposal-design-types}, the type system will require polymorphism over probability regions and party sets. To
-type check interesting programs, we will also need to support constraints over regions and party sets, likely in the form of
-refinement types. To implement such a type system will require linking against an SMT solver like Z3~\cite{} to check that
-constraints are satisfiable. All that being said, we have implemented a type checker for \obliv as part of the \textsc{OblivML}
-interpreter so we anticipate that consulting this code will make the implementation effort much easier.
+type check interesting programs, we will also need to support constraints over regions and party sets. To implement such a type system
+will require linking against an SMT solver like Z3~\cite{} to check that constraints are satisfiable. All that being said, we have
+implemented a type checker for \obliv as part of the \textsc{OblivML} interpreter so we anticipate that consulting this code
+will make the implementation effort much easier.
 
 As discussed in~\Cref{sec:mpc-impl}, the \system interpreter already has an extensive standard library, test suite, and benchmark
 suite. We will evaluate how much of this existing \system code can be made to typecheck (i.e. by adding type annotations where necessary).
