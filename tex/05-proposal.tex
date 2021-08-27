@@ -168,10 +168,10 @@ If we ignore MPC for a moment, then we can see that the location
 annotations on types and values serve as static and dynamic information
 flow labels. When a value is introduced, the mode determines its location (label).
 When a value is eliminated, the mode is checked against its location (label).
-We can view the location checks as pulling ``double-duty'' as information-flow
-checks.
+The location checks necessary for simulation are pulling ``double-duty'' as
+information-flow checks.
 
-However, we must decide how MPC and secret-share types should be integrated into
+However, we must decide how MPC and encrypted types should be integrated into
 the information-flow lattice. Our first attempt at such a lattice was to ``stack''
 two powerset lattices, one for cleartext values and one for encryted values. We
 use the location annotation as the label for cleartext values, and we use the
@@ -208,8 +208,20 @@ while eliminating the burden on the language designer and the programmer. The la
 designer can reuse the metatheory of the decidable fragment (e.g. Presburger arithmetic)
 and defer to a decision procedure in typing rules. Likewise, the programmer does not receive
 any proof obligations from the type-checker. This same approach was taken by Wysteria~\cite{todo},
-where refinements are singletons (a reflection of a party set literal to the type level),
-subsets, or equality.
+where refinements are singletons sets, subsets, or equality.
+
+The value typing judgement and refinement system of \lang will likely differ from Wysteria's
+due to it's semantics for parallel execution (\lang checks for non-empty intersection, Wysteria
+checks for subset) and expression forms on party sets (\lang supports case analysis of party sets,
+Wysteria does not). For example, case analysis will likely
+
+udgement for typing values, and our refinement system, will likely differ from Wysteria's
+because of
+
+
+We will need a different set of refinements, for two reasons. First, \lang's version of parallel
+execution uses intersection when checking the mode, rather than subset as in Wysteria. This means
+that the type system will likely need refinements for
 
 \ins{TODO: say what will be different from Wysteria ... I imagine the differences will crop up
   due to us using intersection rather than subset, and allowing case analysis on party sets (which
@@ -247,7 +259,7 @@ P⁅ Rː⦗Allyn-DS-Step⦘
    R⁆
 P⁆
 
-The local step relation from \mpc, ⸨⇡^ς —→⸤A⸥ ⇡^ς⸩, is adapted in the same way as described
+The local step relation, ⸨⇡^ς —→⸤A⸥ ⇡^ς⸩, is adapted in the same way as described
 in~\Cref{para:mpc-design-dist-sem-nonsync}, and then the relation is lifted monadically.
 
 We give a sketch of~\Cref{thm:lang-simulation} below, but the notation is intended to be evocative rather
